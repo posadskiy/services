@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy</groupId>
     <artifactId>email-service</artifactId>
-    <version>0.1</version>
+    <version>${project.version}</version>
     <packaging>${packaging}</packaging>
 
     <parent>
@@ -13,6 +13,7 @@
         <version>4.5.0</version>
     </parent>
     <properties>
+        <project.version>0.1</project.version>
         <packaging>jar</packaging>
         <jdk.version>21</jdk.version>
         <release.version>21</release.version>
@@ -139,6 +140,15 @@
                         <arg>-Amicronaut.processing.group=email.service</arg>
                         <arg>-Amicronaut.processing.module=email-service</arg>
                     </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <configuration>
+                    <to>
+                        <image>docker.io/posadskiy/email-service:${project.version}</image>
+                    </to>
                 </configuration>
             </plugin>
         </plugins>
