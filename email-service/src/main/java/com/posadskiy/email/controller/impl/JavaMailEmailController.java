@@ -20,8 +20,8 @@ public class JavaMailEmailController implements EmailController {
         this.emailMapper = emailMapper;
     }
 
-    @NewSpan
     @Post("send")
+    @NewSpan
     public void send(@Body SendEmailForm form) {
         emailService.send(
             emailMapper.toModel(form)
