@@ -1,0 +1,16 @@
+Thumbs.db
+.DS_Store
+.gradle
+build/
+target/
+out/
+.micronaut/
+.idea
+src/main/resources/application-*.yaml
+*.iml
+*.ipr
+*.iws
+.project
+.settings
+.classpath
+.factorypath
