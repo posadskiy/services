@@ -4,8 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy</groupId>
     <artifactId>email-service</artifactId>
-    <version>${project.version}</version>
-    <packaging>${packaging}</packaging>
+    <version>0.1</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>email-service-api</module>
+        <module>email-service-core</module>
+        <module>email-service-web</module>
+    </modules>
 
     <parent>
         <groupId>io.micronaut.platform</groupId>
@@ -147,7 +152,7 @@
                 <artifactId>jib-maven-plugin</artifactId>
                 <configuration>
                     <to>
-                        <image>docker.io/posadskiy/email-service:${project.version}</image>
+                        <image>docker.io/posadskiy/email-service:0.1</image>
                     </to>
                 </configuration>
             </plugin>

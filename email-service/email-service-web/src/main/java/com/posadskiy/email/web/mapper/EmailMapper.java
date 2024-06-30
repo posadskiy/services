@@ -1,6 +1,6 @@
-package com.posadskiy.email.mapper;
+package com.posadskiy.email.web.mapper;
 
-import com.posadskiy.email.dto.SendEmailForm;
+import com.posadskiy.email.api.SendEmailForm;
 import com.posadskiy.email.model.SendEmail;
 import io.micronaut.context.annotation.Mapper;
 import jakarta.inject.Singleton;

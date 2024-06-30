@@ -1,9 +1,9 @@
-package com.posadskiy.email.controller.impl;
+package com.posadskiy.email.web.controller.impl;
 
-import com.posadskiy.email.controller.EmailController;
-import com.posadskiy.email.dto.SendEmailForm;
-import com.posadskiy.email.mapper.EmailMapper;
+import com.posadskiy.email.web.controller.EmailController;
+import com.posadskiy.email.api.SendEmailForm;
 import com.posadskiy.email.service.EmailService;
+import com.posadskiy.email.web.mapper.EmailMapper;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;

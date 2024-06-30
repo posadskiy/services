@@ -1,4 +1,4 @@
-package com.posadskiy.email.dto;
+package com.posadskiy.email.api;
 
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;

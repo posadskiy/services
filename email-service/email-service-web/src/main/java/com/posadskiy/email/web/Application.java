@@ -1,4 +1,4 @@
-package com.posadskiy.email;
+package com.posadskiy.email.web;
 
 import io.micronaut.runtime.Micronaut;
 
