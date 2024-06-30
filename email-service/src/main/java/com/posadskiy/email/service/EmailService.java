@@ -28,7 +28,7 @@ public class EmailService {
         return properties;
     }
 
-    public void send(SendEmail sendEmail) {
+    public void sendText(SendEmail sendEmail) {
         Session session = Session.getDefaultInstance(getProperties(), new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -47,6 +47,28 @@ public class EmailService {
             msg.setText(sendEmail.body());
 
             Transport.send(msg);
+        } catch (MessagingException e) {
+            log.info("Failed to send email", e);
+        }
+    }
+
+    public void sendHtml(SendEmail sendEmail) {
+        Session session = Session.getDefaultInstance(getProperties(), new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(config.getUsername(), config.getPassword());
+            }
+        });
+
+        try {
+            var message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(config.getUsername()));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(sendEmail.to()));
+
+            message.setSubject(sendEmail.subject());
+            message.setContent(sendEmail.body(), "text/html; charset=utf-8");
+
+            Transport.send(message);
         } catch (MessagingException e) {
             log.info("Failed to send email", e);
         }

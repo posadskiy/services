@@ -7,7 +7,7 @@ import com.posadskiy.email.service.EmailService;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
-import io.micronaut.tracing.annotation.NewSpan;
+import io.micronaut.tracing.annotation.ContinueSpan;
 
 @Controller("email")
 public class JavaMailEmailController implements EmailController {
@@ -20,10 +20,18 @@ public class JavaMailEmailController implements EmailController {
         this.emailMapper = emailMapper;
     }
 
-    @Post("send")
-    @NewSpan
-    public void send(@Body SendEmailForm form) {
-        emailService.send(
+    @Post("send/text")
+    @ContinueSpan
+    public void sendText(@Body SendEmailForm form) {
+        emailService.sendText(
+            emailMapper.toModel(form)
+        );
+    }
+
+    @Post("send/html")
+    @ContinueSpan
+    public void sendHtml(@Body SendEmailForm form) {
+        emailService.sendHtml(
             emailMapper.toModel(form)
         );
     }
