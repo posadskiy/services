@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>email.template.service</groupId>
+        <groupId>com.posadskiy.email</groupId>
         <artifactId>email-template-service</artifactId>
         <version>0.1</version>
     </parent>
 
-    <artifactId>core</artifactId>
+    <artifactId>template-web</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -19,8 +19,13 @@
     
     <dependencies>
         <dependency>
-            <groupId>email.template.service</groupId>
-            <artifactId>api</artifactId>
+            <groupId>com.posadskiy.email</groupId>
+            <artifactId>template-api</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.posadskiy.email</groupId>
+            <artifactId>template-core</artifactId>
             <version>0.1</version>
         </dependency>
     </dependencies>

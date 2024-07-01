@@ -4,17 +4,27 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>email.template.service</groupId>
+        <groupId>com.posadskiy.email</groupId>
         <artifactId>email-template-service</artifactId>
         <version>0.1</version>
     </parent>
 
-    <artifactId>api</artifactId>
+    <artifactId>template-core</artifactId>
+    <version>0.1</version>
+    
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>com.posadskiy.email</groupId>
+            <artifactId>template-api</artifactId>
+            <version>0.1</version>
+        </dependency>
+    </dependencies>
 
 </project>

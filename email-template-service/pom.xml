@@ -2,14 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>email.template.service</groupId>
+    <groupId>com.posadskiy.email</groupId>
     <artifactId>email-template-service</artifactId>
     <version>0.1</version>
     <packaging>pom</packaging>
     <modules>
-        <module>api</module>
-        <module>core</module>
-        <module>web</module>
+        <module>template-api</module>
+        <module>template-core</module>
+        <module>template-web</module>
     </modules>
 
     <parent>
@@ -151,6 +151,13 @@
                         <arg>-Amicronaut.processing.group=email.template.service</arg>
                         <arg>-Amicronaut.processing.module=email-template-service</arg>
                     </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>
