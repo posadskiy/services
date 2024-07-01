@@ -1,13 +1,19 @@
 package com.posadskiy.email.web.controller.impl;
 
-import com.posadskiy.email.web.controller.EmailController;
 import com.posadskiy.email.api.SendEmailForm;
 import com.posadskiy.email.service.EmailService;
+import com.posadskiy.email.web.controller.EmailController;
 import com.posadskiy.email.web.mapper.EmailMapper;
-import io.micronaut.http.annotation.Body;
-import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.Post;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.http.MediaType;
+import io.micronaut.http.annotation.*;
 import io.micronaut.tracing.annotation.ContinueSpan;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 @Controller("email")
 public class JavaMailEmailController implements EmailController {
@@ -21,18 +27,50 @@ public class JavaMailEmailController implements EmailController {
     }
 
     @Post("send/text")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Status(HttpStatus.NO_CONTENT)
     @ContinueSpan
-    public void sendText(@Body SendEmailForm form) {
+    @Operation(
+        summary = "Send text-based email",
+        tags = "email",
+        description = "Sending text-based email's body with subject to provided email address",
+        responses = {
+            @ApiResponse(responseCode = "204", description = "Email has been sent successfully")
+        }
+    )
+    public HttpResponse<Void> sendText(
+        @RequestBody(description = "Email-related details", required = true)
+        @Body
+        @Valid
+        SendEmailForm form) {
         emailService.sendText(
             emailMapper.toModel(form)
         );
+
+        return HttpResponse.noContent();
     }
 
     @Post("send/html")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Status(HttpStatus.NO_CONTENT)
     @ContinueSpan
-    public void sendHtml(@Body SendEmailForm form) {
+    @Operation(
+        summary = "Send HTML-based email",
+        tags = "email",
+        description = "Sending HTML-based email's body with subject to provided email address",
+        responses = {
+            @ApiResponse(responseCode = "204", description = "Email has been sent successfully")
+        }
+    )
+    public HttpResponse<Void> sendHtml(
+        @RequestBody(description = "Email-related details", required = true)
+        @Body
+        @NotNull
+        @Valid SendEmailForm form) {
         emailService.sendHtml(
             emailMapper.toModel(form)
         );
+
+        return HttpResponse.noContent();
     }
 }

@@ -28,11 +28,11 @@ public class EmailService {
         properties.put("mail.smtps.debug", config.getDebug());
         return properties;
     }
-    
+
     public void sendText(SendEmail sendEmail) {
         sendEmail(sendEmail, ContentType.Text);
     }
-    
+
     public void sendHtml(SendEmail sendEmail) {
         sendEmail(sendEmail, ContentType.HTML);
     }
