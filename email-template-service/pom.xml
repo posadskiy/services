@@ -5,7 +5,12 @@
     <groupId>email.template.service</groupId>
     <artifactId>email-template-service</artifactId>
     <version>0.1</version>
-    <packaging>${packaging}</packaging>
+    <packaging>pom</packaging>
+    <modules>
+        <module>api</module>
+        <module>core</module>
+        <module>web</module>
+    </modules>
 
     <parent>
         <groupId>io.micronaut.platform</groupId>
