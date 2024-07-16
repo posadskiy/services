@@ -8,6 +8,8 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
+import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.tracing.annotation.ContinueSpan;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -27,6 +29,7 @@ public class JavaMailEmailController implements EmailController {
     }
 
     @Post("send/text")
+    @Secured(SecurityRule.IS_AUTHENTICATED)
     @Consumes(MediaType.APPLICATION_JSON)
     @Status(HttpStatus.NO_CONTENT)
     @ContinueSpan
