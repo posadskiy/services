@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @MappedEntity("refresh_token")
@@ -36,7 +37,7 @@ public class RefreshTokenEntity {
     @DateCreated
     @NonNull
     @NotNull
-    private Instant dateCreated;
+    private LocalDateTime dateCreated;
 
     public @NonNull Long getId() {
         return id;
@@ -70,11 +71,11 @@ public class RefreshTokenEntity {
         this.revoked = revoked;
     }
 
-    public @NonNull @NotNull Instant getDateCreated() {
+    public @NonNull @NotNull LocalDateTime getDateCreated() {
         return dateCreated;
     }
 
-    public void setDateCreated(@NonNull @NotNull Instant dateCreated) {
+    public void setDateCreated(@NonNull @NotNull LocalDateTime dateCreated) {
         this.dateCreated = dateCreated;
     }
 }
