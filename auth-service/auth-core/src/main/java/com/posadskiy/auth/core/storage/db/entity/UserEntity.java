@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
 @Data
 @MappedEntity("users")
 public class UserEntity {
+
     @Id
     @GeneratedValue
-    @NonNull
     private Long id;
 
     @NonNull
@@ -29,20 +29,16 @@ public class UserEntity {
     private String passwordHash;
 
     @DateUpdated
-    @NonNull
-    @NotNull
     private LocalDateTime updatedAt;
 
     @DateCreated
-    @NonNull
-    @NotNull
     private LocalDateTime createdAt;
 
-    public @NonNull Long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(@NonNull Long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -70,19 +66,19 @@ public class UserEntity {
         this.passwordHash = passwordHash;
     }
 
-    public @NonNull @NotNull LocalDateTime getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(@NonNull @NotNull LocalDateTime updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public @NonNull @NotNull LocalDateTime getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(@NonNull @NotNull LocalDateTime createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

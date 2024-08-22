@@ -21,4 +21,6 @@ public interface UsersRepository extends CrudRepository<UserEntity, Long> {
                     @NonNull @NotNull String passwordHash);
 
     Optional<UserEntity> findByUsername(@NonNull @NotBlank String username);
+
+    Optional<UserEntity> findByEmailOrUsername(@NonNull @NotBlank String email, @NonNull @NotBlank String username);
 }
