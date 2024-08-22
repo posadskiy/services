@@ -1,6 +1,7 @@
 package com.posadskiy.auth.core;
 
 import com.posadskiy.auth.core.storage.db.UsersRepository;
+import com.posadskiy.auth.core.utils.PasswordMatcher;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpRequest;
@@ -28,9 +29,9 @@ class AuthenticationProviderUserPassword<B> implements HttpRequestAuthentication
         }
         var user = foundUser.get();
 
-        var password = authenticationRequest.getIdentity();
-
-        var validated = user.getPasswordHash().equals(password);
+        var password = authenticationRequest.getSecret();
+        
+        var validated = PasswordMatcher.match(password, user.getPasswordHash());
 
         if (!validated) {
             return AuthenticationResponse.failure(AuthenticationFailureReason.CREDENTIALS_DO_NOT_MATCH);
