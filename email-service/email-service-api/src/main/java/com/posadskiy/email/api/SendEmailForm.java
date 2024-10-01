@@ -9,10 +9,11 @@ import jakarta.validation.constraints.Pattern;
 @Serdeable
 @Introspected
 public record SendEmailForm(
-    @NotBlank
+    /*@NotBlank
     @Schema(title = "Email's recipient", example = "support@posadskiy.com", requiredMode = Schema.RequiredMode.REQUIRED)
     @Pattern(regexp = "^.*@.*$")
-    String to,
+    String to,*/
+    String userId,
 
     @NotBlank
     @Schema(title = "Email's subject", example = "Email from swagger-ui", requiredMode = Schema.RequiredMode.REQUIRED)
