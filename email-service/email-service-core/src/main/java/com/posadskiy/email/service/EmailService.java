@@ -1,9 +1,9 @@
 package com.posadskiy.email.service;
 
 import com.posadskiy.email.Config;
+import com.posadskiy.email.client.UserClient;
 import com.posadskiy.email.enums.ContentType;
 import com.posadskiy.email.model.SendEmail;
-import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,8 +16,13 @@ import java.util.Properties;
 @Singleton
 public class EmailService {
 
-    @Inject
-    Config config;
+    private final Config config;
+    private final UserClient userClient;
+
+    public EmailService(Config config, UserClient userClient) {
+        this.config = config;
+        this.userClient = userClient;
+    }
 
     public Properties getProperties() {
         Properties properties = new Properties();
@@ -29,15 +34,15 @@ public class EmailService {
         return properties;
     }
 
-    public void sendText(SendEmail sendEmail) {
-        sendEmail(sendEmail, ContentType.Text);
+    public void sendText(String authorization, SendEmail sendEmail) {
+        sendEmail(authorization, sendEmail, ContentType.Text);
     }
 
-    public void sendHtml(SendEmail sendEmail) {
-        sendEmail(sendEmail, ContentType.HTML);
+    public void sendHtml(String authorization, SendEmail sendEmail) {
+        sendEmail(authorization, sendEmail, ContentType.HTML);
     }
 
-    public void sendEmail(SendEmail sendEmail, ContentType contentType) {
+    public void sendEmail(String authorization, SendEmail sendEmail, ContentType contentType) {
         Session session = Session.getDefaultInstance(getProperties(), new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -45,12 +50,14 @@ public class EmailService {
             }
         });
 
+        var user = userClient.getUserById(authorization, sendEmail.userId());
+
         try {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(config.getUsername()));
             message.addRecipient(
                 Message.RecipientType.TO,
-                new InternetAddress(sendEmail.to()));
+                new InternetAddress(user.email()));
 
             message.setSubject(sendEmail.subject());
             if (contentType == ContentType.Text) {

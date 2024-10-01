@@ -8,6 +8,8 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
+import io.micronaut.scheduling.TaskExecutors;
+import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.tracing.annotation.ContinueSpan;
@@ -17,7 +19,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
+import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
+
 @Controller("email")
+@ExecuteOn(TaskExecutors.BLOCKING)
 public class JavaMailEmailController implements EmailController {
 
     EmailService emailService;
@@ -41,12 +46,12 @@ public class JavaMailEmailController implements EmailController {
             @ApiResponse(responseCode = "204", description = "Email has been sent successfully")
         }
     )
-    public HttpResponse<Void> sendText(
+    public HttpResponse<Void> sendText(@Header(AUTHORIZATION) String authorization,
         @RequestBody(description = "Email-related details", required = true)
         @Body
         @Valid
         SendEmailForm form) {
-        emailService.sendText(
+        emailService.sendText(authorization, 
             emailMapper.toModel(form)
         );
 
@@ -65,12 +70,12 @@ public class JavaMailEmailController implements EmailController {
             @ApiResponse(responseCode = "204", description = "Email has been sent successfully")
         }
     )
-    public HttpResponse<Void> sendHtml(
+    public HttpResponse<Void> sendHtml(@Header(AUTHORIZATION) String authorization,
         @RequestBody(description = "Email-related details", required = true)
         @Body
         @NotNull
         @Valid SendEmailForm form) {
-        emailService.sendHtml(
+        emailService.sendHtml(authorization,
             emailMapper.toModel(form)
         );
 
