@@ -38,6 +38,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.posadskiy</groupId>
+            <artifactId>email-service-api</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.posadskiy</groupId>
+            <artifactId>user-service-api</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
             <groupId>io.micronaut</groupId>
             <artifactId>micronaut-http-server-netty</artifactId>
             <scope>compile</scope>

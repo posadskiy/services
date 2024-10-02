@@ -1,5 +1,5 @@
 applicationType: default
-defaultPackage: email.template.service
+defaultPackage: com.posadskiy.email.template.service
 testFramework: junit
 sourceLanguage: java
 buildTool: maven
