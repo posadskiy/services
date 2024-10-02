@@ -1,5 +1,7 @@
 package com.posadskiy.email.template.core.client;
 
+import com.posadskiy.email.api.SendEmailForm;
+
 public interface EmailOperations {
-    void sendHtmlBasedEmail(String to, String subject, String body);
+    void sendHtmlBasedEmail(String authorization, SendEmailForm sendEmailForm);
 }

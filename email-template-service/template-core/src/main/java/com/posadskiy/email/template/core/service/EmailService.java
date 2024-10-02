@@ -1,31 +1,41 @@
 package com.posadskiy.email.template.core.service;
 
-import com.posadskiy.email.template.api.EmailForm;
+import com.posadskiy.email.api.SendEmailForm;
+import com.posadskiy.email.template.api.EmailFormDto;
 import com.posadskiy.email.template.core.client.EmailOperations;
+import com.posadskiy.email.template.core.client.UserClient;
+import com.posadskiy.email.template.core.mapper.EmailFormMapper;
 import io.micronaut.views.ViewsRenderer;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.http.HttpRequest;
 import java.util.Collections;
-import java.util.Map;
 
 @Slf4j
 @Singleton
 public class EmailService {
     public static final String EMAIL_TEMPLATE_PATH = "templates/base-email/base-email.html";
     public static final String FORM_NAME = "template";
-    private final ViewsRenderer viewsRenderer;
-    EmailOperations emailOperations;
 
-    public EmailService(EmailOperations emailOperations, ViewsRenderer viewsRenderer) {
+    private final UserClient userClient;
+    private final EmailFormMapper emailFormMapper;
+    private final ViewsRenderer viewsRenderer;
+    private final EmailOperations emailOperations;
+
+    public EmailService(UserClient userClient, EmailFormMapper emailFormMapper, EmailOperations emailOperations, ViewsRenderer viewsRenderer) {
+        this.userClient = userClient;
+        this.emailFormMapper = emailFormMapper;
         this.emailOperations = emailOperations;
         this.viewsRenderer = viewsRenderer;
     }
 
-    public void sendTemplatedEmail(EmailForm emailForm) {
+    public void sendTemplatedEmail(String authorization, EmailFormDto emailFormDto) {
+        var user = userClient.getUserById(authorization, emailFormDto.recipient().id());
+
+        var emailForm = emailFormMapper.toModel(emailFormDto, user);
+
         var body = viewsRenderer.render(
             EMAIL_TEMPLATE_PATH,
             Collections.singletonMap(FORM_NAME, emailForm),
@@ -39,6 +49,6 @@ public class EmailService {
             throw new RuntimeException(e);
         }
 
-        emailOperations.sendHtmlBasedEmail(emailForm.recipient().email(), emailForm.email().subject(), out);
+        emailOperations.sendHtmlBasedEmail(authorization, new SendEmailForm(user.email(), emailForm.email().subject(), out));
     }
 }

@@ -5,6 +5,6 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 @Introspected
-public record EmailForm(String hash, Email email, Recipient recipient, Content content) {
+public record EmailFormDto(Email email, Recipient recipient, Content content) {
 }
 
