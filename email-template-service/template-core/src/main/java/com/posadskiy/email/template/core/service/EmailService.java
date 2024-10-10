@@ -49,6 +49,6 @@ public class EmailService {
             throw new RuntimeException(e);
         }
 
-        emailOperations.sendHtmlBasedEmail(authorization, new SendEmailForm(user.email(), emailForm.email().subject(), out));
+        emailOperations.sendHtmlBasedEmail(authorization, new SendEmailForm(user.id(), emailForm.email().subject(), out));
     }
 }
