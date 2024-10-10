@@ -25,7 +25,7 @@
         <micronaut.version>4.5.0</micronaut.version>
         <lombok.version>1.18.30</lombok.version>
         <micronaut.aot.enabled>false</micronaut.aot.enabled>
-        <micronaut.aot.packageName>email.service.aot.generated</micronaut.aot.packageName>
+        <micronaut.aot.packageName>com.posadskiy.email.service.aot.generated</micronaut.aot.packageName>
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.email.Application</exec.mainClass>
     </properties>

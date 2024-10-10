@@ -22,6 +22,7 @@ import jakarta.validation.constraints.NotNull;
 import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
 
 @Controller("email")
+@Secured(SecurityRule.IS_AUTHENTICATED)
 @ExecuteOn(TaskExecutors.BLOCKING)
 public class JavaMailEmailController implements EmailController {
 
@@ -34,7 +35,6 @@ public class JavaMailEmailController implements EmailController {
     }
 
     @Post("send/text")
-    @Secured(SecurityRule.IS_AUTHENTICATED)
     @Consumes(MediaType.APPLICATION_JSON)
     @Status(HttpStatus.NO_CONTENT)
     @ContinueSpan
@@ -60,7 +60,7 @@ public class JavaMailEmailController implements EmailController {
 
     @Post("send/html")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Status(HttpStatus.NO_CONTENT)
+    //@Status(HttpStatus.NO_CONTENT)
     @ContinueSpan
     @Operation(
         summary = "Send HTML-based email",

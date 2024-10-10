@@ -4,15 +4,12 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 
 @Serdeable
 @Introspected
 public record SendEmailForm(
-    /*@NotBlank
-    @Schema(title = "Email's recipient", example = "support@posadskiy.com", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Pattern(regexp = "^.*@.*$")
-    String to,*/
+    @NotBlank
+    @Schema(title = "User's ID", example = "123321", requiredMode = Schema.RequiredMode.REQUIRED)
     String userId,
 
     @NotBlank
