@@ -10,11 +10,12 @@ import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
-import io.micronaut.tracing.annotation.NewSpan;
+import io.micronaut.tracing.annotation.ContinueSpan;
 
 import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
 
 @Secured(SecurityRule.IS_AUTHENTICATED)
+@ExecuteOn(TaskExecutors.VIRTUAL)
 @Controller("email/template")
 public class EmailController {
     private final EmailService emailService;
@@ -24,8 +25,7 @@ public class EmailController {
     }
 
     @Post("send/base")
-    @NewSpan
-    @ExecuteOn(TaskExecutors.BLOCKING)
+    @ContinueSpan
     public void sendBaseTemplatedEmail(@Header(AUTHORIZATION) String authorization, @Body EmailFormDto emailForm) {
         emailService.sendTemplatedEmail(authorization, emailForm);
     }
