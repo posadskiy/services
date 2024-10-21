@@ -26,7 +26,7 @@ class AuthenticationProviderUserPassword<B> implements HttpRequestAuthentication
         if ("system".equals(authenticationRequest.getIdentity())) {
             return AuthenticationResponse.success(authenticationRequest.getIdentity());
         }
-        var foundUser = usersRepository.findByUsername(authenticationRequest.getIdentity());
+        var foundUser = usersRepository.findByEmail(authenticationRequest.getIdentity());
         if (foundUser.isEmpty()) {
             return AuthenticationResponse.failure(AuthenticationFailureReason.USER_NOT_FOUND);
         }

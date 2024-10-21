@@ -1,5 +1,5 @@
 applicationType: default
-defaultPackage: auth.service
+defaultPackage: com.posadskiy.auth.service
 testFramework: junit
 sourceLanguage: java
 buildTool: maven
