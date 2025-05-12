@@ -9,7 +9,7 @@
         <version>0.1</version>
     </parent>
 
-    <artifactId>auth-core</artifactId>
+    <artifactId>core</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -20,7 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>com.posadskiy.auth</groupId>
-            <artifactId>auth-api</artifactId>
+            <artifactId>api</artifactId>
             <version>0.1</version>
         </dependency>
     </dependencies>

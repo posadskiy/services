@@ -33,13 +33,13 @@ class AuthenticationProviderUserPassword<B> implements HttpRequestAuthentication
         var user = foundUser.get();
 
         var password = authenticationRequest.getSecret();
-        
+
         var validated = PasswordMatcher.match(password, user.getPasswordHash());
 
         if (!validated) {
             return AuthenticationResponse.failure(AuthenticationFailureReason.CREDENTIALS_DO_NOT_MATCH);
         }
 
-        return AuthenticationResponse.success(authenticationRequest.getIdentity());
+        return AuthenticationResponse.success(String.valueOf(user.getId()));
     }
 }
