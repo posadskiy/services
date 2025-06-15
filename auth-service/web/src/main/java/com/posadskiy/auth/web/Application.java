@@ -1,5 +1,6 @@
 package com.posadskiy.auth.web;
 
+import io.micronaut.openapi.annotation.OpenAPIInclude;
 import io.micronaut.runtime.Micronaut;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Contact;
@@ -15,6 +16,10 @@ import io.swagger.v3.oas.annotations.info.License;
         contact = @Contact(url = "https://posadskiy.com", name = "Dimitri Posadskiy", email = "support@posadskiy.com")
     )
 )
+@OpenAPIInclude(classes = {
+    io.micronaut.security.endpoints.LoginController.class,
+    io.micronaut.security.endpoints.LogoutController.class
+})
 public class Application {
 
     public static void main(String[] args) {
