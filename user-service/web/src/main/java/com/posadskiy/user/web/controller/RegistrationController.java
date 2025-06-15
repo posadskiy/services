@@ -13,7 +13,7 @@ import io.micronaut.tracing.annotation.NewSpan;
 import lombok.NoArgsConstructor;
 
 @Secured(SecurityRule.IS_ANONYMOUS)
-@Controller("v0/user/registration")
+@Controller
 @NoArgsConstructor
 public class RegistrationController {
 
