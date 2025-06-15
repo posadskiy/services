@@ -11,6 +11,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - user-web-network
 
   web:
     build:
@@ -33,6 +35,12 @@ services:
     ports:
       - "8100:8100"
       - "5005:5005"  # Debug port
+    networks:
+      - user-web-network
 
 volumes:
   postgres_data:
+
+networks:
+  user-web-network:
+    external: true
