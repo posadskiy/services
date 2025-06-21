@@ -21,7 +21,7 @@ services:
     volumes:
       - ~/.m2:/root/.m2
     container_name: auth-web
-    restart: always
+    restart: unless-stopped
     depends_on:
       - database
     environment:
@@ -35,8 +35,17 @@ services:
     ports:
       - "8100:8100"
       - "5005:5005"  # Debug port
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "logging=promtail"
+      - "service=auth-service"
     networks:
       - user-web-network
+      - observability-stack
 
 volumes:
   postgres_data:
@@ -44,3 +53,5 @@ volumes:
 networks:
   user-web-network:
     external: true
+  observability-stack:
+    external: true 
