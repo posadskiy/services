@@ -51,10 +51,12 @@ flyway:
       baseline-on-migrate: true
 #end::database[]
 
-#tag::zipkin[]
+#tag::jaeger[]
 tracing:
   jaeger:
     enabled: true
     sampler:
       probability: 1 # <1>
-#end::zipkin[]
+    http-sender:
+      url: http://jaeger:14268/api/traces
+#end::jaeger[]
