@@ -19,6 +19,8 @@ micronaut:
         access: isAnonymous()
       - pattern: /v3/api-docs/**
         access: isAnonymous()
+      - pattern: /prometheus
+        access: isAnonymous()
     token:
       jwt:
         signatures:
@@ -33,6 +35,17 @@ micronaut:
       swagger-ui:
         paths: classpath:META-INF/swagger/views/swagger-ui
         mapping: /swagger-ui/**
+  metrics:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+        descriptions: true
+        step: 1m
+  endpoints:
+    prometheus:
+      enabled: true
+      sensitive: false
 #end::micronaut[]
 
 #tag::database[]

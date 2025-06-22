@@ -124,6 +124,17 @@
         </dependency>
         <!-- Security -->
 
+        <!-- Metrics -->
+        <dependency>
+            <groupId>io.micronaut.micrometer</groupId>
+            <artifactId>micronaut-micrometer-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micronaut.micrometer</groupId>
+            <artifactId>micronaut-micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <!-- Metrics -->
+
         <!-- Database -->
         <dependency>
             <groupId>io.micronaut.data</groupId>
