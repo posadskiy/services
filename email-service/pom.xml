@@ -27,7 +27,7 @@
         <micronaut.aot.enabled>false</micronaut.aot.enabled>
         <micronaut.aot.packageName>com.posadskiy.email.service.aot.generated</micronaut.aot.packageName>
         <micronaut.runtime>netty</micronaut.runtime>
-        <exec.mainClass>com.posadskiy.email.Application</exec.mainClass>
+        <exec.mainClass>com.posadskiy.email.web.Application</exec.mainClass>
     </properties>
 
     <repositories>
@@ -36,6 +36,14 @@
             <url>https://repo.maven.apache.org/maven2</url>
         </repository>
     </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub posadskiy Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/posadskiy/email-service</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
