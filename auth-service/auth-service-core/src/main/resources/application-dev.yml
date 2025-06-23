@@ -51,6 +51,32 @@ micronaut:
         enabled: true
         descriptions: true
         step: 1m
+    binders:
+      database:
+        enabled: true
+        include:
+          - "hikari"
+          - "jdbc"
+    distribution:
+      percentiles-histogram:
+        hikaricp.connections: true
+        hikaricp.connections.idle: true
+        hikaricp.connections.active: true
+        hikaricp.connections.pending: true
+        hikaricp.connections.max: true
+        hikaricp.connections.min: true
+        hikaricp.connections.timeout: true
+        hikaricp.connections.creation: true
+        hikaricp.connections.acquire: true
+        hikaricp.connections.usage: true
+        jdbc.connections.active: true
+        jdbc.connections.idle: true
+        jdbc.connections.max: true
+        jdbc.connections.min: true
+        jdbc.connections.timeout: true
+        jdbc.connections.creation: true
+        jdbc.connections.acquire: true
+        jdbc.connections.usage: true
   endpoints:
     prometheus:
       enabled: true
@@ -80,6 +106,3 @@ tracing:
     sampler:
       probability: 1 # <1>
 #end::jaeger[]
-
-
-
