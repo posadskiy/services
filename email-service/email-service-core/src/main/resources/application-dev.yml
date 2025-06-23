@@ -68,7 +68,7 @@ email:
   host: smtp.gmail.com
   port: 587
   username: ${EMAIL_ADDRESS}
-  password: ${DEV_EMAIL_TOKEN}
+  password: ${EMAIL_TOKEN}
   protocol: smtp
   auth: true
   starttls:
