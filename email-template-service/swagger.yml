@@ -1,0 +1,69 @@
+openapi: 3.0.1
+paths:
+  /email/template/send/base:
+    post:
+      operationId: sendBaseTemplatedEmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailFormDto"
+        required: true
+      responses:
+        "200":
+          description: sendBaseTemplatedEmail 200 response
+components:
+  schemas:
+    Button:
+      required:
+      - link
+      - text
+      type: object
+      properties:
+        text:
+          type: string
+        link:
+          type: string
+    Content:
+      required:
+      - button
+      - header
+      - name
+      - text
+      type: object
+      properties:
+        name:
+          type: string
+        header:
+          type: string
+        text:
+          type: string
+        button:
+          $ref: "#/components/schemas/Button"
+    Email:
+      required:
+      - subject
+      type: object
+      properties:
+        subject:
+          type: string
+    EmailFormDto:
+      required:
+      - content
+      - email
+      - recipient
+      type: object
+      properties:
+        email:
+          $ref: "#/components/schemas/Email"
+        recipient:
+          $ref: "#/components/schemas/Recipient"
+        content:
+          $ref: "#/components/schemas/Content"
+    Recipient:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string

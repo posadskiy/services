@@ -9,7 +9,7 @@
         <version>0.1</version>
     </parent>
 
-    <artifactId>template-web</artifactId>
+    <artifactId>email-template-service-web</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -20,12 +20,12 @@
     <dependencies>
         <dependency>
             <groupId>com.posadskiy.email</groupId>
-            <artifactId>template-api</artifactId>
+            <artifactId>email-template-service-api</artifactId>
             <version>0.1</version>
         </dependency>
         <dependency>
             <groupId>com.posadskiy.email</groupId>
-            <artifactId>template-core</artifactId>
+            <artifactId>email-template-service-core</artifactId>
             <version>0.1</version>
         </dependency>
     </dependencies>

@@ -7,9 +7,9 @@
     <version>0.1</version>
     <packaging>pom</packaging>
     <modules>
-        <module>template-api</module>
-        <module>template-core</module>
-        <module>template-web</module>
+        <module>email-template-service-api</module>
+        <module>email-template-service-core</module>
+        <module>email-template-service-web</module>
     </modules>
 
     <parent>
@@ -97,6 +97,12 @@
         </dependency>
         <!-- Tracing -->
 
+        <dependency>
+            <groupId>io.micronaut.openapi</groupId>
+            <artifactId>micronaut-openapi-annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Email -->
         <dependency>
             <groupId>io.micronaut.views</groupId>
@@ -146,6 +152,10 @@
                             <groupId>io.micronaut</groupId>
                             <artifactId>micronaut-http-validation</artifactId>
                             <version>${micronaut.core.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.micronaut.openapi</groupId>
+                            <artifactId>micronaut-openapi</artifactId>
                         </path>
                         <path>
                             <groupId>io.micronaut.serde</groupId>

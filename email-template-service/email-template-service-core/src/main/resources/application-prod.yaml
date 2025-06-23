@@ -1,0 +1,31 @@
+#tag::micronaut[]
+micronaut:
+  application:
+    name: email-template-service
+  server:
+    port: 8091
+  security:
+    enabled: true
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger
+        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
+#end::micronaut[]
+
+#tag::zipkin[]
+tracing:
+  jaeger:
+    enabled: true
+    sampler:
+      probability: 1 # <1>
+#end::zipkin[]
