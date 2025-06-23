@@ -9,7 +9,7 @@
         <version>0.1</version>
     </parent>
 
-    <artifactId>api</artifactId>
+    <artifactId>user-service-api</artifactId>
     <version>0.1</version>
 
     <properties>

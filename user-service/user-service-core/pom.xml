@@ -9,7 +9,7 @@
         <version>0.1</version>
     </parent>
 
-    <artifactId>core</artifactId>
+    <artifactId>user-service-core</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -20,7 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>com.posadskiy</groupId>
-            <artifactId>api</artifactId>
+            <artifactId>user-service-api</artifactId>
             <version>0.1</version>
         </dependency>
     </dependencies>
