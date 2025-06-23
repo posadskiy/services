@@ -35,6 +35,13 @@
             <url>https://repo.maven.apache.org/maven2</url>
         </repository>
     </repositories>
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub posadskiy Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/posadskiy/email-template-service</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
