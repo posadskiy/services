@@ -1,0 +1,152 @@
+services:
+  auth-db:
+    image: postgres:15
+    container_name: auth-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${AUTH_DATABASE_NAME}
+      POSTGRES_USER: ${AUTH_DATABASE_USER}
+      POSTGRES_PASSWORD: ${AUTH_DATABASE_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - user-web-network
+
+  auth-service:
+    build:
+      context: auth-service
+      dockerfile: Dockerfile
+    volumes:
+      - ~/.m2:/root/.m2
+    container_name: auth-service
+    restart: unless-stopped
+    depends_on:
+      - auth-db
+    environment:
+      MICRONAUT_ENVIRONMENTS: dev
+      GITHUB_USERNAME: ${GITHUB_USERNAME}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      DATASOURCE_URL: jdbc:postgresql://auth-db:5432/${AUTH_DATABASE_NAME}
+      DATASOURCE_USERNAME: ${AUTH_DATABASE_USER}
+      DATASOURCE_PASSWORD: ${AUTH_DATABASE_PASSWORD}
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
+      JAEGER_SERVICE_NAME: auth-service
+      JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    ports:
+      - "8100:8100"
+      - "5005:5005"  # Debug port
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "logging=promtail"
+      - "service=auth-service"
+    networks:
+      - user-web-network
+      - observability-stack-network
+        
+  user-service:
+    build:
+      context: user-service
+      dockerfile: Dockerfile
+    volumes:
+      - ~/.m2:/root/.m2
+    container_name: user-service
+    restart: unless-stopped
+    depends_on:
+      - auth-service
+    environment:
+      MICRONAUT_ENVIRONMENTS: dev
+      GITHUB_USERNAME: ${GITHUB_USERNAME}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      DATASOURCE_URL: jdbc:postgresql://auth-db:5432/${AUTH_DATABASE_NAME}
+      DATASOURCE_USERNAME: ${AUTH_DATABASE_USER}
+      DATASOURCE_PASSWORD: ${AUTH_DATABASE_PASSWORD}
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
+      # Jaeger configuration
+      JAEGER_SERVICE_NAME: user-service
+      JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    ports:
+      - "8095:8095"
+      - "5006:5006"  # Debug port
+    networks:
+      - user-web-network
+      - observability-stack-network
+        
+  email-service:
+    build:
+      context: email-service
+      dockerfile: Dockerfile
+    volumes:
+      - ~/.m2:/root/.m2
+    container_name: email-service
+    restart: unless-stopped
+    depends_on:
+      - user-service
+    environment:
+      MICRONAUT_ENVIRONMENTS: dev
+      GITHUB_USERNAME: ${GITHUB_USERNAME}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
+      EMAIL_ADDRESS: ${DEV_EMAIL_ADDRESS}
+      EMAIL_TOKEN: ${DEV_EMAIL_TOKEN}
+      JAEGER_SERVICE_NAME: email-service
+      JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    ports:
+      - "8090:8090"
+      - "5007:5007"  # Debug port
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "logging=promtail"
+      - "service=email-service"
+    networks:
+      - user-web-network
+      - observability-stack-network
+        
+  email-template-service:
+    build:
+      context: email-template-service/
+      dockerfile: Dockerfile
+    volumes:
+      - ~/.m2:/root/.m2
+    container_name: email-template-service
+    restart: unless-stopped
+    depends_on:
+      - email-service
+    environment:
+      MICRONAUT_ENVIRONMENTS: dev
+      GITHUB_USERNAME: ${GITHUB_USERNAME}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
+      JAEGER_SERVICE_NAME: email-template-service
+      JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    ports:
+      - "8091:8091"
+      - "5008:5008"  # Debug port
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "logging=promtail"
+      - "service=email-template-service"
+    networks:
+      - observability-stack-network
+
+volumes:
+  postgres_data:
+
+networks:
+  user-web-network:
+    external: true
+  observability-stack-network:
+    external: true 
