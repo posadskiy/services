@@ -1,0 +1,36 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ~/.m2:/root/.m2
+    container_name: email-web
+    restart: unless-stopped
+    environment:
+      MICRONAUT_ENVIRONMENTS: dev
+      GITHUB_USERNAME: ${GITHUB_USERNAME}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
+      EMAIL_ADDRESS: ${DEV_EMAIL_ADDRESS}
+      EMAIL_TOKEN: ${DEV_EMAIL_TOKEN}
+    ports:
+      - "8090:8090"
+      - "5007:5007"  # Debug port
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "logging=promtail"
+      - "service=email-web"
+    networks:
+      - observability-stack
+
+volumes:
+  postgres_data:
+
+networks:
+  observability-stack:
+    external: true 

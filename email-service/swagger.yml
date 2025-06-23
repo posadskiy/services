@@ -1,0 +1,75 @@
+openapi: 3.0.1
+info:
+  title: email-service
+  description: Simple email delivering service for sending text or HTML based messages
+  contact:
+    name: Dimitri Posadskiy
+    url: https://posadskiy.com
+    email: support@posadskiy.com
+  license:
+    name: MIT
+    url: https://opensource.org/license/mit
+  version: "0.1"
+paths:
+  /email/send/html:
+    post:
+      tags:
+      - email
+      summary: Send HTML-based email
+      description: Sending HTML-based email's body with subject to provided email
+        address
+      operationId: sendHtml
+      requestBody:
+        description: Email-related details
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendEmailForm"
+        required: true
+      responses:
+        "204":
+          description: Email has been sent successfully
+        "200":
+          description: sendHtml 200 response
+  /email/send/text:
+    post:
+      tags:
+      - email
+      summary: Send text-based email
+      description: Sending text-based email's body with subject to provided email
+        address
+      operationId: sendText
+      requestBody:
+        description: Email-related details
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendEmailForm"
+        required: true
+      responses:
+        "204":
+          description: Email has been sent successfully
+components:
+  schemas:
+    SendEmailForm:
+      required:
+      - body
+      - subject
+      - userId
+      type: object
+      properties:
+        userId:
+          title: User's ID
+          minLength: 1
+          type: string
+          example: "123321"
+        subject:
+          title: Email's subject
+          minLength: 1
+          type: string
+          example: Email from swagger-ui
+        body:
+          title: Email's body
+          minLength: 1
+          type: string
+          example: Test email from swagger-ui
