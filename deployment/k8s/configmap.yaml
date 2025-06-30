@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: microservices-config
+  namespace: microservices
+data:
+  MICRONAUT_ENVIRONMENTS: "prod"
+  AUTH_DATABASE_NAME: "${AUTH_DATABASE_NAME}"
+  AUTH_DATABASE_USER: "${AUTH_DATABASE_USER}"
+  GITHUB_USERNAME: "${GITHUB_USERNAME}"
+  DEV_EMAIL_ADDRESS: "${DEV_EMAIL_ADDRESS}"
+  DEV_EMAIL_TOKEN: "${DEV_EMAIL_TOKEN}"
+  JAEGER_ENDPOINT: "${JAEGER_ENDPOINT:-http://jaeger-collector.observability-stack:14268/api/traces}"
+  JWT_GENERATOR_SIGNATURE_SECRET: "your-jwt-secret-key-here-make-it-long-and-secure"
+  EMAIL_HOST: "smtp.gmail.com"
+  EMAIL_PORT: "587"
+  EMAIL_PROTOCOL: "smtp"
+  EMAIL_AUTH: "true"
+  EMAIL_STARTTLS_ENABLE: "true"
+  EMAIL_DEBUG: "true" 
