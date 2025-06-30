@@ -45,7 +45,7 @@ services:
       - "service=auth-service"
     networks:
       - user-web-network
-      - observability-stack
+      - observability-stack-network
 
 volumes:
   postgres_data:
@@ -53,5 +53,5 @@ volumes:
 networks:
   user-web-network:
     external: true
-  observability-stack:
+  observability-stack-network:
     external: true 

@@ -5,20 +5,19 @@ WORKDIR /app
 # Copy the entire project (including all modules)
 COPY . .
 
-# Build only the skill-repeater service and its submodules
-#RUN mvn clean package -pl skill-repeater-service/web -am -DskipTests
-#RUN echo "🛠  Debugging Maven setup..." && ls -l /root/.m2 && sleep 99999
-RUN mvn clean package -pl skill-repeater-service/web -DskipTests
+# Build only the auth-service and its submodules
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn clean package -pl auth-service-web -am -DskipTests
 
 # === Stage 2: Create the runtime image ===
 FROM amazoncorretto:23-alpine-jdk
 WORKDIR /app
 
 # Copy the built JAR file from the build stage
-COPY --from=build /app/skill-repeater-service/web/target/web-0.1.0.jar app.jar
+COPY --from=build /app/auth-service-web/target/auth-service-web-*.jar app.jar
 
 # Expose the application port (defined in application.yaml)
 EXPOSE 8100
 
 # Run the application
-ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "-jar", "-Dmicronaut.environments=${MICRONAUT_ENVIRONMENTS}", "app.jar"]
+ENTRYPOINT ["java", "-jar", "-Dmicronaut.environments=${MICRONAUT_ENVIRONMENTS}", "app.jar"]
