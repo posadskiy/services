@@ -1,5 +1,5 @@
 # === Stage 1: Build the application ===
-FROM maven:3.9.9-amazoncorretto-23-alpine AS build
+FROM --platform=linux/amd64 maven:3.9.9-amazoncorretto-23-alpine AS build
 WORKDIR /app
 
 # Copy the entire project (including all modules)
@@ -10,7 +10,7 @@ RUN --mount=type=cache,target=/root/.m2 \
     mvn clean package -pl email-service-web -am -DskipTests 
 
 # === Stage 2: Create the runtime image ===
-FROM amazoncorretto:23-alpine-jdk
+FROM --platform=linux/amd64 amazoncorretto:23-alpine-jdk
 WORKDIR /app
 
 # Copy the built JAR file from the build stage
