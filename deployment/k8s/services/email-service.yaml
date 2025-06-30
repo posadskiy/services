@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-service
+  namespace: microservices
+  labels:
+    app: email-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-service
+  template:
+    metadata:
+      labels:
+        app: email-service
+    spec:
+      containers:
+      - name: email-service
+        image: gcr.io/posadskiy-shared-services-1/email-service:${IMAGE_VERSION}
+        ports:
+        - containerPort: 8090
+        env:
+        - name: MICRONAUT_ENVIRONMENTS
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: MICRONAUT_ENVIRONMENTS
+        - name: GITHUB_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: GITHUB_USERNAME
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: GITHUB_TOKEN
+        - name: JWT_GENERATOR_SIGNATURE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: JWT_GENERATOR_SIGNATURE_SECRET
+        - name: EMAIL_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: DEV_EMAIL_ADDRESS
+        - name: EMAIL_TOKEN
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: DEV_EMAIL_TOKEN
+        - name: JAEGER_SERVICE_NAME
+          value: "email-service"
+        - name: JAEGER_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: JAEGER_ENDPOINT
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8090
+          initialDelaySeconds: 120
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8090
+          initialDelaySeconds: 60
+          periodSeconds: 10
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: email-service
+  namespace: microservices
+  labels:
+    app: email-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8090
+    targetPort: 8090
+    protocol: TCP
+  selector:
+    app: email-service 
