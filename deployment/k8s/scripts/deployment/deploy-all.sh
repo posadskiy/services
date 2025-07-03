@@ -4,6 +4,10 @@
 
 set -e  # Exit on any error
 
+# Get the directory where this script is located and set K8S_DIR
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+K8S_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
 # Check if version parameter is provided
 if [ $# -eq 0 ]; then
   echo "Usage: $0 <version>"
@@ -70,16 +74,16 @@ gcloud container clusters get-credentials $CLUSTER_NAME --zone=europe-central2
 
 # Deploy namespace
 echo "📁 Creating namespace..."
-kubectl apply -f namespace.yaml
+kubectl apply -f "$K8S_DIR/namespace.yaml"
 
 # Deploy ConfigMap and Secrets
 echo "⚙️  Deploying ConfigMap and Secrets..."
-envsubst < configmap.yaml | kubectl apply -f -
-envsubst < secrets.yaml | kubectl apply -f -
+envsubst < "$K8S_DIR/configmap.yaml" | kubectl apply -f -
+envsubst < "$K8S_DIR/secrets.yaml" | kubectl apply -f -
 
 # Deploy database (auth-service and user-service need auth-db)
 echo "🗄️  Deploying PostgreSQL database..."
-envsubst < database/postgresql.yaml | kubectl apply -f -
+envsubst < "$K8S_DIR/database/postgresql.yaml" | kubectl apply -f -
 
 # Wait for database to be ready
 echo "⏳ Waiting for database to be ready..."
@@ -90,16 +94,16 @@ echo "🚀 Deploying all services..."
 export IMAGE_VERSION=$VERSION
 
 echo "🔐 Deploying auth-service..."
-envsubst < services/auth-service.yaml | kubectl apply -f -
+envsubst < "$K8S_DIR/services/auth-service.yaml" | kubectl apply -f -
 
 echo "👤 Deploying user-service..."
-envsubst < services/user-service.yaml | kubectl apply -f -
+envsubst < "$K8S_DIR/services/user-service.yaml" | kubectl apply -f -
 
 echo "📧 Deploying email-service..."
-envsubst < services/email-service.yaml | kubectl apply -f -
+envsubst < "$K8S_DIR/services/email-service.yaml" | kubectl apply -f -
 
 echo "📝 Deploying email-template-service..."
-envsubst < services/email-template-service.yaml | kubectl apply -f -
+envsubst < "$K8S_DIR/services/email-template-service.yaml" | kubectl apply -f -
 
 # Wait for all services to be ready
 echo "⏳ Waiting for all services to be ready..."

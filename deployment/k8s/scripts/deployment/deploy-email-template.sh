@@ -4,6 +4,10 @@
 
 set -e  # Exit on any error
 
+# Get the directory where this script is located and set K8S_DIR
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+K8S_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
 # Check if version parameter is provided
 if [ $# -eq 0 ]; then
   echo "Usage: $0 <version>"
@@ -65,17 +69,17 @@ gcloud container clusters get-credentials $CLUSTER_NAME --zone=europe-central2
 
 # Deploy namespace
 echo "📁 Creating namespace..."
-kubectl apply -f namespace.yaml
+kubectl apply -f "$K8S_DIR/namespace.yaml"
 
 # Deploy ConfigMap and Secrets
 echo "⚙️  Deploying ConfigMap and Secrets..."
-envsubst < configmap.yaml | kubectl apply -f -
-envsubst < secrets.yaml | kubectl apply -f -
+envsubst < "$K8S_DIR/configmap.yaml" | kubectl apply -f -
+envsubst < "$K8S_DIR/secrets.yaml" | kubectl apply -f -
 
 # Deploy email-template-service with version substitution
 echo "📝 Deploying email-template-service..."
 export IMAGE_VERSION=$VERSION
-envsubst < services/email-template-service.yaml | kubectl apply -f -
+envsubst < "$K8S_DIR/services/email-template-service.yaml" | kubectl apply -f -
 
 # Wait for email-template-service to be ready
 echo "⏳ Waiting for email-template-service to be ready..."
