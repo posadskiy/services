@@ -11,7 +11,7 @@ data:
   DEV_EMAIL_ADDRESS: "${DEV_EMAIL_ADDRESS}"
   DEV_EMAIL_TOKEN: "${DEV_EMAIL_TOKEN}"
   JAEGER_ENDPOINT: "${JAEGER_ENDPOINT:-http://jaeger-collector.observability-stack:14268/api/traces}"
-  JWT_GENERATOR_SIGNATURE_SECRET: "your-jwt-secret-key-here-make-it-long-and-secure"
+  JWT_GENERATOR_SIGNATURE_SECRET: "${JWT_GENERATOR_SIGNATURE_SECRET}"
   EMAIL_HOST: "smtp.gmail.com"
   EMAIL_PORT: "587"
   EMAIL_PROTOCOL: "smtp"
