@@ -8,8 +8,10 @@ micronaut:
       enabled: true
       configurations:
         ui:
-          allowed-origins:
-            - http://localhost:3000
+          allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+          allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+          allowed-headers: "*"
+          allow-credentials: true
   router:
     static-resources:
       swagger:
@@ -31,6 +33,8 @@ micronaut:
         access: isAnonymous()
       - pattern: /prometheus
         access: isAnonymous()
+      - pattern: /health
+        access: isAnonymous()
     token:
       jwt:
         signatures:
@@ -43,14 +47,14 @@ micronaut:
             secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
       generator:
         access-token:
-          expiration: 360000
+          expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:360000}
   metrics:
     enabled: true
     export:
       prometheus:
         enabled: true
         descriptions: true
-        step: 1m
+        step: ${METRICS_STEP:1m}
     binders:
       database:
         enabled: true
@@ -81,6 +85,11 @@ micronaut:
     prometheus:
       enabled: true
       sensitive: false
+    health:
+      enabled: true
+      sensitive: false
+      details:
+        enabled: true
 #end::micronaut[]
 
 #tag::database[]
@@ -92,11 +101,18 @@ datasources:
     driver-class-name: org.postgresql.Driver
     schema-generate: NONE
     dialect: POSTGRES
+    hikari:
+      maximum-pool-size: ${DB_MAX_POOL_SIZE:10}
+      minimum-idle: ${DB_MIN_IDLE:5}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${DB_IDLE_TIMEOUT:600000}
+      max-lifetime: ${DB_MAX_LIFETIME:1800000}
 flyway:
   datasources:
     default:
       enabled: true
       baseline-on-migrate: true
+      validate-on-migrate: true
 #end::database[]
 
 #tag::jaeger[]
@@ -104,5 +120,17 @@ tracing:
   jaeger:
     enabled: true
     sampler:
-      probability: 0.01 # <1>
+      probability: ${JAEGER_SAMPLER_PROBABILITY:0.01}
+    http-sender:
+      url: ${JAEGER_HTTP_SENDER_URL:http://jaeger:14268/api/traces}
 #end::jaeger[]
+
+#tag::logging[]
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.posadskiy.auth: ${LOG_LEVEL_APP:INFO}
+    io.micronaut: ${LOG_LEVEL_MICRONAUT:WARN}
+    org.hibernate.SQL: ${LOG_LEVEL_SQL:WARN}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_PARAMS:WARN}
+#end::logging[]
