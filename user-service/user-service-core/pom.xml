@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.posadskiy</groupId>
         <artifactId>user-service</artifactId>
-        <version>0.1</version>
+        <version>0.1.1</version>
     </parent>
 
     <artifactId>user-service-core</artifactId>
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>com.posadskiy</groupId>
             <artifactId>user-service-api</artifactId>
-            <version>0.1</version>
+            <version>0.1.1</version>
         </dependency>
     </dependencies>
 

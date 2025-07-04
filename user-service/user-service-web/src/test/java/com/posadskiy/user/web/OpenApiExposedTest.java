@@ -14,6 +14,6 @@ class OpenApiExposedTest {
     @Test
     void openApi(@Client("/") HttpClient httpClient) {
         BlockingHttpClient client = httpClient.toBlocking();
-        assertDoesNotThrow(() -> client.exchange("/swagger/email-service-0.1.yml"));
+        assertDoesNotThrow(() -> client.exchange("/swagger/email-service-0.1.1.yml"));
     }
 }

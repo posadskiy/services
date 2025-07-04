@@ -11,6 +11,6 @@ public class OpenApiGeneratedTest {
 
     @Test
     void buildGeneratesOpenApi(ResourceLoader resourceLoader) {
-        assertTrue(resourceLoader.getResource("META-INF/swagger/email-service-0.1.yml").isPresent());
+        assertTrue(resourceLoader.getResource("META-INF/swagger/email-service-0.1.1.yml").isPresent());
     }
 }

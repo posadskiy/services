@@ -4,7 +4,6 @@ WORKDIR /app
 
 # Copy the entire project (including all modules)
 COPY . .
-#COPY settings.xml /root/.m2/settings.xml
 
 # Build only the user-service-web module and its submodules
 RUN --mount=type=cache,target=/root/.m2 \
