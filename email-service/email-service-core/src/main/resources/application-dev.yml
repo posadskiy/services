@@ -10,6 +10,9 @@ micronaut:
         ui:
           allowed-origins:
             - http://localhost:3000
+          allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+          allowed-headers: "*"
+          allow-credentials: true
   router:
     static-resources:
       swagger:
@@ -29,6 +32,8 @@ micronaut:
         access: isAnonymous()
       - pattern: /prometheus
         access: isAnonymous()
+      - pattern: /health
+        access: isAnonymous()
     token:
       jwt:
         signatures:
@@ -41,18 +46,49 @@ micronaut:
             secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
       generator:
         access-token:
-          expiration: 360000
+          expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:360000}
   metrics:
     enabled: true
     export:
       prometheus:
         enabled: true
         descriptions: true
-        step: 1m
+        step: ${METRICS_STEP:1m}
+    binders:
+      database:
+        enabled: true
+        include:
+          - "hikari"
+          - "jdbc"
+    distribution:
+      percentiles-histogram:
+        hikaricp.connections: true
+        hikaricp.connections.idle: true
+        hikaricp.connections.active: true
+        hikaricp.connections.pending: true
+        hikaricp.connections.max: true
+        hikaricp.connections.min: true
+        hikaricp.connections.timeout: true
+        hikaricp.connections.creation: true
+        hikaricp.connections.acquire: true
+        hikaricp.connections.usage: true
+        jdbc.connections.active: true
+        jdbc.connections.idle: true
+        jdbc.connections.max: true
+        jdbc.connections.min: true
+        jdbc.connections.timeout: true
+        jdbc.connections.creation: true
+        jdbc.connections.acquire: true
+        jdbc.connections.usage: true
   endpoints:
     prometheus:
       enabled: true
       sensitive: false
+    health:
+      enabled: true
+      sensitive: false
+      details:
+        enabled: true
 #end::micronaut[]
 
 #tag::jaeger[]
@@ -60,19 +96,33 @@ tracing:
   jaeger:
     enabled: true
     sampler:
-      probability: 1 # <1>
+      probability: ${JAEGER_SAMPLER_PROBABILITY:1}
+    http-sender:
+      url: ${JAEGER_HTTP_SENDER_URL:http://localhost:14268/api/traces}
 #end::jaeger[]
 
 #tag::email[]
 email:
-  host: smtp.gmail.com
-  port: 587
+  host: ${EMAIL_HOST:smtp.gmail.com}
+  port: ${EMAIL_PORT:587}
   username: ${EMAIL_ADDRESS}
   password: ${EMAIL_TOKEN}
-  protocol: smtp
-  auth: true
+  protocol: ${EMAIL_PROTOCOL:smtp}
+  auth: ${EMAIL_AUTH:true}
   starttls:
-    enable: true
-  debug: true
+    enable: ${EMAIL_STARTTLS_ENABLE:true}
+  debug: ${EMAIL_DEBUG:true}
+  connection-timeout: ${EMAIL_CONNECTION_TIMEOUT:30000}
+  timeout: ${EMAIL_TIMEOUT:60000}
+  write-timeout: ${EMAIL_WRITE_TIMEOUT:60000}
 #end::email[]
+
+#tag::logging[]
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.posadskiy.email: ${LOG_LEVEL_APP:DEBUG}
+    io.micronaut: ${LOG_LEVEL_MICRONAUT:INFO}
+    org.springframework.mail: ${LOG_LEVEL_MAIL:DEBUG}
+#end::logging[]
 
