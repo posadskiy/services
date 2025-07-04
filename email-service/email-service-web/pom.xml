@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.posadskiy</groupId>
         <artifactId>email-service</artifactId>
-        <version>0.1</version>
+        <version>0.1.1</version>
     </parent>
 
     <artifactId>email-service-web</artifactId>
@@ -21,12 +21,12 @@
         <dependency>
             <groupId>com.posadskiy</groupId>
             <artifactId>email-service-api</artifactId>
-            <version>0.1</version>
+            <version>0.1.1</version>
         </dependency>
         <dependency>
             <groupId>com.posadskiy</groupId>
             <artifactId>email-service-core</artifactId>
-            <version>0.1</version>
+            <version>0.1.1</version>
         </dependency>
     </dependencies>
 

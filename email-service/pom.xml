@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy</groupId>
     <artifactId>email-service</artifactId>
-    <version>0.1</version>
+    <version>0.1.1</version>
     <packaging>pom</packaging>
     <modules>
         <module>email-service-api</module>
@@ -18,7 +18,6 @@
         <version>4.5.0</version>
     </parent>
     <properties>
-        <project.version>0.1</project.version>
         <packaging>jar</packaging>
         <jdk.version>21</jdk.version>
         <release.version>21</release.version>
@@ -54,7 +53,7 @@
         <dependency>
             <groupId>com.posadskiy</groupId>
             <artifactId>user-service-api</artifactId>
-            <version>0.1</version>
+            <version>0.1.1</version>
         </dependency>
         <!-- HTTP -->
         <dependency>
@@ -221,7 +220,7 @@
                 <artifactId>jib-maven-plugin</artifactId>
                 <configuration>
                     <to>
-                        <image>docker.io/posadskiy/email-service:0.1</image>
+                        <image>docker.io/posadskiy/email-service:0.1.1</image>
                     </to>
                 </configuration>
             </plugin>

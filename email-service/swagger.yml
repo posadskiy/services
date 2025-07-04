@@ -9,7 +9,7 @@ info:
   license:
     name: MIT
     url: https://opensource.org/license/mit
-  version: "0.1"
+  version: "0.1.1"
 paths:
   /email/send/html:
     post:

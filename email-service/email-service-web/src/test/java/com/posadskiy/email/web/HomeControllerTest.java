@@ -29,7 +29,7 @@ class HomeControllerTest {
     @Test
     void homeControllerIsHidden(@Client("/") HttpClient httpClient) {
         BlockingHttpClient client = httpClient.toBlocking();
-        String yml = assertDoesNotThrow(() -> client.retrieve("/swagger/email-service-0.1.yml"));
+        String yml = assertDoesNotThrow(() -> client.retrieve("/swagger/email-service-0.1.1.yml"));
         assertFalse(yml.contains("operationId: home"));
     }
 }
