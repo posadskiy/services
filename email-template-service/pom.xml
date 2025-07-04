@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.email</groupId>
     <artifactId>email-template-service</artifactId>
-    <version>0.1</version>
+    <version>0.1.1</version>
     <packaging>pom</packaging>
     <modules>
         <module>email-template-service-api</module>
@@ -53,12 +53,12 @@
         <dependency>
             <groupId>com.posadskiy</groupId>
             <artifactId>email-service-api</artifactId>
-            <version>0.1</version>
+            <version>0.1.1</version>
         </dependency>
         <dependency>
             <groupId>com.posadskiy</groupId>
             <artifactId>user-service-api</artifactId>
-            <version>0.1</version>
+            <version>0.1.1</version>
         </dependency>
         <dependency>
             <groupId>io.micronaut</groupId>

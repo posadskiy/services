@@ -6,11 +6,11 @@
     <parent>
         <groupId>com.posadskiy.email</groupId>
         <artifactId>email-template-service</artifactId>
-        <version>0.1</version>
+        <version>0.1.1</version>
     </parent>
 
     <artifactId>email-template-service-api</artifactId>
-    <version>0.1</version>
+    <version>0.1.1</version>
     <packaging>jar</packaging>
 
     <properties>
