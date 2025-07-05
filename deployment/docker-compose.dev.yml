@@ -18,6 +18,9 @@ services:
     build:
       context: auth-service
       dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+        GITHUB_USERNAME: ${GITHUB_USERNAME}
     volumes:
       - ~/.m2:/root/.m2
     container_name: auth-service
@@ -48,11 +51,20 @@ services:
     networks:
       - user-web-network
       - observability-stack-network
+    # Add .internal DNS aliases to match Kubernetes service names
+    extra_hosts:
+      - "user-service.internal:user-service"
+      - "email-service.internal:email-service"
+      - "auth-service.internal:auth-service"
+      - "email-template-service.internal:email-template-service"
         
   user-service:
     build:
       context: user-service
       dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+        GITHUB_USERNAME: ${GITHUB_USERNAME}
     volumes:
       - ~/.m2:/root/.m2
     container_name: user-service
@@ -76,11 +88,20 @@ services:
     networks:
       - user-web-network
       - observability-stack-network
+    # Add .internal DNS aliases to match Kubernetes service names
+    extra_hosts:
+      - "user-service.internal:user-service"
+      - "email-service.internal:email-service"
+      - "auth-service.internal:auth-service"
+      - "email-template-service.internal:email-template-service"
         
   email-service:
     build:
       context: email-service
       dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+        GITHUB_USERNAME: ${GITHUB_USERNAME}
     volumes:
       - ~/.m2:/root/.m2
     container_name: email-service
@@ -110,11 +131,20 @@ services:
     networks:
       - user-web-network
       - observability-stack-network
+    # Add .internal DNS aliases to match Kubernetes service names
+    extra_hosts:
+      - "user-service.internal:user-service"
+      - "email-service.internal:email-service"
+      - "auth-service.internal:auth-service"
+      - "email-template-service.internal:email-template-service"
         
   email-template-service:
     build:
       context: email-template-service/
       dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+        GITHUB_USERNAME: ${GITHUB_USERNAME}
     volumes:
       - ~/.m2:/root/.m2
     container_name: email-template-service
@@ -140,7 +170,14 @@ services:
       - "logging=promtail"
       - "service=email-template-service"
     networks:
+      - user-web-network
       - observability-stack-network
+    # Add .internal DNS aliases to match Kubernetes service names
+    extra_hosts:
+      - "user-service.internal:user-service"
+      - "email-service.internal:email-service"
+      - "auth-service.internal:auth-service"
+      - "email-template-service.internal:email-template-service"
 
 volumes:
   postgres_data:
