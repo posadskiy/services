@@ -3,9 +3,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+        GITHUB_USERNAME: ${GITHUB_USERNAME}
     volumes:
       - ~/.m2:/root/.m2
-    container_name: email-web
+    container_name: email-service
     restart: unless-stopped
     environment:
       MICRONAUT_ENVIRONMENTS: dev
@@ -24,13 +27,22 @@ services:
         max-file: "3"
     labels:
       - "logging=promtail"
-      - "service=email-web"
+      - "service=email-service"
     networks:
-      - observability-stack
+      - user-web-network
+      - observability-stack-network
+    # Add .internal DNS aliases to match Kubernetes service names
+    extra_hosts:
+      - "user-service.internal:user-service"
+      - "email-service.internal:email-service"
+      - "auth-service.internal:auth-service"
+      - "email-template-service.internal:email-template-service"
 
 volumes:
   postgres_data:
 
 networks:
-  observability-stack:
+  user-web-network:
+    external: true
+  observability-stack-network:
     external: true 

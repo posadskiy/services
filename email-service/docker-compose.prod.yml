@@ -33,6 +33,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+        GITHUB_USERNAME: ${GITHUB_USERNAME}
     container_name: skill-repeater-web
     restart: always
     depends_on:
@@ -40,6 +43,8 @@ services:
       - zipkin
     environment:
       MICRONAUT_ENVIRONMENTS: prod
+      GITHUB_USERNAME: ${GITHUB_USERNAME}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
       DATASOURCE_URL: jdbc:postgresql://skill-repeater-db:5432/${SKILL_REPEATER_DATABASE_NAME}
       DATASOURCE_USERNAME: ${SKILL_REPEATER_DATABASE_USER}
       DATASOURCE_PASSWORD: ${SKILL_REPEATER_DATABASE_PASSWORD}
@@ -47,6 +52,12 @@ services:
     ports:
       - "8082:8082"
       - "5005:5005"  # Debug port
+    # Add .internal DNS aliases to match Kubernetes service names
+    extra_hosts:
+      - "user-service.internal:user-service"
+      - "email-service.internal:email-service"
+      - "auth-service.internal:auth-service"
+      - "email-template-service.internal:email-template-service"
 
 volumes:
   postgres_data:
