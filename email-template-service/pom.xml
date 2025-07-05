@@ -27,6 +27,16 @@
         <micronaut.aot.enabled>false</micronaut.aot.enabled>
         <micronaut.aot.packageName>com.posadskiy.email.template.service.aot.generated</micronaut.aot.packageName>
         <exec.mainClass>com.posadskiy.email.template.Application</exec.mainClass>
+        
+        <email-template-service-api.version>0.1.1</email-template-service-api.version>
+        <email-template-service-core.version>0.1.1</email-template-service-core.version>
+        <email-template-service-web.version>0.1.1</email-template-service-web.version>
+        <email-service-api.version>0.1.1</email-service-api.version>
+        <user-service-api.version>0.1.1</user-service-api.version>
+        
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
+        <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
+        <micronaut-views-thymeleaf.version>5.4.0</micronaut-views-thymeleaf.version>
     </properties>
 
     <repositories>
@@ -49,184 +59,64 @@
         </repository>
     </distributionManagement>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.posadskiy.email</groupId>
+                <artifactId>email-template-service-api</artifactId>
+                <version>${email-template-service-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.posadskiy.email</groupId>
+                <artifactId>email-template-service-core</artifactId>
+                <version>${email-template-service-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.posadskiy.email</groupId>
+                <artifactId>email-template-service-web</artifactId>
+                <version>${email-template-service-web.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.posadskiy</groupId>
+                <artifactId>email-service-api</artifactId>
+                <version>${email-service-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.posadskiy.user</groupId>
+                <artifactId>user-service-api</artifactId>
+                <version>${user-service-api.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
+            </dependency>
+            
+            <!-- Validation -->
+            <dependency>
+                <groupId>jakarta.validation</groupId>
+                <artifactId>jakarta.validation-api</artifactId>
+                <version>${jakarta.validation-api.version}</version>
+            </dependency>
+            <!-- Validation -->
+            
+            <!-- Email -->
+            <dependency>
+                <groupId>io.micronaut.views</groupId>
+                <artifactId>micronaut-views-thymeleaf</artifactId>
+                <version>${micronaut-views-thymeleaf.version}</version>
+            </dependency>
+            <!-- Email -->
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <dependency>
-            <groupId>com.posadskiy</groupId>
-            <artifactId>email-service-api</artifactId>
-            <version>0.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.posadskiy</groupId>
-            <artifactId>user-service-api</artifactId>
-            <version>0.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>io.micronaut</groupId>
-            <artifactId>micronaut-http-server-netty</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.micronaut.serde</groupId>
-            <artifactId>micronaut-serde-jackson</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        
-        <!-- Logging -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.logstash.logback</groupId>
-            <artifactId>logstash-logback-encoder</artifactId>
-            <version>7.4</version>
-        </dependency>
-        <!-- Logging -->
-
-        <!-- Metrics -->
-        <dependency>
-            <groupId>io.micronaut.micrometer</groupId>
-            <artifactId>micronaut-micrometer-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micronaut.micrometer</groupId>
-            <artifactId>micronaut-micrometer-registry-prometheus</artifactId>
-        </dependency>
-        <!-- Metrics -->
-        
-        <dependency>
-            <groupId>io.micronaut</groupId>
-            <artifactId>micronaut-http-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micronaut.test</groupId>
-            <artifactId>micronaut-test-junit5</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- Tracing -->
-        <dependency>
-            <groupId>io.micronaut.tracing</groupId>
-            <artifactId>micronaut-tracing-jaeger</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <!-- Tracing -->
-
-        <dependency>
-            <groupId>io.micronaut.openapi</groupId>
-            <artifactId>micronaut-openapi-annotations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Email -->
-        <dependency>
-            <groupId>io.micronaut.views</groupId>
-            <artifactId>micronaut-views-thymeleaf</artifactId>
-            <version>5.4.0</version>
-        </dependency>
-        <!-- Email -->
-
-        <!-- Annotation -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
         </dependency>
-        <!-- Annotation -->
-
-        <!-- YAML processing -->
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- YAML processing -->
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>io.micronaut.maven</groupId>
-                <artifactId>micronaut-maven-plugin</artifactId>
-                <configuration>
-                    <configFile>aot-${packaging}.properties</configFile>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <!-- Uncomment to enable incremental compilation -->
-                    <!-- <useIncrementalCompilation>false</useIncrementalCompilation> -->
-
-                    <annotationProcessorPaths combine.children="append">
-                        <path>
-                            <groupId>io.micronaut</groupId>
-                            <artifactId>micronaut-http-validation</artifactId>
-                            <version>${micronaut.core.version}</version>
-                        </path>
-                        <path>
-                            <groupId>io.micronaut.openapi</groupId>
-                            <artifactId>micronaut-openapi</artifactId>
-                        </path>
-                        <path>
-                            <groupId>io.micronaut.serde</groupId>
-                            <artifactId>micronaut-serde-processor</artifactId>
-                            <version>${micronaut.serialization.version}</version>
-                            <exclusions>
-                                <exclusion>
-                                    <groupId>io.micronaut</groupId>
-                                    <artifactId>micronaut-inject</artifactId>
-                                </exclusion>
-                            </exclusions>
-                        </path>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
-                    <compilerArgs>
-                        <arg>-Amicronaut.processing.group=email.template.service</arg>
-                        <arg>-Amicronaut.processing.module=email-template-service</arg>
-                    </compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>${exec.mainClass}</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>
