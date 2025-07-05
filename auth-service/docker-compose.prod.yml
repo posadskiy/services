@@ -15,6 +15,12 @@ services:
       - user-web-network
 
   web-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+        GITHUB_USERNAME: ${GITHUB_USERNAME}
     image: posadskiy/auth-service:latest
     container_name: auth-web-prod
     restart: unless-stopped
@@ -43,6 +49,12 @@ services:
     networks:
       - user-web-network
       - observability-stack-network
+    # Add .internal DNS aliases to match Kubernetes service names
+    extra_hosts:
+      - "user-service.internal:user-service"
+      - "email-service.internal:email-service"
+      - "auth-service.internal:auth-service"
+      - "email-template-service.internal:email-template-service"
 
 volumes:
   postgres_data:
