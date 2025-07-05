@@ -8,7 +8,7 @@ import io.micronaut.http.client.annotation.Client;
 
 import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
 
-@Client("http://user-service:8095")
+@Client("http://user-service.internal")
 public interface UserClient {
     
     @Get("v0/user/{id}")
