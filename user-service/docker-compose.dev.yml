@@ -3,9 +3,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+        GITHUB_USERNAME: ${GITHUB_USERNAME}
     volumes:
       - ~/.m2:/root/.m2
-    container_name: user-web
+    container_name: user-service
     restart: always
     environment:
       MICRONAUT_ENVIRONMENTS: dev
@@ -23,10 +26,16 @@ services:
       - "5006:5006"  # Debug port
     networks:
       - user-web-network
-      - observability-stack
+      - observability-stack-network
+    # Add .internal DNS aliases to match Kubernetes service names
+    extra_hosts:
+      - "user-service.internal:user-service"
+      - "email-service.internal:email-service"
+      - "auth-service.internal:auth-service"
+      - "email-template-service.internal:email-template-service"
         
 networks:
   user-web-network:
     external: true
-  observability-stack:
+  observability-stack-network:
     external: true 
