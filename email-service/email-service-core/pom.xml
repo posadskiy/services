@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.posadskiy.email</groupId>
         <artifactId>email-service</artifactId>
-        <version>0.1.1</version>
+        <version>0.1.2</version>
     </parent>
 
     <artifactId>email-service-core</artifactId>
@@ -46,6 +46,13 @@
             <artifactId>javax.mail</artifactId>
         </dependency>
         <!-- Java Mail -->
+
+        <!-- Micronaut HTTP Client -->
+        <dependency>
+            <groupId>io.micronaut</groupId>
+            <artifactId>micronaut-http-client</artifactId>
+        </dependency>
+        <!-- Micronaut HTTP Client -->
 
         <!-- Testing -->
         <dependency>

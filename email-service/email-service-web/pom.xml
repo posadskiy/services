@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.posadskiy.email</groupId>
         <artifactId>email-service</artifactId>
-        <version>0.1.1</version>
+        <version>0.1.2</version>
     </parent>
 
     <artifactId>email-service-web</artifactId>
@@ -167,6 +167,10 @@
                     <compilerArgs>
                         <arg>-Amicronaut.processing.group=email.service</arg>
                         <arg>-Amicronaut.processing.module=email-service</arg>
+                        <arg>-Amicronaut.openapi.expand.api.version=${project.version}</arg>
+                        <arg>-Amicronaut.openapi.expand.api.title=Email Service API</arg>
+                        <arg>-Amicronaut.openapi.expand.api.description=Email Service</arg>
+                        <arg>-Amicronaut.openapi.filename=swagger/email-service.yml</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
