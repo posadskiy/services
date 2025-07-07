@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.posadskiy.email</groupId>
         <artifactId>email-template-service</artifactId>
-        <version>0.1.1</version>
+        <version>0.1.2</version>
     </parent>
 
     <artifactId>email-template-service-web</artifactId>
@@ -77,6 +77,13 @@
             <scope>provided</scope>
         </dependency>
         <!-- Documenting -->
+        
+        <!-- Security -->
+        <dependency>
+            <groupId>io.micronaut.security</groupId>
+            <artifactId>micronaut-security</artifactId>
+        </dependency>
+        <!-- Security -->
         
         <!-- Validation -->
         <dependency>
@@ -160,6 +167,10 @@
                     <compilerArgs>
                         <arg>-Amicronaut.processing.group=email.template.service</arg>
                         <arg>-Amicronaut.processing.module=email-template-service</arg>
+                        <arg>-Amicronaut.openapi.expand.api.version=${project.version}</arg>
+                        <arg>-Amicronaut.openapi.expand.api.title=Email Template Service API</arg>
+                        <arg>-Amicronaut.openapi.expand.api.description=Email Template Service</arg>
+                        <arg>-Amicronaut.openapi.filename=swagger/email-template-service.yml</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>

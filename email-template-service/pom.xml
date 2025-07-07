@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.email</groupId>
     <artifactId>email-template-service</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <packaging>pom</packaging>
     <modules>
         <module>email-template-service-api</module>
@@ -28,15 +28,16 @@
         <micronaut.aot.packageName>com.posadskiy.email.template.service.aot.generated</micronaut.aot.packageName>
         <exec.mainClass>com.posadskiy.email.template.Application</exec.mainClass>
         
-        <email-template-service-api.version>0.1.1</email-template-service-api.version>
-        <email-template-service-core.version>0.1.1</email-template-service-core.version>
-        <email-template-service-web.version>0.1.1</email-template-service-web.version>
-        <email-service-api.version>0.1.1</email-service-api.version>
-        <user-service-api.version>0.1.1</user-service-api.version>
+        <email-template-service-api.version>0.1.2</email-template-service-api.version>
+        <email-template-service-core.version>0.1.2</email-template-service-core.version>
+        <email-template-service-web.version>0.1.2</email-template-service-web.version>
+        <email-service-api.version>0.1.2</email-service-api.version>
+        <user-service-api.version>0.1.2</user-service-api.version>
         
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
         <micronaut-views-thymeleaf.version>5.4.0</micronaut-views-thymeleaf.version>
+        <micronaut-security.version>4.5.0</micronaut-security.version>
     </properties>
 
     <repositories>
@@ -60,8 +61,8 @@
     </distributionManagement>
 
     <dependencyManagement>
-        <dependencies>
-            <dependency>
+    <dependencies>
+        <dependency>
                 <groupId>com.posadskiy.email</groupId>
                 <artifactId>email-template-service-api</artifactId>
                 <version>${email-template-service-api.version}</version>
@@ -77,37 +78,45 @@
                 <version>${email-template-service-web.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.posadskiy</groupId>
-                <artifactId>email-service-api</artifactId>
+                <groupId>com.posadskiy.email</groupId>
+            <artifactId>email-service-api</artifactId>
                 <version>${email-service-api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.posadskiy.user</groupId>
-                <artifactId>user-service-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.posadskiy.user</groupId>
+            <artifactId>user-service-api</artifactId>
                 <version>${user-service-api.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>net.logstash.logback</groupId>
-                <artifactId>logstash-logback-encoder</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
                 <version>${logstash-logback-encoder.version}</version>
-            </dependency>
-            
+        </dependency>
+
             <!-- Validation -->
-            <dependency>
+        <dependency>
                 <groupId>jakarta.validation</groupId>
                 <artifactId>jakarta.validation-api</artifactId>
                 <version>${jakarta.validation-api.version}</version>
-            </dependency>
+        </dependency>
             <!-- Validation -->
-            
-            <!-- Email -->
-            <dependency>
-                <groupId>io.micronaut.views</groupId>
-                <artifactId>micronaut-views-thymeleaf</artifactId>
+
+        <!-- Email -->
+        <dependency>
+            <groupId>io.micronaut.views</groupId>
+            <artifactId>micronaut-views-thymeleaf</artifactId>
                 <version>${micronaut-views-thymeleaf.version}</version>
+        </dependency>
+        <!-- Email -->
+
+            <!-- Security -->
+            <dependency>
+                <groupId>io.micronaut.security</groupId>
+                <artifactId>micronaut-security</artifactId>
+                <version>${micronaut-security.version}</version>
             </dependency>
-            <!-- Email -->
+            <!-- Security -->
         </dependencies>
     </dependencyManagement>
 

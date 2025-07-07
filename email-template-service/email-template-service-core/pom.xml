@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.posadskiy.email</groupId>
         <artifactId>email-template-service</artifactId>
-        <version>0.1.1</version>
+        <version>0.1.2</version>
     </parent>
 
     <artifactId>email-template-service-core</artifactId>
@@ -19,11 +19,15 @@
     
     <dependencies>
         <dependency>
+            <groupId>io.micronaut</groupId>
+            <artifactId>micronaut-http-client</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.posadskiy.email</groupId>
             <artifactId>email-template-service-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.posadskiy</groupId>
+            <groupId>com.posadskiy.email</groupId>
             <artifactId>email-service-api</artifactId>
         </dependency>
         <dependency>

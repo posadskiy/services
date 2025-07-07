@@ -11,7 +11,7 @@ import io.micronaut.http.client.annotation.Client;
 
 import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
 
-@Client("http://email-service.internal")
+@Client("${email.service.url:http://email-service.internal}")
 public interface EmailClient extends EmailOperations {
 
     @Consumes(MediaType.APPLICATION_JSON)
