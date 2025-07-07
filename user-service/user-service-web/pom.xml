@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.posadskiy.user</groupId>
         <artifactId>user-service</artifactId>
-        <version>0.1.1</version>
+        <version>0.1.2</version>
     </parent>
 
     <artifactId>user-service-web</artifactId>
@@ -16,7 +16,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
     <dependencies>
         <dependency>
             <groupId>com.posadskiy.user</groupId>
@@ -179,16 +179,11 @@
                     <compilerArgs>
                         <arg>-Amicronaut.processing.group=user.service</arg>
                         <arg>-Amicronaut.processing.module=user-service</arg>
+                        <arg>-Amicronaut.openapi.expand.api.version=${project.version}</arg>
+                        <arg>-Amicronaut.openapi.expand.api.title=User Service API</arg>
+                        <arg>-Amicronaut.openapi.expand.api.description=User Management Service</arg>
+                        <arg>-Amicronaut.openapi.filename=swagger/user-service.yml</arg>
                     </compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.google.cloud.tools</groupId>
-                <artifactId>jib-maven-plugin</artifactId>
-                <configuration>
-                    <to>
-                        <image>docker.io/posadskiy/user-service:0.1.1</image>
-                    </to>
                 </configuration>
             </plugin>
             <plugin>

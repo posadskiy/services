@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.user</groupId>
     <artifactId>user-service</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <packaging>pom</packaging>
     <modules>
         <module>user-service-api</module>
@@ -29,9 +29,9 @@
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.user.web.Application</exec.mainClass>
         
-        <user-service-api.version>0.1.1</user-service-api.version>
-        <user-service-core.version>0.1.1</user-service-core.version>
-        <user-service-web.version>0.1.1</user-service-web.version>
+        <user-service-api.version>0.1.2</user-service-api.version>
+        <user-service-core.version>0.1.2</user-service-core.version>
+        <user-service-web.version>0.1.2</user-service-web.version>
         
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
         <spring-security-crypto.version>6.3.0</spring-security-crypto.version>
@@ -54,45 +54,45 @@
     </distributionManagement>
 
     <dependencyManagement>
-        <dependencies>
-            <dependency>
+    <dependencies>
+        <dependency>
                 <groupId>com.posadskiy.user</groupId>
                 <artifactId>user-service-api</artifactId>
                 <version>${user-service-api.version}</version>
-            </dependency>
-            <dependency>
+        </dependency>
+        <dependency>
                 <groupId>com.posadskiy.user</groupId>
                 <artifactId>user-service-core</artifactId>
                 <version>${user-service-core.version}</version>
-            </dependency>
-            <dependency>
+        </dependency>
+        <dependency>
                 <groupId>com.posadskiy.user</groupId>
                 <artifactId>user-service-web</artifactId>
                 <version>${user-service-web.version}</version>
-            </dependency>
-            
+        </dependency>
+
             <!-- Validation -->
-            <dependency>
+        <dependency>
                 <groupId>jakarta.validation</groupId>
                 <artifactId>jakarta.validation-api</artifactId>
                 <version>${jakarta.validation-api.version}</version>
-            </dependency>
+        </dependency>
             <!-- Validation -->
-            
-            <!-- Security -->
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-crypto</artifactId>
+
+        <!-- Security -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
                 <version>${spring-security-crypto.version}</version>
-            </dependency>
-            <!-- Security -->
-            
-            <!-- Utilities -->
-            <dependency>
+        </dependency>
+        <!-- Security -->
+
+        <!-- Utilities -->
+        <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
-            </dependency>
+        </dependency>
             <!-- Utilities -->
         </dependencies>
     </dependencyManagement>
