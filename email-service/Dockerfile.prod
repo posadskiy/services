@@ -9,13 +9,13 @@ ARG GITHUB_USERNAME
 # Copy the entire project (including all modules)
 COPY . .
 
-# Copy and execute the Maven settings generation script
-COPY generate-maven-settings.sh /tmp/
-RUN chmod +x /tmp/generate-maven-settings.sh && \
-    /tmp/generate-maven-settings.sh "$GITHUB_USERNAME" "$GITHUB_TOKEN"
-
 # Build only the email-service-web module and its dependencies
-RUN mvn clean package -pl email-service-web -am -DskipTests
+RUN --mount=type=cache,target=/root/.m2 \
+    mkdir -p /root/.m2 && \
+    sed -e 's/\${GITHUB_USERNAME}/'$GITHUB_USERNAME'/g' \
+        -e 's/\${GITHUB_TOKEN}/'$GITHUB_TOKEN'/g' \
+        maven-settings.xml > /root/.m2/settings.xml && \
+    mvn clean package -pl email-service-web -am -DskipTests -s /root/.m2/settings.xml
 
 # === Stage 2: Create the runtime image ===
 FROM amazoncorretto:23-alpine-jdk
