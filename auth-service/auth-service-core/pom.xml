@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.posadskiy.auth</groupId>
         <artifactId>auth-service</artifactId>
-        <version>0.1.1</version>
+        <version>0.1.2</version>
     </parent>
 
     <artifactId>auth-service-core</artifactId>
@@ -16,7 +16,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
     <dependencies>
         <dependency>
             <groupId>com.posadskiy.auth</groupId>

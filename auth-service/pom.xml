@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.auth</groupId>
     <artifactId>auth-service</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <packaging>pom</packaging>
     <modules>
         <module>auth-service-api</module>
@@ -28,9 +28,9 @@
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.auth.web.Application</exec.mainClass>
         
-        <auth-service-api.version>0.1.1</auth-service-api.version>
-        <auth-service-core.version>0.1.1</auth-service-core.version>
-        <auth-service-web.version>0.1.1</auth-service-web.version>
+        <auth-service-api.version>0.1.2</auth-service-api.version>
+        <auth-service-core.version>0.1.2</auth-service-core.version>
+        <auth-service-web.version>0.1.2</auth-service-web.version>
         
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
@@ -46,51 +46,51 @@
     </repositories>
 
     <dependencyManagement>
-        <dependencies>
-            <dependency>
+    <dependencies>
+        <dependency>
                 <groupId>com.posadskiy.auth</groupId>
                 <artifactId>auth-service-api</artifactId>
                 <version>${auth-service-api.version}</version>
-            </dependency>
-            <dependency>
+        </dependency>
+        <dependency>
                 <groupId>com.posadskiy.auth</groupId>
                 <artifactId>auth-service-core</artifactId>
                 <version>${auth-service-core.version}</version>
-            </dependency>
-            <dependency>
+        </dependency>
+        <dependency>
                 <groupId>com.posadskiy.auth</groupId>
                 <artifactId>auth-service-web</artifactId>
                 <version>${auth-service-web.version}</version>
-            </dependency>
+        </dependency>
             
-            <dependency>
-                <groupId>net.logstash.logback</groupId>
-                <artifactId>logstash-logback-encoder</artifactId>
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
                 <version>${logstash-logback-encoder.version}</version>
-            </dependency>
-            
+        </dependency>
+
             <!-- Validation -->
-            <dependency>
+        <dependency>
                 <groupId>jakarta.validation</groupId>
                 <artifactId>jakarta.validation-api</artifactId>
                 <version>${jakarta.validation-api.version}</version>
-            </dependency>
+        </dependency>
             <!-- Validation -->
-            
-            <!-- Security -->
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-crypto</artifactId>
+
+        <!-- Security -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
                 <version>${spring-security-crypto.version}</version>
-            </dependency>
-            <!-- Security -->
-            
-            <!-- Utilities -->
-            <dependency>
+        </dependency>
+        <!-- Security -->
+
+        <!-- Utilities -->
+        <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
-            </dependency>
+        </dependency>
             <!-- Utilities -->
         </dependencies>
     </dependencyManagement>
