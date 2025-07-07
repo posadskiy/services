@@ -37,6 +37,10 @@ services:
       JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
       JAEGER_SERVICE_NAME: auth-service
       JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      # Service URLs for Docker Compose (use service names)
+      USER_SERVICE_URL: http://user-service:8095
+      EMAIL_SERVICE_URL: http://email-service:8090
+      EMAIL_TEMPLATE_SERVICE_URL: http://email-template-service:8091
     ports:
       - "8100:8100"
       - "5005:5005"  # Debug port
@@ -51,12 +55,8 @@ services:
     networks:
       - user-web-network
       - observability-stack-network
-    # Add .internal DNS aliases to match Kubernetes service names
-    extra_hosts:
-      - "user-service.internal:user-service"
-      - "email-service.internal:email-service"
-      - "auth-service.internal:auth-service"
-      - "email-template-service.internal:email-template-service"
+    # Note: Services communicate using Docker Compose service names
+    # The .internal hostnames are handled by Kubernetes service aliases
         
   user-service:
     build:
@@ -89,11 +89,6 @@ services:
       - user-web-network
       - observability-stack-network
     # Add .internal DNS aliases to match Kubernetes service names
-    extra_hosts:
-      - "user-service.internal:user-service"
-      - "email-service.internal:email-service"
-      - "auth-service.internal:auth-service"
-      - "email-template-service.internal:email-template-service"
         
   email-service:
     build:
@@ -132,11 +127,6 @@ services:
       - user-web-network
       - observability-stack-network
     # Add .internal DNS aliases to match Kubernetes service names
-    extra_hosts:
-      - "user-service.internal:user-service"
-      - "email-service.internal:email-service"
-      - "auth-service.internal:auth-service"
-      - "email-template-service.internal:email-template-service"
         
   email-template-service:
     build:
@@ -173,11 +163,6 @@ services:
       - user-web-network
       - observability-stack-network
     # Add .internal DNS aliases to match Kubernetes service names
-    extra_hosts:
-      - "user-service.internal:user-service"
-      - "email-service.internal:email-service"
-      - "auth-service.internal:auth-service"
-      - "email-template-service.internal:email-template-service"
 
 volumes:
   postgres_data:
