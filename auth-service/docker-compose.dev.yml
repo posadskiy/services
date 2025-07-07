@@ -49,12 +49,8 @@ services:
     networks:
       - user-web-network
       - observability-stack-network
-    # Add .internal DNS aliases to match Kubernetes service names
-    extra_hosts:
-      - "user-service.internal:user-service"
-      - "email-service.internal:email-service"
-      - "auth-service.internal:auth-service"
-      - "email-template-service.internal:email-template-service"
+    # Note: Services communicate using Docker Compose service names
+    # The .internal hostnames are handled by Kubernetes service aliases
 
 volumes:
   postgres_data:
