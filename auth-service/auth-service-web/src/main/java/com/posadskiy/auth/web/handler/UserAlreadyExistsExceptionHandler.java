@@ -1,4 +1,4 @@
-package com.posadskiy.auth.core.exception.handler;
+package com.posadskiy.auth.web.handler;
 
 import com.posadskiy.auth.core.exception.AuthException;
 import com.posadskiy.auth.core.exception.ErrorMessage;
