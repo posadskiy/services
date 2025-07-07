@@ -17,6 +17,8 @@ services:
       JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
       EMAIL_ADDRESS: ${DEV_EMAIL_ADDRESS}
       EMAIL_TOKEN: ${DEV_EMAIL_TOKEN}
+      # Service URLs for Docker Compose (use service names)
+      USER_SERVICE_URL: http://user-service:8095
     ports:
       - "8090:8090"
       - "5007:5007"  # Debug port
@@ -31,12 +33,8 @@ services:
     networks:
       - user-web-network
       - observability-stack-network
-    # Add .internal DNS aliases to match Kubernetes service names
-    extra_hosts:
-      - "user-service.internal:user-service"
-      - "email-service.internal:email-service"
-      - "auth-service.internal:auth-service"
-      - "email-template-service.internal:email-template-service"
+    # Note: Services communicate using Docker Compose service names
+    # The .internal hostnames are handled by Kubernetes service aliases
 
 volumes:
   postgres_data:
