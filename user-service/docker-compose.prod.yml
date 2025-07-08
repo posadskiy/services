@@ -22,9 +22,9 @@ services:
     ports:
       - "8095:8095"
       - "5006:5006"  # Debug port
-    # Add .internal DNS aliases to match Kubernetes service names
+    # Add -internal DNS aliases to match Kubernetes service names
     extra_hosts:
-      - "user-service.internal:user-service"
-      - "email-service.internal:email-service"
-      - "auth-service.internal:auth-service"
-      - "email-template-service.internal:email-template-service"
+      - "user-service-internal:user-service"
+      - "email-service-internal:email-service"
+      - "auth-service-internal:auth-service"
+      - "email-template-service-internal:email-template-service"
