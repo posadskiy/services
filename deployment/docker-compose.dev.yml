@@ -56,7 +56,7 @@ services:
       - user-web-network
       - observability-stack-network
     # Note: Services communicate using Docker Compose service names
-    # The .internal hostnames are handled by Kubernetes service aliases
+    # The -internal hostnames are handled by Kubernetes service aliases
         
   user-service:
     build:
@@ -88,7 +88,7 @@ services:
     networks:
       - user-web-network
       - observability-stack-network
-    # Add .internal DNS aliases to match Kubernetes service names
+    # Add -internal DNS aliases to match Kubernetes service names
         
   email-service:
     build:
@@ -126,7 +126,7 @@ services:
     networks:
       - user-web-network
       - observability-stack-network
-    # Add .internal DNS aliases to match Kubernetes service names
+    # Add -internal DNS aliases to match Kubernetes service names
         
   email-template-service:
     build:
@@ -162,7 +162,7 @@ services:
     networks:
       - user-web-network
       - observability-stack-network
-    # Add .internal DNS aliases to match Kubernetes service names
+    # Add -internal DNS aliases to match Kubernetes service names
 
 volumes:
   postgres_data:
