@@ -77,6 +77,14 @@
         </dependency>
         <!-- Metrics -->
         
+        <!-- Management -->
+        <dependency>
+            <groupId>io.micronaut</groupId>
+            <artifactId>micronaut-management</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Management -->
+        
         <!-- Documenting -->
         <dependency>
             <groupId>io.micronaut.openapi</groupId>
