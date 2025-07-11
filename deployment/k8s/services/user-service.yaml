@@ -92,4 +92,18 @@ spec:
     targetPort: 8095
     protocol: TCP
   selector:
-    app: user-service 
+    app: user-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-external
+  namespace: microservices
+  labels:
+    app: user-service-external
+spec:
+  type: ExternalName
+  externalName: user-service.microservices.svc.cluster.local
+  ports:
+  - port: 8095
+    protocol: TCP 

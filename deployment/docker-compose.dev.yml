@@ -112,6 +112,7 @@ services:
       EMAIL_TOKEN: ${DEV_EMAIL_TOKEN}
       JAEGER_SERVICE_NAME: email-service
       JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      USER_SERVICE_URL: http://user-service:8095
     ports:
       - "8090:8090"
       - "5007:5007"  # Debug port

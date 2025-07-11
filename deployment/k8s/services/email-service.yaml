@@ -51,6 +51,16 @@ spec:
             configMapKeyRef:
               name: microservices-config
               key: DEV_EMAIL_TOKEN
+        - name: USER_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: USER_SERVICE_URL
+        - name: EMAIL_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: EMAIL_SERVICE_URL
         - name: JAEGER_SERVICE_NAME
           value: "email-service"
         - name: JAEGER_ENDPOINT
