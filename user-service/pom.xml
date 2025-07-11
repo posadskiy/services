@@ -29,9 +29,9 @@
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.user.web.Application</exec.mainClass>
         
-        <user-service-api.version>0.1.2</user-service-api.version>
-        <user-service-core.version>0.1.2</user-service-core.version>
-        <user-service-web.version>0.1.2</user-service-web.version>
+        <user-service-api.version>0.1.3</user-service-api.version>
+        <user-service-core.version>0.1.3</user-service-core.version>
+        <user-service-web.version>0.1.3</user-service-web.version>
         
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
         <spring-security-crypto.version>6.3.0</spring-security-crypto.version>
