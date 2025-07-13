@@ -82,18 +82,13 @@ jobs:
         echo "### 📝 Changes" >> release_body.md
         
         if [[ -n "$PREVIOUS_TAG" ]]; then
-          # Get the previous previous tag to include changes made before the previous version bump
-          PREVIOUS_PREVIOUS_TAG=$(git tag --sort=-version:refname | while read tag; do
-            if [[ "$tag" != "v$CURRENT_VERSION" && "$tag" != "$PREVIOUS_TAG" ]]; then
-              echo "$tag"
-              break
-            fi
-          done)
+          # Get the tag that's 3 positions back from current version for broader range
+          BASE_TAG=$(git tag --sort=-version:refname | grep -v "v$CURRENT_VERSION" | head -3 | tail -1)
           
-          # Use the previous previous tag if available, otherwise use the previous tag
-          if [[ -n "$PREVIOUS_PREVIOUS_TAG" ]]; then
-            COMMIT_RANGE="$PREVIOUS_PREVIOUS_TAG..HEAD"
-            echo "Using previous previous tag for range: $COMMIT_RANGE"
+          # Use the base tag if available, otherwise use the previous tag
+          if [[ -n "$BASE_TAG" ]]; then
+            COMMIT_RANGE="$BASE_TAG..HEAD"
+            echo "Using base tag for range: $COMMIT_RANGE"
           else
             COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
             echo "Using previous tag for range: $COMMIT_RANGE"
