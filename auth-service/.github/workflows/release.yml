@@ -54,6 +54,9 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
       run: |
+        # Fetch all tags to ensure they're available
+        git fetch --tags
+        
         # Get the previous tag to determine commit range
         CURRENT_VERSION="${{ steps.version.outputs.version }}"
         echo "Current version: $CURRENT_VERSION"
@@ -65,7 +68,14 @@ jobs:
         # Debug: Show the grep command
         echo "Running: git tag --sort=-version:refname | grep -v 'v$CURRENT_VERSION' | head -1"
         
-        PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -v "v$CURRENT_VERSION" | head -1)
+        # More robust approach to find previous tag
+        PREVIOUS_TAG=$(git tag --sort=-version:refname | while read tag; do
+          if [[ "$tag" != "v$CURRENT_VERSION" ]]; then
+            echo "$tag"
+            break
+          fi
+        done)
+        
         echo "Previous tag found: '$PREVIOUS_TAG'"
         echo "Length of PREVIOUS_TAG: ${#PREVIOUS_TAG}"
         
