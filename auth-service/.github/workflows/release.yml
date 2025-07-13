@@ -98,8 +98,8 @@ jobs:
             fi
           fi
           if $ONLY_VERSION_BUMP; then
-            echo "Only version bump commit found. Showing all commits since previous tag up to HEAD~1."
-            git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD~1 >> release_body.md
+            echo "Only version bump commit found. No changes since previous release."
+            echo "No changes since previous release." >> release_body.md
           else
             echo "$COMMITS" | grep -v "^-[ ]*v$CURRENT_VERSION$" >> release_body.md
           fi
