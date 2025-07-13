@@ -82,6 +82,9 @@ micronaut:
       sensitive: false
       details:
         enabled: true
+    openapi:
+      enabled: true
+      sensitive: false
 #end::micronaut[]
 
 #tag::database[]

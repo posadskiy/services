@@ -13,7 +13,7 @@ micronaut:
   router:
     static-resources:
       swagger:
-        paths: classpath:META-INF/swagger
+        paths: classpath:META-INF/swagger/swagger/
         mapping: /swagger/**
       swagger-ui:
         paths: classpath:META-INF/swagger/views/swagger-ui
@@ -25,12 +25,11 @@ micronaut:
         access: isAnonymous()
       - pattern: /swagger/**
         access: isAnonymous()
-      - pattern: /v3/api-docs/**
-        access: isAnonymous()
       - pattern: /login
         access: isAnonymous()
       - pattern: /prometheus
         access: isAnonymous()
+
     token:
       jwt:
         signatures:
@@ -81,6 +80,9 @@ micronaut:
     prometheus:
       enabled: true
       sensitive: false
+    openapi:
+      enabled: true
+      sensitive: false
 #end::micronaut[]
 
 #tag::database[]
@@ -105,4 +107,5 @@ tracing:
     enabled: true
     sampler:
       probability: 1 # <1>
-#end::jaeger[]
+  #end::jaeger[]
+ 

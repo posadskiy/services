@@ -17,7 +17,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
     <dependencies>
         <!-- Validation -->
         <dependency>
@@ -30,7 +30,7 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
         <!-- Validation -->
-        
+
         <!-- Json -->
         <dependency>
             <groupId>io.micronaut.serde</groupId>

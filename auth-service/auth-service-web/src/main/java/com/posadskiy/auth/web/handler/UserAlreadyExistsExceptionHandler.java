@@ -19,7 +19,7 @@ public class UserAlreadyExistsExceptionHandler implements ExceptionHandler<AuthE
     @Override
     public HttpResponse handle(HttpRequest request, AuthException exception) {
         var message = new ErrorMessage(false, exception.getMessage());
-        
+
         return HttpResponse
             .serverError(message)
             .status(HttpStatus.BAD_REQUEST);
