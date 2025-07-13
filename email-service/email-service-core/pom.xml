@@ -72,13 +72,7 @@
         </dependency>
         <!-- Testing -->
         
-        <!-- Utils -->
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- Utils -->
+
     </dependencies>
 
     <build>

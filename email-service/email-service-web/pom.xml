@@ -91,6 +91,10 @@
             <artifactId>micronaut-openapi-annotations</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.micronaut.openapi</groupId>
+            <artifactId>micronaut-openapi</artifactId>
+        </dependency>
         <!-- Documenting -->
         
         <!-- Validation -->
@@ -122,6 +126,14 @@
             <scope>test</scope>
         </dependency>
         <!-- Testing -->
+        
+        <!-- Utils -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Utils -->
     </dependencies>
 
     <build>
@@ -178,7 +190,7 @@
                         <arg>-Amicronaut.openapi.expand.api.version=${project.version}</arg>
                         <arg>-Amicronaut.openapi.expand.api.title=Email Service API</arg>
                         <arg>-Amicronaut.openapi.expand.api.description=Email Service</arg>
-                        <arg>-Amicronaut.openapi.filename=swagger/email-service.yml</arg>
+                        <arg>-Amicronaut.openapi.filename=swagger/swagger.yml</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
