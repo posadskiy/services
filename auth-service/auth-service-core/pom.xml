@@ -6,11 +6,11 @@
     <parent>
         <groupId>com.posadskiy.auth</groupId>
         <artifactId>auth-service</artifactId>
-        <version>0.1.5</version>
+        <version>0.1.6</version>
     </parent>
 
     <artifactId>auth-service-core</artifactId>
-    <version>0.1.5</version>
+    <version>0.1.6</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
