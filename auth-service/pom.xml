@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.auth</groupId>
     <artifactId>auth-service</artifactId>
-    <version>0.1.6</version>
+    <version>0.1.7</version>
     <packaging>pom</packaging>
     <modules>
         <module>auth-service-api</module>
@@ -28,10 +28,9 @@
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.auth.web.Application</exec.mainClass>
         
-        <auth-service.version>0.1.6</auth-service.version>
-        <auth-service-api.version>0.1.6</auth-service-api.version>
-        <auth-service-core.version>0.1.6</auth-service-core.version>
-        <auth-service-web.version>0.1.6</auth-service-web.version>
+        <auth-service-api.version>0.1.7</auth-service-api.version>
+        <auth-service-core.version>0.1.7</auth-service-core.version>
+        <auth-service-web.version>0.1.7</auth-service-web.version>
         
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
