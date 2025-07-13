@@ -86,8 +86,16 @@ jobs:
           COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
           echo "Generating release notes from commits: $COMMIT_RANGE"
           
+          # Debug: Show raw git log output
+          echo "Raw git log output:"
+          git log --pretty=format:"- %s" $COMMIT_RANGE
+          
           # Get all commit messages in the range, excluding the version bump commit
-          COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^-[ ]*v$CURRENT_VERSION$")
+          echo "Filtering out version bump commit: v$CURRENT_VERSION"
+          COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^-[ ]*v$CURRENT_VERSION$" || echo "")
+          echo "Filtered commits:"
+          echo "$COMMITS"
+          
           if [[ -z "$COMMITS" ]]; then
             echo "No changes since previous release." >> release_body.md
           else
@@ -96,7 +104,7 @@ jobs:
         else
           # First release - include all commits except the current version commit
           echo "First release - including all commits"
-          COMMITS=$(git log --pretty=format:"- %s" | grep -v "^-[ ]*v$CURRENT_VERSION$")
+          COMMITS=$(git log --pretty=format:"- %s" | grep -v "^-[ ]*v$CURRENT_VERSION$" || echo "")
           if [[ -z "$COMMITS" ]]; then
             echo "No changes since previous release." >> release_body.md
           else
