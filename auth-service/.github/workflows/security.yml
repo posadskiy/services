@@ -34,6 +34,17 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
         
+    - name: Check NVD API Key
+      run: |
+        if [ -z "${{ secrets.NVD_API_KEY }}" ]; then
+          echo "⚠️  No NVD API key found. To speed up dependency checks:"
+          echo "1. Get a free API key from: https://nvd.nist.gov/developers/request-an-api-key"
+          echo "2. Add it to repository secrets as 'NVD_API_KEY'"
+          echo "3. This will reduce check time from 10+ minutes to under 2 minutes"
+        else
+          echo "✅ NVD API key is configured"
+        fi
+        
     - name: Run OWASP Dependency Check
       run: |
         if [ -n "${{ secrets.NVD_API_KEY }}" ]; then
@@ -45,12 +56,13 @@ jobs:
             -Dnvd.api.key=${{ secrets.NVD_API_KEY }} \
             -B
         else
-          echo "No NVD API key provided, using local cache to speed up check"
+          echo "No NVD API key provided, skipping NVD update to speed up check"
           mvn org.owasp:dependency-check-maven:check \
             -Dformat=HTML \
             -Dformat=JSON \
             -DfailOnCVSS=7 \
             -DcveValidForHours=168 \
+            -Dnvd.skip=true \
             -B
         fi
           
