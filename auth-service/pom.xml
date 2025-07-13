@@ -28,9 +28,9 @@
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.auth.web.Application</exec.mainClass>
         
-        <auth-service-api.version>0.1.16</auth-service-api.version>
-        <auth-service-core.version>0.1.16</auth-service-core.version>
-        <auth-service-web.version>0.1.16</auth-service-web.version>
+        <auth-service-api.version>0.1.17</auth-service-api.version>
+        <auth-service-core.version>0.1.17</auth-service-core.version>
+        <auth-service-web.version>0.1.17</auth-service-web.version>
         
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
