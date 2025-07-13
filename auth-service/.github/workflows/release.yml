@@ -56,7 +56,25 @@ jobs:
       run: |
         # Get the previous tag to determine commit range
         CURRENT_VERSION="${{ steps.version.outputs.version }}"
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Debug: Show all tags
+        echo "All tags:"
+        git tag --sort=-version:refname
+        
+        # Debug: Show the grep command
+        echo "Running: git tag --sort=-version:refname | grep -v 'v$CURRENT_VERSION' | head -1"
+        
         PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -v "v$CURRENT_VERSION" | head -1)
+        echo "Previous tag found: '$PREVIOUS_TAG'"
+        echo "Length of PREVIOUS_TAG: ${#PREVIOUS_TAG}"
+        
+        # Debug: Test the condition
+        if [[ -n "$PREVIOUS_TAG" ]]; then
+          echo "PREVIOUS_TAG is NOT empty"
+        else
+          echo "PREVIOUS_TAG is empty"
+        fi
         
         # Create release body header
         echo "## Auth Service Release ${{ steps.version.outputs.version }}" > release_body.md
