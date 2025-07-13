@@ -59,64 +59,43 @@ jobs:
         # Get the previous tag to determine commit range
         PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
         
+        # Create release body header
+        echo "## Auth Service Release ${{ steps.version.outputs.version }}" > release_body.md
+        echo "" >> release_body.md
+        echo "### 📝 Changes" >> release_body.md
+        
         if [[ -n "$PREVIOUS_TAG" ]]; then
           # Generate release notes from commits since the last tag
           COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
           echo "Generating release notes from commits: $COMMIT_RANGE"
           
-          # Create release body with commit history
-          cat > release_body.md << 'EOF'
-          ## Auth Service Release ${{ steps.version.outputs.version }}
-          
-          ### 📝 Changes
-          EOF
-          
           # Add commit messages to release notes
           git log --pretty=format:"- %s" $COMMIT_RANGE >> release_body.md
-          
-          cat >> release_body.md << 'EOF'
-          
-          ### 📦 Release Artifacts
-          - Source code tagged with version ${{ steps.version.outputs.version }}
-          - Maven artifacts available in GitHub Packages
-          
-          ### 🔧 Build Instructions
-          ```bash
-          mvn clean package -DskipTests
-          java -jar auth-service-web/target/auth-service-web-*.jar
-          ```
-          
-          ### 📝 Release Trigger
-          ${{ steps.version.outputs.trigger_type == 'commit' && 'This release was triggered by a commit message with version pattern.' || 'This release was triggered by a git tag push.' }}
-          EOF
         else
           # First release - include all commits
           echo "First release - including all commits"
           
-          cat > release_body.md << 'EOF'
-          ## Auth Service Release ${{ steps.version.outputs.version }}
-          
-          ### 📝 Changes
-          EOF
-          
           # Add all commit messages to release notes
           git log --pretty=format:"- %s" >> release_body.md
-          
-          cat >> release_body.md << 'EOF'
-          
-          ### 📦 Release Artifacts
-          - Source code tagged with version ${{ steps.version.outputs.version }}
-          - Maven artifacts available in GitHub Packages
-          
-          ### 🔧 Build Instructions
-          ```bash
-          mvn clean package -DskipTests
-          java -jar auth-service-web/target/auth-service-web-*.jar
-          ```
-          
-          ### 📝 Release Trigger
-          ${{ steps.version.outputs.trigger_type == 'commit' && 'This release was triggered by a commit message with version pattern.' || 'This release was triggered by a git tag push.' }}
-          EOF
+        fi
+        
+        # Add footer to release notes
+        echo "" >> release_body.md
+        echo "### 📦 Release Artifacts" >> release_body.md
+        echo "- Source code tagged with version ${{ steps.version.outputs.version }}" >> release_body.md
+        echo "- Maven artifacts available in GitHub Packages" >> release_body.md
+        echo "" >> release_body.md
+        echo "### 🔧 Build Instructions" >> release_body.md
+        echo '```bash' >> release_body.md
+        echo "mvn clean package -DskipTests" >> release_body.md
+        echo "java -jar auth-service-web/target/auth-service-web-*.jar" >> release_body.md
+        echo '```' >> release_body.md
+        echo "" >> release_body.md
+        echo "### 📝 Release Trigger" >> release_body.md
+        if [[ "${{ steps.version.outputs.trigger_type }}" == "commit" ]]; then
+          echo "This release was triggered by a commit message with version pattern." >> release_body.md
+        else
+          echo "This release was triggered by a git tag push." >> release_body.md
         fi
         
         # Create release using GitHub CLI
