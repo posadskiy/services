@@ -55,7 +55,8 @@ jobs:
         GH_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
       run: |
         # Get the previous tag to determine commit range
-        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+        CURRENT_VERSION="${{ steps.version.outputs.version }}"
+        PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -v "v$CURRENT_VERSION" | head -1)
         
         # Create release body header
         echo "## Auth Service Release ${{ steps.version.outputs.version }}" > release_body.md
