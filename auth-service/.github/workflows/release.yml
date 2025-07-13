@@ -51,14 +51,6 @@ jobs:
           fi
         fi
         
-    - name: Create tag from commit message
-      if: steps.version.outputs.trigger_type == 'commit'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git tag ${{ steps.version.outputs.tag }}
-        git push origin ${{ steps.version.outputs.tag }}
-        
     - name: Create Release
       if: steps.version.outputs.version != ''
       uses: actions/create-release@v1
@@ -84,6 +76,9 @@ jobs:
           mvn clean package -DskipTests
           java -jar auth-service-web/target/auth-service-web-*.jar
           ```
+          
+          ### 📝 Release Trigger
+          ${{ steps.version.outputs.trigger_type == 'commit' && 'This release was triggered by a commit message with version pattern.' || 'This release was triggered by a git tag push.' }}
         draft: false
         prerelease: false
 
