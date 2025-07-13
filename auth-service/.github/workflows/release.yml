@@ -53,6 +53,8 @@ jobs:
         
     - name: Create Release
       if: steps.version.outputs.version != ''
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         # Create release body
         cat > release_body.md << 'EOF'
