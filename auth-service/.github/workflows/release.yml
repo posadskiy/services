@@ -56,28 +56,68 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
       run: |
-        # Create release body
-        cat > release_body.md << 'EOF'
-        ## Auth Service Release ${{ steps.version.outputs.version }}
+        # Get the previous tag to determine commit range
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
         
-        ### 🚀 What's New
-        - Authentication and authorization improvements
-        - Security enhancements
-        - Performance optimizations
-        
-        ### 📦 Release Artifacts
-        - Source code tagged with version ${{ steps.version.outputs.version }}
-        - Maven artifacts available in the repository
-        
-        ### 🔧 Build Instructions
-        ```bash
-        mvn clean package -DskipTests
-        java -jar auth-service-web/target/auth-service-web-*.jar
-        ```
-        
-        ### 📝 Release Trigger
-        ${{ steps.version.outputs.trigger_type == 'commit' && 'This release was triggered by a commit message with version pattern.' || 'This release was triggered by a git tag push.' }}
-        EOF
+        if [[ -n "$PREVIOUS_TAG" ]]; then
+          # Generate release notes from commits since the last tag
+          COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
+          echo "Generating release notes from commits: $COMMIT_RANGE"
+          
+          # Create release body with commit history
+          cat > release_body.md << 'EOF'
+          ## Auth Service Release ${{ steps.version.outputs.version }}
+          
+          ### 📝 Changes
+          EOF
+          
+          # Add commit messages to release notes
+          git log --pretty=format:"- %s" $COMMIT_RANGE >> release_body.md
+          
+          cat >> release_body.md << 'EOF'
+          
+          ### 📦 Release Artifacts
+          - Source code tagged with version ${{ steps.version.outputs.version }}
+          - Maven artifacts available in GitHub Packages
+          
+          ### 🔧 Build Instructions
+          ```bash
+          mvn clean package -DskipTests
+          java -jar auth-service-web/target/auth-service-web-*.jar
+          ```
+          
+          ### 📝 Release Trigger
+          ${{ steps.version.outputs.trigger_type == 'commit' && 'This release was triggered by a commit message with version pattern.' || 'This release was triggered by a git tag push.' }}
+          EOF
+        else
+          # First release - include all commits
+          echo "First release - including all commits"
+          
+          cat > release_body.md << 'EOF'
+          ## Auth Service Release ${{ steps.version.outputs.version }}
+          
+          ### 📝 Changes
+          EOF
+          
+          # Add all commit messages to release notes
+          git log --pretty=format:"- %s" >> release_body.md
+          
+          cat >> release_body.md << 'EOF'
+          
+          ### 📦 Release Artifacts
+          - Source code tagged with version ${{ steps.version.outputs.version }}
+          - Maven artifacts available in GitHub Packages
+          
+          ### 🔧 Build Instructions
+          ```bash
+          mvn clean package -DskipTests
+          java -jar auth-service-web/target/auth-service-web-*.jar
+          ```
+          
+          ### 📝 Release Trigger
+          ${{ steps.version.outputs.trigger_type == 'commit' && 'This release was triggered by a commit message with version pattern.' || 'This release was triggered by a git tag push.' }}
+          EOF
+        fi
         
         # Create release using GitHub CLI
         gh release create ${{ steps.version.outputs.tag }} \
@@ -85,5 +125,67 @@ jobs:
           --notes-file release_body.md \
           --draft=false \
           --prerelease=false
+
+  deploy-to-packages:
+    name: Deploy to GitHub Packages
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: needs.create-release.result == 'success'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Extract version from tag or commit message
+      id: version
+      run: |
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/v}
+        else
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ $COMMIT_MSG =~ v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?) ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+          else
+            echo "No valid version pattern found"
+            exit 1
+          fi
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+    - name: Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Build and Publish to GitHub Packages
+      run: |
+        # Set version in pom.xml files
+        mvn versions:set -DnewVersion=${{ steps.version.outputs.version }}
+        
+        # Build and publish all modules
+        mvn clean deploy \
+          -DskipTests \
+          -Dmaven.test.skip=true \
+          -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/${{ github.repository }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
+        
+    - name: Upload JAR artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: auth-service-jars
+        path: |
+          auth-service-web/target/*.jar
+          auth-service-core/target/*.jar
+          auth-service-api/target/*.jar
+        retention-days: 30
 
  
