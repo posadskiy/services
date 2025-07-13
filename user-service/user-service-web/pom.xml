@@ -72,6 +72,10 @@
             <artifactId>micronaut-openapi-annotations</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.micronaut.openapi</groupId>
+            <artifactId>micronaut-openapi</artifactId>
+        </dependency>
         <!-- Documenting -->
         
         <!-- Security -->
@@ -109,7 +113,21 @@
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- H2 Database for Testing -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <!-- Testing -->
+        
+        <!-- Utils -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Utils -->
         
         <!-- Management -->
         <dependency>
@@ -182,7 +200,7 @@
                         <arg>-Amicronaut.openapi.expand.api.version=${project.version}</arg>
                         <arg>-Amicronaut.openapi.expand.api.title=User Service API</arg>
                         <arg>-Amicronaut.openapi.expand.api.description=User Management Service</arg>
-                        <arg>-Amicronaut.openapi.filename=swagger/user-service.yml</arg>
+                        <arg>-Amicronaut.openapi.filename=swagger/swagger.yml</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
