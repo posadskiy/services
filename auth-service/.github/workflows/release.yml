@@ -51,10 +51,10 @@ jobs:
           fi
         fi
         
-        - name: Create Release
+    - name: Create Release
       if: steps.version.outputs.version != ''
-              env:
-          GH_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
+      env:
+        GH_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
       run: |
         # Create release body
         cat > release_body.md << 'EOF'
