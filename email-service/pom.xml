@@ -30,10 +30,10 @@
         <micronaut.version>4.5.0</micronaut.version>
         <lombok.version>1.18.30</lombok.version>
         
-        <email-service-api.version>0.1.3</email-service-api.version>
-        <email-service-core.version>0.1.3</email-service-core.version>
-        <email-service-web.version>0.1.3</email-service-web.version>
-        <user-service-api.version>0.1.3</user-service-api.version>
+        <email-service-api.version>0.1.4</email-service-api.version>
+        <email-service-core.version>0.1.4</email-service-core.version>
+        <email-service-web.version>0.1.4</email-service-web.version>
+        <user-service-api.version>0.1.4</user-service-api.version>
         
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <javax.mail.version>1.6.2</javax.mail.version>
