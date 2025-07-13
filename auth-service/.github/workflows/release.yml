@@ -92,9 +92,12 @@ jobs:
           
           # Get all commit messages in the range, excluding the version bump commit
           echo "Filtering out version bump commit: v$CURRENT_VERSION"
-          COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^-[ ]*v$CURRENT_VERSION$" || echo "")
+          echo "Running: git log --pretty=format:'- %s' $COMMIT_RANGE | grep -v '^- v$CURRENT_VERSION$'"
+          
+          COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^- v$CURRENT_VERSION$" || echo "")
           echo "Filtered commits:"
           echo "$COMMITS"
+          echo "Number of filtered commits: $(echo "$COMMITS" | grep -c '^-' || echo 0)"
           
           if [[ -z "$COMMITS" ]]; then
             echo "No changes since previous release." >> release_body.md
@@ -104,7 +107,7 @@ jobs:
         else
           # First release - include all commits except the current version commit
           echo "First release - including all commits"
-          COMMITS=$(git log --pretty=format:"- %s" | grep -v "^-[ ]*v$CURRENT_VERSION$" || echo "")
+          COMMITS=$(git log --pretty=format:"- %s" | grep -v "^- v$CURRENT_VERSION$" || echo "")
           if [[ -z "$COMMITS" ]]; then
             echo "No changes since previous release." >> release_body.md
           else
