@@ -53,33 +53,35 @@ jobs:
         
     - name: Create Release
       if: steps.version.outputs.version != ''
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.version.outputs.tag }}
-        release_name: Auth Service ${{ steps.version.outputs.version }}
-        body: |
-          ## Auth Service Release ${{ steps.version.outputs.version }}
-          
-          ### 🚀 What's New
-          - Authentication and authorization improvements
-          - Security enhancements
-          - Performance optimizations
-          
-          ### 📦 Release Artifacts
-          - Source code tagged with version ${{ steps.version.outputs.version }}
-          - Maven artifacts available in the repository
-          
-          ### 🔧 Build Instructions
-          ```bash
-          mvn clean package -DskipTests
-          java -jar auth-service-web/target/auth-service-web-*.jar
-          ```
-          
-          ### 📝 Release Trigger
-          ${{ steps.version.outputs.trigger_type == 'commit' && 'This release was triggered by a commit message with version pattern.' || 'This release was triggered by a git tag push.' }}
-        draft: false
-        prerelease: false
+      run: |
+        # Create release body
+        cat > release_body.md << 'EOF'
+        ## Auth Service Release ${{ steps.version.outputs.version }}
+        
+        ### 🚀 What's New
+        - Authentication and authorization improvements
+        - Security enhancements
+        - Performance optimizations
+        
+        ### 📦 Release Artifacts
+        - Source code tagged with version ${{ steps.version.outputs.version }}
+        - Maven artifacts available in the repository
+        
+        ### 🔧 Build Instructions
+        ```bash
+        mvn clean package -DskipTests
+        java -jar auth-service-web/target/auth-service-web-*.jar
+        ```
+        
+        ### 📝 Release Trigger
+        ${{ steps.version.outputs.trigger_type == 'commit' && 'This release was triggered by a commit message with version pattern.' || 'This release was triggered by a git tag push.' }}
+        EOF
+        
+        # Create release using GitHub CLI
+        gh release create ${{ steps.version.outputs.tag }} \
+          --title "Auth Service ${{ steps.version.outputs.version }}" \
+          --notes-file release_body.md \
+          --draft=false \
+          --prerelease=false
 
  
