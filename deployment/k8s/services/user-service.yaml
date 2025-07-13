@@ -92,7 +92,7 @@ spec:
     targetPort: 8095
     protocol: TCP
   selector:
-    app: user-service
+    app: user-service 
 ---
 apiVersion: v1
 kind: Service

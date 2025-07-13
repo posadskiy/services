@@ -92,7 +92,7 @@ spec:
     targetPort: 8100
     protocol: TCP
   selector:
-    app: auth-service
+    app: auth-service 
 ---
 apiVersion: v1
 kind: Service
