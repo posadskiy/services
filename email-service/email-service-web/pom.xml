@@ -190,7 +190,7 @@
                         <arg>-Amicronaut.openapi.expand.api.version=${project.version}</arg>
                         <arg>-Amicronaut.openapi.expand.api.title=Email Service API</arg>
                         <arg>-Amicronaut.openapi.expand.api.description=Email Service</arg>
-                        <arg>-Amicronaut.openapi.filename=swagger/swagger.yml</arg>
+                        <arg>-Amicronaut.openapi.filename=swagger/swagger</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
