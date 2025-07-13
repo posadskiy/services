@@ -96,6 +96,18 @@ jobs:
           
           echo "Generating release notes from commits: $COMMIT_RANGE"
           
+          # Debug: Show current HEAD and tag positions
+          echo "Current HEAD: $(git rev-parse HEAD)"
+          echo "Current HEAD message: $(git log -1 --pretty=format:'%s')"
+          echo "Base tag: $BASE_TAG"
+          echo "Base tag commit: $(git rev-parse $BASE_TAG)"
+          echo "Previous tag: $PREVIOUS_TAG"
+          echo "Previous tag commit: $(git rev-parse $PREVIOUS_TAG)"
+          
+          # Debug: Show all commits in the range
+          echo "All commits in range $COMMIT_RANGE:"
+          git log --oneline $COMMIT_RANGE
+          
           # Debug: Show raw git log output
           echo "Raw git log output:"
           git log --pretty=format:"- %s" $COMMIT_RANGE
