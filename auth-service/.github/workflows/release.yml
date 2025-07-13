@@ -33,7 +33,6 @@ jobs:
         else
           # Extract from commit message
           COMMIT_MSG="${{ github.event.head_commit.message }}"
-          echo "Checking commit message: $COMMIT_MSG"
           
           # Look for version patterns in commit message
           if [[ $COMMIT_MSG =~ v([0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?) ]]; then
@@ -61,11 +60,6 @@ jobs:
         
         # Get the previous tag to determine commit range
         CURRENT_VERSION="${{ steps.version.outputs.version }}"
-        echo "Current version: $CURRENT_VERSION"
-        
-        # Debug: Show all tags
-        echo "All tags:"
-        git tag --sort=-version:refname
         
         # More robust approach to find previous tag
         PREVIOUS_TAG=$(git tag --sort=-version:refname | while read tag; do
@@ -75,8 +69,8 @@ jobs:
           fi
         done)
         
-        echo "Previous tag found: '$PREVIOUS_TAG'"
-        echo "Length of PREVIOUS_TAG: ${#PREVIOUS_TAG}"
+        # Use the previous tag for the commit range
+        COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
         
         # Create release body header
         echo "## Auth Service Release ${{ steps.version.outputs.version }}" > release_body.md
@@ -84,45 +78,8 @@ jobs:
         echo "### 📝 Changes" >> release_body.md
         
         if [[ -n "$PREVIOUS_TAG" ]]; then
-          # Get the tag that's 3 positions back from current version for broader range
-          BASE_TAG=$(git tag --sort=-version:refname | grep -v "v$CURRENT_VERSION" | head -3 | tail -1)
-          
-          # Use the base tag if available, otherwise use the previous tag
-          if [[ -n "$BASE_TAG" ]]; then
-            COMMIT_RANGE="$BASE_TAG..HEAD"
-            echo "Using base tag for range: $COMMIT_RANGE"
-          else
-            COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
-            echo "Using previous tag for range: $COMMIT_RANGE"
-          fi
-          
-          echo "Generating release notes from commits: $COMMIT_RANGE"
-          
-          # Debug: Show current HEAD and tag positions
-          echo "Current HEAD: $(git rev-parse HEAD)"
-          echo "Current HEAD message: $(git log -1 --pretty=format:'%s')"
-          echo "Base tag: $BASE_TAG"
-          echo "Base tag commit: $(git rev-parse $BASE_TAG)"
-          echo "Previous tag: $PREVIOUS_TAG"
-          echo "Previous tag commit: $(git rev-parse $PREVIOUS_TAG)"
-          
-          # Debug: Show all commits in the range
-          echo "All commits in range $COMMIT_RANGE:"
-          git log --oneline $COMMIT_RANGE
-          
-          # Debug: Show raw git log output
-          echo "Raw git log output:"
-          git log --pretty=format:"- %s" $COMMIT_RANGE
-          
           # Get all commit messages in the range, excluding all version bump commits
-          echo "Filtering out version bump commits"
-          echo "Running: git log --pretty=format:'- %s' $COMMIT_RANGE | grep -v '^- v[0-9]'"
-          
           COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^- v[0-9]" || echo "")
-          echo "Filtered commits:"
-          echo "$COMMITS"
-          echo "Number of filtered commits: $(echo "$COMMITS" | grep -c '^-' || echo 0)"
-          
           if [[ -z "$COMMITS" ]]; then
             echo "No changes since previous release." >> release_body.md
           else
@@ -130,7 +87,6 @@ jobs:
           fi
         else
           # First release - include all commits except version bump commits
-          echo "First release - including all commits"
           COMMITS=$(git log --pretty=format:"- %s" | grep -v "^- v[0-9]" || echo "")
           if [[ -z "$COMMITS" ]]; then
             echo "No changes since previous release." >> release_body.md
