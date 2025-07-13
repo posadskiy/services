@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>auth-service-api</artifactId>
-    <version>0.1.6</version>
+    <version>${auth-service-api.version}</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
