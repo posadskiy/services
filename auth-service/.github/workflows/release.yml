@@ -64,18 +64,18 @@ jobs:
         echo "### 📝 Changes" >> release_body.md
         
         if [[ -n "$PREVIOUS_TAG" ]]; then
-          # Generate release notes from commits since the last tag
+          # Generate release notes from commits since the last tag, excluding the current version commit
           COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
           echo "Generating release notes from commits: $COMMIT_RANGE"
           
-          # Add commit messages to release notes
-          git log --pretty=format:"- %s" $COMMIT_RANGE >> release_body.md
+          # Add commit messages to release notes, excluding the current version commit
+          git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^v$CURRENT_VERSION$" >> release_body.md
         else
-          # First release - include all commits
+          # First release - include all commits except the current version commit
           echo "First release - including all commits"
           
-          # Add all commit messages to release notes
-          git log --pretty=format:"- %s" >> release_body.md
+          # Add all commit messages to release notes, excluding the current version commit
+          git log --pretty=format:"- %s" | grep -v "^v$CURRENT_VERSION$" >> release_body.md
         fi
         
         # Add footer to release notes
