@@ -82,19 +82,34 @@ jobs:
         echo "### 📝 Changes" >> release_body.md
         
         if [[ -n "$PREVIOUS_TAG" ]]; then
-          # Generate release notes from commits since the last tag, excluding the current version commit
-          COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
+          # Get the previous previous tag to include changes made before the previous version bump
+          PREVIOUS_PREVIOUS_TAG=$(git tag --sort=-version:refname | while read tag; do
+            if [[ "$tag" != "v$CURRENT_VERSION" && "$tag" != "$PREVIOUS_TAG" ]]; then
+              echo "$tag"
+              break
+            fi
+          done)
+          
+          # Use the previous previous tag if available, otherwise use the previous tag
+          if [[ -n "$PREVIOUS_PREVIOUS_TAG" ]]; then
+            COMMIT_RANGE="$PREVIOUS_PREVIOUS_TAG..HEAD"
+            echo "Using previous previous tag for range: $COMMIT_RANGE"
+          else
+            COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
+            echo "Using previous tag for range: $COMMIT_RANGE"
+          fi
+          
           echo "Generating release notes from commits: $COMMIT_RANGE"
           
           # Debug: Show raw git log output
           echo "Raw git log output:"
           git log --pretty=format:"- %s" $COMMIT_RANGE
           
-          # Get all commit messages in the range, excluding the version bump commit
-          echo "Filtering out version bump commit: v$CURRENT_VERSION"
-          echo "Running: git log --pretty=format:'- %s' $COMMIT_RANGE | grep -v '^- v$CURRENT_VERSION$'"
+          # Get all commit messages in the range, excluding all version bump commits
+          echo "Filtering out version bump commits"
+          echo "Running: git log --pretty=format:'- %s' $COMMIT_RANGE | grep -v '^- v[0-9]'"
           
-          COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^- v$CURRENT_VERSION$" || echo "")
+          COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^- v[0-9]" || echo "")
           echo "Filtered commits:"
           echo "$COMMITS"
           echo "Number of filtered commits: $(echo "$COMMITS" | grep -c '^-' || echo 0)"
@@ -105,9 +120,9 @@ jobs:
             echo "$COMMITS" >> release_body.md
           fi
         else
-          # First release - include all commits except the current version commit
+          # First release - include all commits except version bump commits
           echo "First release - including all commits"
-          COMMITS=$(git log --pretty=format:"- %s" | grep -v "^- v$CURRENT_VERSION$" || echo "")
+          COMMITS=$(git log --pretty=format:"- %s" | grep -v "^- v[0-9]" || echo "")
           if [[ -z "$COMMITS" ]]; then
             echo "No changes since previous release." >> release_body.md
           else
