@@ -113,6 +113,12 @@
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- H2 Database for Testing -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <!-- Testing -->
         
         <!-- Management -->
@@ -130,6 +136,14 @@
             <scope>compile</scope>
         </dependency>
         <!-- Reactor -->
+        
+        <!-- Utils -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Utils -->
     </dependencies>
 
     <build>
@@ -186,7 +200,7 @@
                         <arg>-Amicronaut.openapi.expand.api.version=${project.version}</arg>
                         <arg>-Amicronaut.openapi.expand.api.title=Auth Service API</arg>
                         <arg>-Amicronaut.openapi.expand.api.description=Authentication and Authorization Service</arg>
-                        <arg>-Amicronaut.openapi.filename=swagger/auth-service.yml</arg>
+                        <arg>-Amicronaut.openapi.filename=swagger/auth-service</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
