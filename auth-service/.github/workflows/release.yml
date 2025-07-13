@@ -86,27 +86,22 @@ jobs:
           COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
           echo "Generating release notes from commits: $COMMIT_RANGE"
           
-          # Get all commit messages in the range
-          COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE)
-          # Count number of non-empty lines
-          COMMIT_COUNT=$(echo "$COMMITS" | grep -c ".")
-          # Check if the only commit is the version bump
-          ONLY_VERSION_BUMP=false
-          if [[ $COMMIT_COUNT -eq 1 ]]; then
-            if [[ "$COMMITS" == "- v$CURRENT_VERSION" ]]; then
-              ONLY_VERSION_BUMP=true
-            fi
-          fi
-          if $ONLY_VERSION_BUMP; then
-            echo "Only version bump commit found. No changes since previous release."
+          # Get all commit messages in the range, excluding the version bump commit
+          COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^-[ ]*v$CURRENT_VERSION$")
+          if [[ -z "$COMMITS" ]]; then
             echo "No changes since previous release." >> release_body.md
           else
-            echo "$COMMITS" | grep -v "^-[ ]*v$CURRENT_VERSION$" >> release_body.md
+            echo "$COMMITS" >> release_body.md
           fi
         else
           # First release - include all commits except the current version commit
           echo "First release - including all commits"
-          git log --pretty=format:"- %s" | grep -v "^-[ ]*v$CURRENT_VERSION$" >> release_body.md
+          COMMITS=$(git log --pretty=format:"- %s" | grep -v "^-[ ]*v$CURRENT_VERSION$")
+          if [[ -z "$COMMITS" ]]; then
+            echo "No changes since previous release." >> release_body.md
+          else
+            echo "$COMMITS" >> release_body.md
+          fi
         fi
         
         # Add footer to release notes
