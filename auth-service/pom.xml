@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.auth</groupId>
     <artifactId>auth-service</artifactId>
-    <version>0.1.8</version>
+    <version>0.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>auth-service-api</module>
@@ -28,10 +28,6 @@
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.auth.web.Application</exec.mainClass>
         
-        <auth-service-api.version>0.1.22</auth-service-api.version>
-        <auth-service-core.version>0.1.22</auth-service-core.version>
-        <auth-service-web.version>0.1.22</auth-service-web.version>
-        
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
         <spring-security-crypto.version>6.3.0</spring-security-crypto.version>
@@ -50,17 +46,17 @@
         <dependency>
                 <groupId>com.posadskiy.auth</groupId>
                 <artifactId>auth-service-api</artifactId>
-                <version>${auth-service-api.version}</version>
+                <version>${project.version}</version>
         </dependency>
         <dependency>
                 <groupId>com.posadskiy.auth</groupId>
                 <artifactId>auth-service-core</artifactId>
-                <version>${auth-service-core.version}</version>
+                <version>${project.version}</version>
         </dependency>
         <dependency>
                 <groupId>com.posadskiy.auth</groupId>
                 <artifactId>auth-service-web</artifactId>
-                <version>${auth-service-web.version}</version>
+                <version>${project.version}</version>
         </dependency>
             
         <dependency>
@@ -102,5 +98,80 @@
             <version>${lombok.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Maven Release Plugin for version management -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>deploy</goals>
+                    <tagNameFormat>@{project.artifactId}-@{project.version}</tagNameFormat>
+                    <preparationGoals>clean install</preparationGoals>
+                    <completionGoals>clean install</completionGoals>
+                </configuration>
+            </plugin>
+            
+            <!-- Maven Source Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Maven Javadoc Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- Release profile for production builds -->
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
