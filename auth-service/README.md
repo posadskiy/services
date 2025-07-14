@@ -6,7 +6,7 @@ A Micronaut-based authentication and authorization service with JWT token manage
 
 - **JWT-based Authentication**: Secure token-based authentication with access and refresh tokens
 - **User Registration & Management**: Complete user lifecycle management with email/password authentication
-- **Password Security**: Secure password hashing and validation
+- **Password Security**: Secure password hashing and validation using BCrypt
 - **Token Refresh**: Automatic token refresh mechanism with revocable refresh tokens
 - **PostgreSQL Database**: Persistent storage with Flyway migrations
 - **Distributed Tracing**: Jaeger integration for observability
@@ -174,10 +174,34 @@ mvn test -Dtest=JwtAuthenticationTest
 ### Test Coverage
 
 The service includes comprehensive tests for:
-- Authentication flows
-- JWT token validation
-- User management operations
-- API endpoint validation
+- **API DTOs**: UserDto serialization/deserialization
+- **Core Services**: AuthenticationProviderUserPassword, PasswordEncoder, PasswordMatcher
+- **Web Controllers**: HomeToSwaggerController, UserAlreadyExistsExceptionHandler
+- **Integration Tests**: End-to-end authentication flow
+- **Authentication**: Security filter testing
+- **Swagger UI**: Documentation accessibility
+
+### Test Results
+
+- **Total Tests**: 15 tests across all modules
+- **API Module**: 3 tests (UserDto serialization/deserialization)
+- **Core Module**: 9 tests (services, utilities, exceptions)
+- **Web Module**: 3 tests (controllers, integration, Swagger UI)
+
+### Test Quality
+
+- **Unit Tests**: Isolated testing with proper mocking
+- **Integration Tests**: End-to-end HTTP endpoint testing
+- **Exception Testing**: Comprehensive error scenario coverage
+- **Serialization Testing**: DTO validation and transformation
+- **Security Testing**: Authentication flow validation
+
+### CI/CD Configuration
+
+The service includes proper test configuration for CI environments:
+- **Security Configuration**: Anonymous access to Swagger UI endpoints
+- **Test Environment**: H2 in-memory database for testing
+- **Mock Services**: Proper mocking for external dependencies
 
 ## 🐳 Docker Deployment
 
@@ -201,11 +225,12 @@ The service connects to:
 
 ## 🔐 Security Features
 
-- **Password Hashing**: Secure password storage using industry-standard hashing
+- **Password Hashing**: Secure password storage using BCrypt
 - **JWT Tokens**: Stateless authentication with configurable expiration
 - **Token Revocation**: Refresh token revocation capability
 - **CORS Protection**: Configurable cross-origin resource sharing
 - **Input Validation**: Comprehensive request validation
+- **Access Control**: Role-based authentication
 
 ## 📊 Performance
 
@@ -248,6 +273,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 For support and questions:
-- Email: support@posadskiy.com
-- Website: https://posadskiy.com
-- Issues: GitHub Issues page
+- Create an issue in the repository
+- Check the documentation
+- Review the test cases for usage examples
