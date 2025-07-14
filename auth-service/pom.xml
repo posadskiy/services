@@ -41,6 +41,14 @@
         </repository>
     </repositories>
 
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub posadskiy Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/posadskiy/auth-service</url>
+        </repository>
+    </distributionManagement>
+
     <dependencyManagement>
     <dependencies>
         <dependency>
