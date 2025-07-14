@@ -1,10 +1,6 @@
 package com.posadskiy.email.template.core.mapper;
 
-import com.posadskiy.email.template.api.Button;
-import com.posadskiy.email.template.api.Content;
-import com.posadskiy.email.template.api.Email;
-import com.posadskiy.email.template.api.EmailFormDto;
-import com.posadskiy.email.template.api.Recipient;
+import com.posadskiy.email.template.api.*;
 import com.posadskiy.email.template.core.model.EmailForm;
 import com.posadskiy.user.api.UserDto;
 import org.junit.jupiter.api.Test;

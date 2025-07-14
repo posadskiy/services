@@ -1,15 +1,10 @@
 package com.posadskiy.email.template.core.service;
 
 import com.posadskiy.email.api.SendEmailForm;
-import com.posadskiy.email.template.api.Button;
-import com.posadskiy.email.template.api.Content;
-import com.posadskiy.email.template.api.Email;
-import com.posadskiy.email.template.api.EmailFormDto;
-import com.posadskiy.email.template.api.Recipient;
+import com.posadskiy.email.template.api.*;
 import com.posadskiy.email.template.core.client.EmailOperations;
 import com.posadskiy.email.template.core.client.UserClient;
 import com.posadskiy.email.template.core.mapper.EmailFormMapper;
-import com.posadskiy.email.template.core.model.EmailForm;
 import com.posadskiy.user.api.UserDto;
 import io.micronaut.core.io.Writable;
 import io.micronaut.views.ViewsRenderer;
@@ -26,17 +21,16 @@ import java.io.Writer;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EmailServiceTest {
 
-    @Mock
-    private UserClient userClient;
-
     // Use a real instance for EmailFormMapper
     private final EmailFormMapper emailFormMapper = new EmailFormMapper();
-
+    @Mock
+    private UserClient userClient;
     @Mock
     private EmailOperations emailOperations;
 
@@ -66,6 +60,7 @@ class EmailServiceTest {
             public void writeTo(OutputStream outputStream) throws IOException {
                 outputStream.write("<html><body>Test email content</body></html>".getBytes());
             }
+
             @Override
             public void writeTo(Writer writer) throws IOException {
                 writer.write("<html><body>Test email content</body></html>");
@@ -100,6 +95,7 @@ class EmailServiceTest {
             public void writeTo(OutputStream outputStream) throws IOException {
                 throw new IOException("Test exception");
             }
+
             @Override
             public void writeTo(Writer writer) throws IOException {
                 throw new IOException("Test exception");
@@ -111,7 +107,7 @@ class EmailServiceTest {
         when(viewsRenderer.render(eq(EmailService.EMAIL_TEMPLATE_PATH), any(), eq(null))).thenReturn(writable);
 
         // Then
-        RuntimeException exception = assertThrows(RuntimeException.class, 
+        RuntimeException exception = assertThrows(RuntimeException.class,
             () -> emailService.sendTemplatedEmail(authorization, emailFormDto));
         assertTrue(exception.getCause() instanceof IOException);
         assertEquals("Test exception", exception.getCause().getMessage());
@@ -133,6 +129,7 @@ class EmailServiceTest {
             public void writeTo(OutputStream outputStream) throws IOException {
                 outputStream.write("<html><body>Test email content</body></html>".getBytes());
             }
+
             @Override
             public void writeTo(Writer writer) throws IOException {
                 writer.write("<html><body>Test email content</body></html>");

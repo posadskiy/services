@@ -1,10 +1,6 @@
 package com.posadskiy.email.template.web;
 
-import com.posadskiy.email.template.api.Button;
-import com.posadskiy.email.template.api.Content;
-import com.posadskiy.email.template.api.Email;
-import com.posadskiy.email.template.api.EmailFormDto;
-import com.posadskiy.email.template.api.Recipient;
+import com.posadskiy.email.template.api.*;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.client.HttpClient;
@@ -14,7 +10,8 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @MicronautTest
 class EmailControllerIntegrationTest {
@@ -38,7 +35,7 @@ class EmailControllerIntegrationTest {
                 HttpRequest.POST("/email/template/send/base", emailFormDto)
             );
         });
-        
+
         assertEquals(HttpStatus.UNAUTHORIZED, e.getStatus());
     }
 
@@ -58,7 +55,7 @@ class EmailControllerIntegrationTest {
                     .header("Authorization", "Bearer invalid-token")
             );
         });
-        
+
         assertEquals(HttpStatus.UNAUTHORIZED, e.getStatus());
     }
 
@@ -77,7 +74,7 @@ class EmailControllerIntegrationTest {
                 HttpRequest.POST("/email/template/send/base", emailFormDto)
             );
         });
-        
+
         assertEquals(HttpStatus.UNAUTHORIZED, e.getStatus());
     }
 
@@ -96,7 +93,7 @@ class EmailControllerIntegrationTest {
                 HttpRequest.POST("/email/template/send/base", emailFormDto)
             );
         });
-        
+
         assertEquals(HttpStatus.UNAUTHORIZED, e.getStatus());
     }
 } 

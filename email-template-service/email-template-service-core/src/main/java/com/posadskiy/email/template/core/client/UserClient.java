@@ -10,7 +10,7 @@ import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
 
 @Client("${user.service.url:http://user-service-internal}")
 public interface UserClient {
-    
+
     @Get("v0/user/{id}")
     UserDto getUserById(@Header(AUTHORIZATION) String authorization, @PathVariable("id") String id);
 }

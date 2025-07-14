@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -16,7 +16,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
     <dependencies>
         <dependency>
             <groupId>com.posadskiy.email</groupId>
@@ -69,7 +69,7 @@
             <artifactId>micronaut-micrometer-registry-prometheus</artifactId>
         </dependency>
         <!-- Metrics -->
-        
+
         <!-- Management -->
         <dependency>
             <groupId>io.micronaut</groupId>
@@ -77,7 +77,7 @@
             <scope>compile</scope>
         </dependency>
         <!-- Management -->
-        
+
         <!-- Documenting -->
         <dependency>
             <groupId>io.micronaut.openapi</groupId>
@@ -89,14 +89,14 @@
             <artifactId>micronaut-openapi</artifactId>
         </dependency>
         <!-- Documenting -->
-        
+
         <!-- Security -->
         <dependency>
             <groupId>io.micronaut.security</groupId>
             <artifactId>micronaut-security-jwt</artifactId>
         </dependency>
         <!-- Security -->
-        
+
         <!-- Validation -->
         <dependency>
             <groupId>io.micronaut.validation</groupId>
@@ -108,7 +108,7 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
         <!-- Validation -->
-        
+
         <!-- Testing -->
         <dependency>
             <groupId>io.micronaut.test</groupId>
@@ -126,7 +126,7 @@
             <scope>test</scope>
         </dependency>
         <!-- Testing -->
-        
+
         <!-- Utils -->
         <dependency>
             <groupId>org.yaml</groupId>
@@ -206,7 +206,8 @@
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>${exec.mainClass}</mainClass>
                                 </transformer>
                             </transformers>
