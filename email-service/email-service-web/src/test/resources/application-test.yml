@@ -74,3 +74,14 @@ logging:
     com.posadskiy.email: DEBUG
     io.micronaut: WARN
 #end::logging[] 
+
+email:
+  username: test@example.com
+  password: testpassword
+  protocol: smtp
+  host: smtp.example.com
+  port: 587
+  auth: true
+  starttls:
+    enable: true
+  debug: false 
