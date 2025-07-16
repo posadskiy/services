@@ -73,8 +73,8 @@ jobs:
         mvn clean install -Prelease -DskipTests
         
         # Build Docker image with release tag
-        docker build -t auth-service:$RELEASE_VERSION .
-        docker tag auth-service:$RELEASE_VERSION auth-service:latest
+        # docker build -t auth-service:$RELEASE_VERSION .
+        # docker tag auth-service:$RELEASE_VERSION auth-service:latest
         
         # Deploy to production
         echo "🚨 Deploying hotfix to production..."

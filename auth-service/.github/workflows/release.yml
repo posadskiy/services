@@ -104,8 +104,8 @@ jobs:
         
         # Build Docker image with release tag
         echo "🚀 Building docker release - skipped for now..."
-        #docker build -t auth-service:$RELEASE_VERSION .
-        #docker tag auth-service:$RELEASE_VERSION auth-service:latest
+        # docker build -t auth-service:$RELEASE_VERSION .
+        # docker tag auth-service:$RELEASE_VERSION auth-service:latest
         
         # Deploy to production
         echo "🚀 Deploying to production..."

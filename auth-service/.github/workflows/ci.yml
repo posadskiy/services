@@ -77,10 +77,14 @@ jobs:
         distribution: 'temurin'
         
     - name: Build application
-      run: mvn clean package -DskipTests
+      run: |
+        # echo "Building application..."
+        # mvn clean package -DskipTests
       
     - name: Build Docker image
-      run: docker build -t auth-service:dev .
+      run: |
+        # echo "Building docker container..."
+        # docker build -t auth-service:dev .
       
     - name: Deploy to development environment
       run: |
