@@ -15,6 +15,8 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <micronaut.aot.enabled>true</micronaut.aot.enabled>
+        <micronaut.runtime>netty</micronaut.runtime>
     </properties>
 
     <dependencies>
@@ -147,6 +149,8 @@
             <scope>runtime</scope>
         </dependency>
         <!-- Utils -->
+
+
     </dependencies>
 
     <build>
@@ -196,6 +200,7 @@
                             <groupId>io.micronaut.validation</groupId>
                             <artifactId>micronaut-validation-processor</artifactId>
                         </path>
+
                     </annotationProcessorPaths>
                     <compilerArgs>
                         <arg>-Amicronaut.processing.group=auth.service</arg>
