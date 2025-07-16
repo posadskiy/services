@@ -1,8 +1,8 @@
 package com.posadskiy.auth.core.utils;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 class PasswordEncoderTest {
 
@@ -84,4 +84,4 @@ class PasswordEncoderTest {
         assertEquals(60, encodedPassword.length());
         assertTrue(encodedPassword.startsWith("$2a$16$"));
     }
-} 
+}

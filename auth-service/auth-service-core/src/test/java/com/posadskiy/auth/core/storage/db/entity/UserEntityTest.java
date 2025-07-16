@@ -1,10 +1,9 @@
 package com.posadskiy.auth.core.storage.db.entity;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class UserEntityTest {
 
@@ -173,4 +172,4 @@ class UserEntityTest {
         assertEquals(past, user.getCreatedAt());
         assertEquals(future, user.getUpdatedAt());
     }
-} 
+}

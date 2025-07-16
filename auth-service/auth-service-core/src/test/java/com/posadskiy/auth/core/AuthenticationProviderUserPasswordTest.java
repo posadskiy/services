@@ -1,23 +1,21 @@
 package com.posadskiy.auth.core;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
 import com.posadskiy.auth.core.storage.db.UsersRepository;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import com.posadskiy.auth.core.utils.PasswordEncoder;
 import io.micronaut.http.HttpRequest;
-import io.micronaut.security.authentication.AuthenticationFailureReason;
 import io.micronaut.security.authentication.AuthenticationResponse;
 import io.micronaut.security.authentication.UsernamePasswordCredentials;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationProviderUserPasswordTest {
@@ -60,7 +58,8 @@ class AuthenticationProviderUserPasswordTest {
     void shouldReturnFailureWhenUserNotFound() {
         // Given
         when(usersRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
-        UsernamePasswordCredentials authRequest = new UsernamePasswordCredentials("nonexistent@example.com", "password");
+        UsernamePasswordCredentials authRequest =
+                new UsernamePasswordCredentials("nonexistent@example.com", "password");
 
         // When
         AuthenticationResponse response = authenticationProvider.authenticate(httpRequest, authRequest);
@@ -86,7 +85,8 @@ class AuthenticationProviderUserPasswordTest {
     void shouldReturnSuccessWhenCredentialsMatch() {
         // Given
         when(usersRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        UsernamePasswordCredentials authRequest = new UsernamePasswordCredentials("test@example.com", "correctpassword");
+        UsernamePasswordCredentials authRequest =
+                new UsernamePasswordCredentials("test@example.com", "correctpassword");
 
         // When
         AuthenticationResponse response = authenticationProvider.authenticate(httpRequest, authRequest);
@@ -100,7 +100,8 @@ class AuthenticationProviderUserPasswordTest {
     void shouldHandleNullHttpRequest() {
         // Given
         when(usersRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        UsernamePasswordCredentials authRequest = new UsernamePasswordCredentials("test@example.com", "correctpassword");
+        UsernamePasswordCredentials authRequest =
+                new UsernamePasswordCredentials("test@example.com", "correctpassword");
 
         // When
         AuthenticationResponse response = authenticationProvider.authenticate(null, authRequest);
@@ -134,4 +135,4 @@ class AuthenticationProviderUserPasswordTest {
             authenticationProvider.authenticate(httpRequest, authRequest);
         });
     }
-} 
+}

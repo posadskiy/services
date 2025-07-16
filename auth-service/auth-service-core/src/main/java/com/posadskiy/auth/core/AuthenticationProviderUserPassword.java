@@ -20,9 +20,8 @@ class AuthenticationProviderUserPassword<B> implements HttpRequestAuthentication
 
     @Override
     public AuthenticationResponse authenticate(
-        @Nullable HttpRequest<B> httpRequest,
-        @NonNull AuthenticationRequest<String, String> authenticationRequest
-    ) {
+            @Nullable HttpRequest<B> httpRequest,
+            @NonNull AuthenticationRequest<String, String> authenticationRequest) {
         if ("system".equals(authenticationRequest.getIdentity())) {
             return AuthenticationResponse.success(authenticationRequest.getIdentity());
         }

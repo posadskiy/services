@@ -1,10 +1,9 @@
 package com.posadskiy.auth.core.storage.db.entity;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class RefreshTokenEntityTest {
 
@@ -199,7 +198,8 @@ class RefreshTokenEntityTest {
     @Test
     void shouldHandleJWTLikeTokens() {
         // Given
-        String jwtLikeToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+        String jwtLikeToken =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
         // When
         RefreshTokenEntity token = new RefreshTokenEntity();
@@ -208,4 +208,4 @@ class RefreshTokenEntityTest {
         // Then
         assertEquals(jwtLikeToken, token.getRefreshToken());
     }
-} 
+}

@@ -1,10 +1,12 @@
 package com.posadskiy.auth.core;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.posadskiy.auth.core.storage.db.RefreshTokenRepository;
 import com.posadskiy.auth.core.storage.db.entity.RefreshTokenEntity;
 import io.micronaut.security.authentication.Authentication;
-import io.micronaut.security.errors.OauthErrorResponseException;
-import io.micronaut.security.token.event.RefreshTokenGeneratedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,12 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Publisher;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CustomRefreshTokenPersistenceTest {
@@ -81,4 +77,4 @@ class CustomRefreshTokenPersistenceTest {
         // Then
         assertNotNull(publisher);
     }
-} 
+}

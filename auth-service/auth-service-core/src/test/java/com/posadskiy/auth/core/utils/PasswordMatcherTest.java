@@ -1,8 +1,8 @@
 package com.posadskiy.auth.core.utils;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 class PasswordMatcherTest {
 
@@ -113,4 +113,4 @@ class PasswordMatcherTest {
         assertTrue(result2);
         assertNotEquals(encoded1, encoded2); // Different salts
     }
-} 
+}

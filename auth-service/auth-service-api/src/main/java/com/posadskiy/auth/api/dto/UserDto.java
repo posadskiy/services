@@ -10,9 +10,7 @@ import jakarta.validation.constraints.NotNull;
 @Serdeable
 @Introspected
 public record UserDto(
-    @Nullable String id,
-    @NonNull @NotBlank String username,
-    @NonNull @NotNull String email,
-    @NonNull @NotNull String password
-) {
-}
+        @Nullable String id,
+        @NonNull @NotBlank String username,
+        @NonNull @NotNull String email,
+        @NonNull @NotNull String password) {}

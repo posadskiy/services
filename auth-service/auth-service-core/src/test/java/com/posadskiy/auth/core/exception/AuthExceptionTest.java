@@ -1,8 +1,8 @@
 package com.posadskiy.auth.core.exception;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 class AuthExceptionTest {
 
@@ -70,4 +70,4 @@ class AuthExceptionTest {
         assertTrue(exception instanceof Exception);
         assertTrue(exception instanceof Throwable);
     }
-} 
+}

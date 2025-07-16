@@ -1,9 +1,9 @@
 package com.posadskiy.auth.core;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class ConfigTest {
 
@@ -159,4 +159,4 @@ class ConfigTest {
         assertEquals(longValue, config.getStartTlsEnable());
         assertEquals(longValue, config.getDebug());
     }
-} 
+}

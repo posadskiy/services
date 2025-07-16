@@ -1,8 +1,8 @@
 package com.posadskiy.auth.core.exception;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 class ErrorMessageTest {
 
@@ -118,4 +118,4 @@ class ErrorMessageTest {
         assertTrue(toString.contains("status=" + status));
         assertTrue(toString.contains("message=" + message));
     }
-} 
+}
