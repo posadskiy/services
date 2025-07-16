@@ -131,7 +131,6 @@ jobs:
         
     - name: Code quality check and format
       run: |
-        mvn spotless:apply
         mvn spotless:check
         echo "✅ Code quality check passed"
         
