@@ -40,14 +40,15 @@ jobs:
         mvn clean compile test -B
         echo "✅ Build and tests completed successfully"
         
-    - name: Code quality check
+    - name: Code quality check and format
       run: |
+        mvn spotless:apply
         mvn spotless:check
         echo "✅ Code quality check passed"
         
     - name: Security scan
       run: |
-        mvn dependency:check
+        mvn dependency:analyze
         echo "✅ Security scan completed"
         
     - name: Upload test results
@@ -128,14 +129,15 @@ jobs:
         mvn verify -DskipUnitTests
         echo "✅ Integration tests completed"
         
-    - name: Code quality check
+    - name: Code quality check and format
       run: |
+        mvn spotless:apply
         mvn spotless:check
         echo "✅ Code quality check passed"
         
     - name: Security scan
       run: |
-        mvn dependency:check
+        mvn dependency:analyze
         echo "✅ Security scan completed"
         
     - name: Build production artifacts

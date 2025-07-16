@@ -200,10 +200,6 @@
                     <compilerArgs>
                         <arg>-Amicronaut.processing.group=auth.service</arg>
                         <arg>-Amicronaut.processing.module=auth-service</arg>
-                        <arg>-Amicronaut.openapi.expand.api.version=${project.version}</arg>
-                        <arg>-Amicronaut.openapi.expand.api.title=Auth Service API</arg>
-                        <arg>-Amicronaut.openapi.expand.api.description=Authentication and Authorization Service</arg>
-                        <arg>-Amicronaut.openapi.filename=swagger/swagger</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>

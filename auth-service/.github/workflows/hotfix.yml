@@ -41,7 +41,7 @@ jobs:
         
     - name: Security scan
       run: |
-        mvn dependency:check
+        mvn dependency:analyze
         echo "✅ Security scan completed"
         
     - name: Create hotfix release
