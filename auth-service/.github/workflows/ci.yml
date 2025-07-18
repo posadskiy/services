@@ -15,7 +15,7 @@ jobs:
   test:
     name: Test & Quality Checks
     runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/main'
+    if: github.ref != 'refs/heads/master'
     
     steps:
     - name: Checkout code
@@ -98,11 +98,11 @@ jobs:
         # Add your smoke test commands here
         # Example: curl -f http://dev-auth-service.example.com/health
 
-  # Production CI (only for main branch)
+  # Production CI (only for master branch)
   production-ci:
     name: Production CI
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
     
     steps:
     - name: Checkout code

@@ -19,7 +19,7 @@ jobs:
   release:
     name: Create Release & Deploy
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
     
     steps:
     - name: Checkout code
@@ -77,10 +77,10 @@ jobs:
         git push origin release/$RELEASE_VERSION
         git push origin v$RELEASE_VERSION
         
-        # Merge to main
-        git checkout main
+        # Merge to master
+        git checkout master
         git merge release/$RELEASE_VERSION --no-ff -m "Merge release $RELEASE_VERSION"
-        git push origin main
+        git push origin master
         
         # Update develop branch with next version
         git checkout develop

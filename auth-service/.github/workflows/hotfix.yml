@@ -185,12 +185,12 @@ jobs:
         # Add your monitoring commands here
         # Example: kubectl get pods -l app=auth-service
         
-    - name: Merge to main and develop
+    - name: Merge to master and develop
       run: |
-        # Merge hotfix to main
-        git checkout main
+        # Merge hotfix to master
+        git checkout master
         git merge hotfix/$RELEASE_VERSION --no-ff -m "Merge hotfix $RELEASE_VERSION"
-        git push origin main
+        git push origin master
         
         # Merge hotfix to develop
         git checkout develop
