@@ -100,7 +100,7 @@ jobs:
     - name: Build and Deploy Release
       run: |
         # Build without GPG signing
-        mvn clean install -DskipTests
+        # mvn clean install -DskipTests
         
         # Build Docker image with release tag
         echo "🚀 Building docker release - skipped for now..."
@@ -114,6 +114,15 @@ jobs:
         
     - name: Publish to GitHub Packages
       run: |
+        # Get current version
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Remove -SNAPSHOT suffix for release
+        echo "Release version: $RELEASE_VERSION"
+        
+        # Calculate next development version
+        echo "Next development version: $NEXT_VERSION"
+
         # Set version in pom.xml files
         mvn versions:set -DnewVersion=$RELEASE_VERSION -DgenerateBackupPoms=false
         
