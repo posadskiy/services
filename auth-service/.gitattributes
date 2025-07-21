@@ -1,5 +1,0 @@
-# Auto-resolve version conflicts in Maven files
-# Use 'ours' strategy to automatically resolve conflicts
-*.xml merge=ours
-pom.xml merge=ours
-**/pom.xml merge=ours 
