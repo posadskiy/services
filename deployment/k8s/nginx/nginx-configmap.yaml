@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config-fixed-skill-repeater
+  namespace: microservices
+data:
+  nginx.conf: |
+    events {
+      worker_connections 1024;
+    }
+    
+    http {
+      upstream auth-service {
+        server auth-service:8100;
+      }
+      
+      upstream email-service {
+        server email-service:8090;
+      }
+      
+      upstream user-service {
+        server user-service:8095;
+      }
+      
+      upstream email-template-service {
+        server email-template-service:8091;
+      }
+      
+      upstream skill-repeater-service {
+        server skill-repeater-service.skill-repeater.svc.cluster.local:8210;
+      }
+      
+      upstream skill-repeater-frontend {
+        server skill-repeater-front.skill-repeater.svc.cluster.local:3000;
+      }
+      
+      # Server block for repeaty.posadskiy.com (skill-repeater frontend)
+      server {
+        listen 80;
+        server_name repeaty.posadskiy.com;
+        
+        location / {
+          proxy_pass http://skill-repeater-frontend;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+      }
+      
+      # Server block for api.posadskiy.com and auth.posadskiy.com
+      server {
+        listen 80;
+        server_name auth.posadskiy.com api.posadskiy.com;
+        
+        # Health check endpoint
+        location /health {
+          proxy_pass http://auth-service;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        # Auth service routes - strip /auth prefix
+        location /auth/ {
+          proxy_pass http://auth-service/;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        # Email service routes - strip /email prefix
+        location /email/ {
+          proxy_pass http://email-service/;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        # User service routes - strip /user prefix
+        location /user/ {
+          proxy_pass http://user-service/;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        # Email template service routes - strip /email-template prefix
+        location /email-template/ {
+          proxy_pass http://email-template-service/;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        # Skill repeater service routes - strip /skill-repeater prefix
+        location /skill-repeater/ {
+          proxy_pass http://skill-repeater-service/;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+        
+        # Default route to auth service
+        location / {
+          proxy_pass http://auth-service;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+      }
+    } 
