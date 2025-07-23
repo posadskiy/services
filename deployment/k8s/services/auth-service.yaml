@@ -86,7 +86,7 @@ metadata:
   labels:
     app: auth-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - port: 8100
     targetPort: 8100

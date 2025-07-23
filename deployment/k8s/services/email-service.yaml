@@ -97,7 +97,7 @@ metadata:
   labels:
     app: email-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - port: 8090
     targetPort: 8090
