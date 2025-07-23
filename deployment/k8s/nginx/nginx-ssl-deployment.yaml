@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-ssl-proxy
+  namespace: microservices
+  labels:
+    app: nginx-ssl-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-ssl-proxy
+  template:
+    metadata:
+      labels:
+        app: nginx-ssl-proxy
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        - containerPort: 443
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+            ephemeral-storage: 1Gi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+            ephemeral-storage: 1Gi
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: ssl-certs
+          mountPath: /etc/letsencrypt
+        - name: certbot-webroot
+          mountPath: /var/www/certbot
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-ssl-config
+      - name: ssl-certs
+        persistentVolumeClaim:
+          claimName: ssl-certificates-pvc
+      - name: certbot-webroot
+        persistentVolumeClaim:
+          claimName: certbot-webroot-pvc 
