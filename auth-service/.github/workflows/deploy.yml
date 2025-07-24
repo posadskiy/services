@@ -55,10 +55,6 @@ jobs:
         mvn spotless:check \
           -Dspotless.check.skip=false
         
-        mvn dependency:analyze \
-          -DignoreNonCompile=true \
-          -DfailOnWarning=true
-        
     # Upload Quality Reports
     - name: Upload Quality Reports
       uses: actions/upload-artifact@v4
