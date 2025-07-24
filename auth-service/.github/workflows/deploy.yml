@@ -14,8 +14,9 @@ on:
 env:
   JAVA_VERSION: '21'
   MAVEN_VERSION: '3.9.9'
-  DOCKER_REGISTRY: 'ghcr.io'
+  DOCKER_REGISTRY: 'gcr.io'
   IMAGE_NAME: 'auth-service'
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
 jobs:
   # Quality Assurance
@@ -78,6 +79,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       image-tag: ${{ steps.build.outputs.image-tag }}
+      image-tag-date: ${{ steps.build.outputs.image-tag-date }}
       
     steps:
     - name: Checkout code
@@ -107,19 +109,45 @@ jobs:
           fi
         fi
         
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "📦 Version: $VERSION"
         
-    - name: Build Application
+    - name: Set up Docker Build
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        
+    - name: Configure Docker for GCR
+      run: |
+        gcloud auth configure-docker gcr.io --quiet
+        
+    - name: Build and Push to GCR
       id: build
       run: |
         echo "🏗️ Building application..."
         mvn clean package -DskipTests
         
-        # Create image tag
-        IMAGE_TAG="${{ env.DOCKER_REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-        echo "🐳 Image tag: $IMAGE_TAG"
+        # Create GCR image tags
+        TAG_DATE=$(date +%Y%m%d%H%M%S)
+        REGISTRY="${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_ID }}"
+        IMAGE_TAG="$REGISTRY/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
+        IMAGE_TAG_DATE="$REGISTRY/${{ env.IMAGE_NAME }}:$TAG_DATE"
+        
+        echo "🐳 Building Docker image..."
+        docker buildx build --platform linux/amd64 \
+          --build-arg GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+          --build-arg GITHUB_USERNAME=${{ github.actor }} \
+          -f auth-service/Dockerfile.prod \
+          -t $IMAGE_TAG \
+          -t $IMAGE_TAG_DATE \
+          auth-service/ --push
+        
+        echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+        echo "image-tag-date=$IMAGE_TAG_DATE" >> $GITHUB_OUTPUT
+        echo "🐳 Image tags: $IMAGE_TAG, $IMAGE_TAG_DATE"
         
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
@@ -128,6 +156,22 @@ jobs:
         path: |
           **/target/*.jar
           **/target/classes/
+        retention-days: 30
+        
+    - name: Create Build Summary
+      run: |
+        echo "📋 Build Summary" > build-summary.txt
+        echo "Version: ${{ steps.version.outputs.version }}" >> build-summary.txt
+        echo "Image Tag: ${{ steps.build.outputs.image-tag }}" >> build-summary.txt
+        echo "Image Tag Date: ${{ steps.build.outputs.image-tag-date }}" >> build-summary.txt
+        echo "Registry: ${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_ID }}" >> build-summary.txt
+        echo "Build Date: $(date)" >> build-summary.txt
+        
+    - name: Upload Build Summary
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-summary-${{ github.run_number }}
+        path: build-summary.txt
         retention-days: 30
 
   # Deploy to Production
@@ -148,40 +192,109 @@ jobs:
         name: build-artifacts-${{ github.run_number }}
         path: artifacts/
         
+    - name: Download Build Summary
+      uses: actions/download-artifact@v4
+      with:
+        name: build-summary-${{ github.run_number }}
+        path: ./
+        
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        
+    - name: Configure kubectl
+      run: |
+        gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} \
+          --region ${{ secrets.GKE_REGION }} \
+          --project ${{ secrets.GCP_PROJECT_ID }}
+        
     - name: Deploy to Production Environment
       run: |
-        echo "🚀 Deploying to production environment..."
+        echo "🔐 Deploying auth-service to production environment..."
         
-        # Mock deployment commands
+        # Configuration
+        PROJECT_ID="${{ env.PROJECT_ID }}"
+        CLUSTER_NAME="${{ secrets.GKE_CLUSTER_NAME }}"
+        NAMESPACE="${{ secrets.K8S_NAMESPACE || 'microservices' }}"
+        VERSION="${{ needs.build.outputs.version }}"
+        IMAGE_TAG="${{ needs.build.outputs.image-tag }}"
+        
         echo "📋 Production Deployment Plan:"
         echo "- Environment: Production"
         echo "- Application: Auth Service"
-        echo "- Version: ${{ needs.build.outputs.version }}"
-        echo "- Image: ${{ needs.build.outputs.image-tag }}"
+        echo "- Version: $VERSION"
+        echo "- Image: $IMAGE_TAG"
+        echo "- Project ID: $PROJECT_ID"
+        echo "- Cluster: $CLUSTER_NAME"
+        echo "- Namespace: $NAMESPACE"
         
-        # Mock blue-green deployment
-        echo "kubectl apply -f k8s/production/"
-        echo "kubectl set image deployment/auth-service-blue auth-service=${{ needs.build.outputs.image-tag }}"
-        echo "kubectl rollout status deployment/auth-service-blue"
+        # Check if cluster exists and get credentials
+        echo "🔍 Checking cluster access..."
+        if ! gcloud container clusters describe $CLUSTER_NAME --zone=${{ secrets.GKE_REGION }} > /dev/null 2>&1; then
+            echo "❌ Cluster $CLUSTER_NAME not found in ${{ secrets.GKE_REGION }}"
+            exit 1
+        fi
         
-        # Mock traffic switch
-        echo "kubectl patch service auth-service -p '{\"spec\":{\"selector\":{\"version\":\"blue\"}}}'"
+        # Get cluster credentials
+        echo "🔐 Getting cluster credentials..."
+        gcloud container clusters get-credentials $CLUSTER_NAME --zone=${{ secrets.GKE_REGION }}
         
-        # Mock health check
-        echo "curl -f https://auth.example.com/health"
+        # Deploy namespace
+        echo "📁 Creating namespace..."
+        kubectl apply -f k8s/namespace.yaml
         
-        echo "✅ Production deployment completed"
+        # Deploy ConfigMap and Secrets
+        echo "⚙️  Deploying ConfigMap and Secrets..."
+        kubectl apply -f k8s/configmap.yaml
+        kubectl apply -f k8s/secrets.yaml
+        
+        # Deploy auth-service with version substitution
+        echo "🔐 Deploying auth-service..."
+        export IMAGE_VERSION=$VERSION
+        export IMAGE_TAG=$IMAGE_TAG
+        
+        # Create temporary auth-service.yaml with image substitution
+        cat k8s/services/auth-service.yaml | envsubst | kubectl apply -f -
+        
+        # Wait for auth-service to be ready
+        echo "⏳ Waiting for auth-service to be ready..."
+        kubectl wait --for=condition=available --timeout=300s deployment/auth-service -n $NAMESPACE
+        
+        # Verify deployment
+        echo "✅ Verifying deployment..."
+        kubectl get pods -n $NAMESPACE
+        kubectl get services -n $NAMESPACE
+        
+        echo "✅ Auth-service deployment completed successfully!"
         
     - name: Run Production Tests
       run: |
         echo "🧪 Running production tests..."
         
-        # Mock smoke tests
-        echo "curl -f https://auth.example.com/actuator/health"
-        echo "curl -f https://auth.example.com/api/v1/auth/status"
+        NAMESPACE="${{ secrets.K8S_NAMESPACE || 'microservices' }}"
         
-        # Mock load tests
-        echo "k6 run load-tests/production-load.js"
+        # Get service information
+        echo "📋 Service Information:"
+        kubectl get service auth-service -n $NAMESPACE
+        
+        # Get pod status
+        echo "📊 Pod Status:"
+        kubectl get pods -n $NAMESPACE -l app=auth-service
+        
+        # Check service endpoints
+        echo "🔍 Checking service endpoints..."
+        kubectl get endpoints auth-service -n $NAMESPACE
+        
+        # Health check using the correct endpoint
+        echo "🏥 Running health checks..."
+        echo "Testing health endpoint: https://api.posadskiy.com/auth/health"
+        curl -f https://api.posadskiy.com/auth/health || echo "Health check failed"
+        
+        # Additional internal health check for debugging
+        echo "🔍 Testing internal health endpoint..."
+        kubectl run test-pod --image=curlimages/curl --rm -it --restart=Never -- \
+            curl -f http://auth-service:8080/actuator/health || echo "Internal health check failed"
         
         echo "✅ Production tests completed"
         
@@ -197,16 +310,21 @@ jobs:
           ### 📦 What's New
           - Deployed to production environment
           - All quality checks passed
+          - Built and pushed to Google Container Registry (GCR)
+          - Deployed to GKE cluster: ${{ secrets.GKE_CLUSTER_NAME }}
+          - Namespace: ${{ secrets.K8S_NAMESPACE || 'microservices' }}
           
           ### 🔗 Links
-          - [Production Environment](https://auth.example.com)
-          - [Health Check](https://auth.example.com/actuator/health)
-          - [API Documentation](https://auth.example.com/swagger-ui)
+          - [Production Environment](https://api.posadskiy.com/auth)
+          - [Health Check](https://api.posadskiy.com/auth/health)
+          - [API Documentation](https://api.posadskiy.com/auth/swagger-ui)
+          - [GCR Registry](https://console.cloud.google.com/gcr/images/${{ env.PROJECT_ID }})
           
           ### 📊 Metrics
           - Build Time: ${process.env.GITHUB_JOB} minutes
           - Test Coverage: Available in artifacts
           - Security Scan: Passed
+          - Container Registry: Google Container Registry (GCR)
           
           ---
           *Released by GitHub Actions*`;
@@ -235,13 +353,18 @@ jobs:
           **Environment**: Production
           **Version**: ${{ needs.build.outputs.version }}
           **Image**: ${{ needs.build.outputs.image-tag }}
+          **Image Date Tag**: ${{ needs.build.outputs.image-tag-date }}
+          **Registry**: ${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_ID }}
+          **Cluster**: ${{ secrets.GKE_CLUSTER_NAME }}
+          **Namespace**: ${{ secrets.K8S_NAMESPACE || 'microservices' }}
           **Commit**: ${{ github.sha }}
           **Trigger**: ${deploymentType}
           
           ### 🔗 Links
-          - [Production Environment](https://auth.example.com)
-          - [Health Check](https://auth.example.com/actuator/health)
+          - [Production Environment](https://api.posadskiy.com/auth)
+          - [Health Check](https://api.posadskiy.com/auth/health)
           - [Release Notes](https://github.com/${{ github.repository }}/releases/tag/v${{ needs.build.outputs.version }})
+          - [GCR Registry](https://console.cloud.google.com/gcr/images/${{ env.PROJECT_ID }})
           
           ---
           *Deployed by GitHub Actions*`
@@ -259,13 +382,35 @@ jobs:
       run: |
         echo "📊 Monitoring application health..."
         
-        # Mock monitoring commands
-        echo "kubectl get pods -l app=auth-service"
-        echo "kubectl top pods -l app=auth-service"
+        NAMESPACE="${{ secrets.K8S_NAMESPACE || 'microservices' }}"
         
-        # Mock metrics collection
-        echo "curl -s https://auth.example.com/actuator/metrics"
-        echo "curl -s https://auth.example.com/actuator/prometheus"
+        # Get pod status and resource usage
+        echo "📊 Pod Status and Resource Usage:"
+        kubectl get pods -n $NAMESPACE -l app=auth-service
+        kubectl top pods -n $NAMESPACE -l app=auth-service
+        
+        # Get service status
+        echo "🌐 Service Status:"
+        kubectl get services -n $NAMESPACE -l app=auth-service
+        
+        # Get deployment status
+        echo "🚀 Deployment Status:"
+        kubectl get deployments -n $NAMESPACE -l app=auth-service
+        
+        # Check logs for any errors
+        echo "📝 Recent Logs:"
+        kubectl logs --tail=50 -n $NAMESPACE -l app=auth-service || echo "No logs available"
+        
+        # Metrics collection using the correct endpoint
+        echo "📈 Metrics Collection:"
+        echo "Collecting metrics from external endpoint..."
+        curl -s https://api.posadskiy.com/auth/actuator/metrics || echo "Metrics endpoint not accessible"
+        curl -s https://api.posadskiy.com/auth/actuator/prometheus || echo "Prometheus endpoint not accessible"
+        
+        # Additional internal metrics check for debugging
+        echo "🔍 Collecting metrics from internal endpoint..."
+        kubectl run metrics-pod --image=curlimages/curl --rm -it --restart=Never -- \
+            curl -s http://auth-service:8080/actuator/metrics || echo "Internal metrics check failed"
         
         echo "✅ Monitoring completed"
         
