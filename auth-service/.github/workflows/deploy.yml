@@ -201,10 +201,11 @@ jobs:
         
     - name: Configure kubectl
       run: |
-        # Install gke-gcloud-auth-plugin if not available
+        # Install gke-gcloud-auth-plugin using apt-get
         if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
           echo "Installing gke-gcloud-auth-plugin..."
-          gcloud components install gke-gcloud-auth-plugin --quiet
+          sudo apt-get update
+          sudo apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin
         fi
         
         # Configure kubectl to use the plugin
@@ -394,10 +395,11 @@ jobs:
         
     - name: Configure kubectl
       run: |
-        # Install gke-gcloud-auth-plugin if not available
+        # Install gke-gcloud-auth-plugin using apt-get
         if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
           echo "Installing gke-gcloud-auth-plugin..."
-          gcloud components install gke-gcloud-auth-plugin --quiet
+          sudo apt-get update
+          sudo apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin
         fi
         
         # Configure kubectl to use the plugin
