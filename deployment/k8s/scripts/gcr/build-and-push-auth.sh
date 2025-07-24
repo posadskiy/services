@@ -16,6 +16,12 @@ REGISTRY="gcr.io/$PROJECT_ID"
 TAG_DATE=$(date +%Y%m%d%H%M%S)
 
 echo "🚀 Building and pushing Auth Service to GCR..."
-docker buildx build --platform linux/amd64 -f auth-service/Dockerfile.prod -t $REGISTRY/auth-service:$VERSION -t $REGISTRY/auth-service:$TAG_DATE auth-service/ --push
+docker buildx build --platform linux/amd64 \
+  --build-arg GITHUB_TOKEN=$GITHUB_TOKEN \
+  --build-arg GITHUB_USERNAME=$GITHUB_USERNAME \
+  -f auth-service/Dockerfile.prod \
+  -t $REGISTRY/auth-service:$VERSION \
+  -t $REGISTRY/auth-service:$TAG_DATE \
+  auth-service/ --push
 
 echo "✅ Auth Service image built and pushed to GCR successfully!" 

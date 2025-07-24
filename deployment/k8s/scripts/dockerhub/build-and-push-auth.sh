@@ -20,6 +20,12 @@ if [ "$DOCKERHUB_USERNAME" = "your-dockerhub-username" ]; then
 fi
 
 echo "🚀 Building and pushing Auth Service to Docker Hub..."
-docker buildx build --platform linux/amd64 -f auth-service/Dockerfile.prod -t $DOCKERHUB_USERNAME/auth-service:$VERSION -t $DOCKERHUB_USERNAME/auth-service:$TAG_DATE auth-service/ --push
+docker buildx build --platform linux/amd64 \
+  --build-arg GITHUB_TOKEN=$GITHUB_TOKEN \
+  --build-arg GITHUB_USERNAME=$GITHUB_USERNAME \
+  -f auth-service/Dockerfile.prod \
+  -t $DOCKERHUB_USERNAME/auth-service:$VERSION \
+  -t $DOCKERHUB_USERNAME/auth-service:$TAG_DATE \
+  auth-service/ --push
 
 echo "✅ Auth Service image built and pushed to Docker Hub successfully!" 

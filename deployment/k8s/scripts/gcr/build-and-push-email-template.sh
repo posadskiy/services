@@ -16,6 +16,12 @@ REGISTRY="gcr.io/$PROJECT_ID"
 TAG_DATE=$(date +%Y%m%d%H%M%S)
 
 echo "📝 Building and pushing Email Template Service to GCR..."
-docker buildx build --platform linux/amd64 -f email-template-service/Dockerfile.prod -t $REGISTRY/email-template-service:$VERSION -t $REGISTRY/email-template-service:$TAG_DATE email-template-service/ --push
+docker buildx build --platform linux/amd64 \
+  --build-arg GITHUB_TOKEN=$GITHUB_TOKEN \
+  --build-arg GITHUB_USERNAME=$GITHUB_USERNAME \
+  -f email-template-service/Dockerfile.prod \
+  -t $REGISTRY/email-template-service:$VERSION \
+  -t $REGISTRY/email-template-service:$TAG_DATE \
+  email-template-service/ --push
 
 echo "✅ Email Template Service image built and pushed to GCR successfully!" 

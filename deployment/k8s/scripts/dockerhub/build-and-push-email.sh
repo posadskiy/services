@@ -20,6 +20,12 @@ if [ "$DOCKERHUB_USERNAME" = "your-dockerhub-username" ]; then
 fi
 
 echo "📧 Building and pushing Email Service to Docker Hub..."
-docker buildx build --platform linux/amd64 -f email-service/Dockerfile.prod -t $DOCKERHUB_USERNAME/email-service:$VERSION -t $DOCKERHUB_USERNAME/email-service:$TAG_DATE email-service/ --push
+docker buildx build --platform linux/amd64 \
+  --build-arg GITHUB_TOKEN=$GITHUB_TOKEN \
+  --build-arg GITHUB_USERNAME=$GITHUB_USERNAME \
+  -f email-service/Dockerfile.prod \
+  -t $DOCKERHUB_USERNAME/email-service:$VERSION \
+  -t $DOCKERHUB_USERNAME/email-service:$TAG_DATE \
+  email-service/ --push
 
 echo "✅ Email Service image built and pushed to Docker Hub successfully!" 
