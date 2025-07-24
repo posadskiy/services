@@ -134,7 +134,7 @@ jobs:
         
         echo "🐳 Building Docker image..."
         docker buildx build --platform linux/amd64 \
-          --build-arg GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+          --build-arg GITHUB_TOKEN=${{ secrets.DEPLOYMENT_GITHUB_TOKEN }} \
           --build-arg GITHUB_USERNAME=${{ github.actor }} \
           -f auth-service/Dockerfile.prod \
           -t $IMAGE_TAG \
@@ -201,11 +201,17 @@ jobs:
         
     - name: Configure kubectl
       run: |
-        # Install gke-gcloud-auth-plugin using apt-get
+        # Install gke-gcloud-auth-plugin using gcloud
         if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
           echo "Installing gke-gcloud-auth-plugin..."
-          sudo apt-get update
-          sudo apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin
+          # Try to install using gcloud components (might work in some environments)
+          gcloud components install gke-gcloud-auth-plugin --quiet || {
+            echo "gcloud components install failed, trying alternative method..."
+            # Download and install manually
+            curl -O https://storage.googleapis.com/cloud-sdk-release/artifacts/components/gke-gcloud-auth-plugin-linux-amd64
+            chmod +x gke-gcloud-auth-plugin-linux-amd64
+            sudo mv gke-gcloud-auth-plugin-linux-amd64 /usr/local/bin/gke-gcloud-auth-plugin
+          }
         fi
         
         # Configure kubectl to use the plugin
@@ -395,11 +401,17 @@ jobs:
         
     - name: Configure kubectl
       run: |
-        # Install gke-gcloud-auth-plugin using apt-get
+        # Install gke-gcloud-auth-plugin using gcloud
         if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
           echo "Installing gke-gcloud-auth-plugin..."
-          sudo apt-get update
-          sudo apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin
+          # Try to install using gcloud components (might work in some environments)
+          gcloud components install gke-gcloud-auth-plugin --quiet || {
+            echo "gcloud components install failed, trying alternative method..."
+            # Download and install manually
+            curl -O https://storage.googleapis.com/cloud-sdk-release/artifacts/components/gke-gcloud-auth-plugin-linux-amd64
+            chmod +x gke-gcloud-auth-plugin-linux-amd64
+            sudo mv gke-gcloud-auth-plugin-linux-amd64 /usr/local/bin/gke-gcloud-auth-plugin
+          }
         fi
         
         # Configure kubectl to use the plugin
