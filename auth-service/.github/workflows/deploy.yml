@@ -201,9 +201,19 @@ jobs:
         
     - name: Configure kubectl
       run: |
+        # Install gke-gcloud-auth-plugin if not available
+        if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
+          echo "Installing gke-gcloud-auth-plugin..."
+          gcloud components install gke-gcloud-auth-plugin --quiet
+        fi
+        
+        # Configure kubectl to use the plugin
         gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} \
           --region ${{ secrets.GKE_REGION }} \
           --project ${{ secrets.GCP_PROJECT_ID }}
+        
+        # Set the USE_GKE_GCLOUD_AUTH_PLUGIN environment variable
+        echo "USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
         
     - name: Deploy to Production Environment
       run: |
@@ -384,9 +394,19 @@ jobs:
         
     - name: Configure kubectl
       run: |
+        # Install gke-gcloud-auth-plugin if not available
+        if ! command -v gke-gcloud-auth-plugin &> /dev/null; then
+          echo "Installing gke-gcloud-auth-plugin..."
+          gcloud components install gke-gcloud-auth-plugin --quiet
+        fi
+        
+        # Configure kubectl to use the plugin
         gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} \
           --region ${{ secrets.GKE_REGION }} \
           --project ${{ secrets.GCP_PROJECT_ID }}
+        
+        # Set the USE_GKE_GCLOUD_AUTH_PLUGIN environment variable
+        echo "USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
         
     - name: Monitor Application Health
       run: |
