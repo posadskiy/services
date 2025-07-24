@@ -378,39 +378,59 @@ jobs:
     if: always()
     
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        
+    - name: Configure kubectl
+      run: |
+        gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} \
+          --region ${{ secrets.GKE_REGION }} \
+          --project ${{ secrets.GCP_PROJECT_ID }}
+        
     - name: Monitor Application Health
       run: |
         echo "📊 Monitoring application health..."
         
         NAMESPACE="${{ secrets.K8S_NAMESPACE || 'microservices' }}"
         
+        # Check if kubectl is working
+        echo "🔍 Testing kubectl connection..."
+        kubectl cluster-info || {
+            echo "❌ kubectl connection failed"
+            echo "💡 This might be due to cluster access issues or authentication problems"
+            exit 1
+        }
+        
         # Get pod status and resource usage
         echo "📊 Pod Status and Resource Usage:"
-        kubectl get pods -n $NAMESPACE -l app=auth-service
-        kubectl top pods -n $NAMESPACE -l app=auth-service
+        kubectl get pods -n $NAMESPACE -l app=auth-service || echo "No auth-service pods found"
+        kubectl top pods -n $NAMESPACE -l app=auth-service || echo "Resource usage not available"
         
         # Get service status
         echo "🌐 Service Status:"
-        kubectl get services -n $NAMESPACE -l app=auth-service
+        kubectl get services -n $NAMESPACE -l app=auth-service || echo "No auth-service services found"
         
         # Get deployment status
         echo "🚀 Deployment Status:"
-        kubectl get deployments -n $NAMESPACE -l app=auth-service
+        kubectl get deployments -n $NAMESPACE -l app=auth-service || echo "No auth-service deployments found"
         
         # Check logs for any errors
         echo "📝 Recent Logs:"
         kubectl logs --tail=50 -n $NAMESPACE -l app=auth-service || echo "No logs available"
         
-        # Metrics collection using the correct endpoint
+        # External health check
+        echo "🏥 External Health Check:"
+        curl -f https://api.posadskiy.com/auth/health || echo "External health check failed"
+        
+        # Metrics collection from external endpoint
         echo "📈 Metrics Collection:"
-        echo "Collecting metrics from external endpoint..."
         curl -s https://api.posadskiy.com/auth/actuator/metrics || echo "Metrics endpoint not accessible"
         curl -s https://api.posadskiy.com/auth/actuator/prometheus || echo "Prometheus endpoint not accessible"
-        
-        # Additional internal metrics check for debugging
-        echo "🔍 Collecting metrics from internal endpoint..."
-        kubectl run metrics-pod --image=curlimages/curl --rm -it --restart=Never -- \
-            curl -s http://auth-service:8080/actuator/metrics || echo "Internal metrics check failed"
         
         echo "✅ Monitoring completed"
         
