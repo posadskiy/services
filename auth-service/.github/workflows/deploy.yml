@@ -242,12 +242,12 @@ jobs:
         
         # Deploy namespace
         echo "📁 Creating namespace..."
-        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f ../k8s/namespace.yaml
         
         # Deploy ConfigMap and Secrets
         echo "⚙️  Deploying ConfigMap and Secrets..."
-        kubectl apply -f k8s/configmap.yaml
-        kubectl apply -f k8s/secrets.yaml
+        kubectl apply -f ../k8s/configmap.yaml
+        kubectl apply -f ../k8s/secrets.yaml
         
         # Deploy auth-service with version substitution
         echo "🔐 Deploying auth-service..."
@@ -255,7 +255,7 @@ jobs:
         export IMAGE_TAG=$IMAGE_TAG
         
         # Create temporary auth-service.yaml with image substitution
-        cat k8s/services/auth-service.yaml | envsubst | kubectl apply -f -
+        cat ../k8s/services/auth-service.yaml | envsubst | kubectl apply -f -
         
         # Wait for auth-service to be ready
         echo "⏳ Waiting for auth-service to be ready..."
