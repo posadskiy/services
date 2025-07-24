@@ -124,7 +124,7 @@ jobs:
       id: build
       run: |
         echo "🏗️ Building application..."
-        # mvn clean package -DskipTests
+        mvn clean package -DskipTests
         
         # Create GCR image tags
         TAG_DATE=$(date +%Y%m%d%H%M%S)
