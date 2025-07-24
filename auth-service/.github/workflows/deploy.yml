@@ -135,7 +135,7 @@ jobs:
         echo "🐳 Building Docker image..."
         docker buildx build --platform linux/amd64 \
           --build-arg GITHUB_TOKEN=${{ secrets.DEPLOYMENT_GITHUB_TOKEN }} \
-          --build-arg GITHUB_USERNAME=${{ github.actor }} \
+          --build-arg GITHUB_USERNAME=posadskiy \
           -f auth-service/Dockerfile.prod \
           -t $IMAGE_TAG \
           -t $IMAGE_TAG_DATE \
@@ -207,10 +207,21 @@ jobs:
           # Try to install using gcloud components (might work in some environments)
           gcloud components install gke-gcloud-auth-plugin --quiet || {
             echo "gcloud components install failed, trying alternative method..."
-            # Download and install manually
-            curl -O https://storage.googleapis.com/cloud-sdk-release/artifacts/components/gke-gcloud-auth-plugin-linux-amd64
-            chmod +x gke-gcloud-auth-plugin-linux-amd64
-            sudo mv gke-gcloud-auth-plugin-linux-amd64 /usr/local/bin/gke-gcloud-auth-plugin
+            # Detect architecture and download appropriate binary
+            ARCH=$(uname -m)
+            if [ "$ARCH" = "x86_64" ]; then
+              BINARY_URL="https://storage.googleapis.com/cloud-sdk-release/artifacts/components/gke-gcloud-auth-plugin-linux-amd64"
+            elif [ "$ARCH" = "aarch64" ]; then
+              BINARY_URL="https://storage.googleapis.com/cloud-sdk-release/artifacts/components/gke-gcloud-auth-plugin-linux-arm64"
+            else
+              echo "Unsupported architecture: $ARCH"
+              exit 1
+            fi
+            
+            echo "Downloading gke-gcloud-auth-plugin for architecture: $ARCH"
+            curl -O $BINARY_URL
+            chmod +x gke-gcloud-auth-plugin-linux-*
+            sudo mv gke-gcloud-auth-plugin-linux-* /usr/local/bin/gke-gcloud-auth-plugin
           }
         fi
         
@@ -407,10 +418,21 @@ jobs:
           # Try to install using gcloud components (might work in some environments)
           gcloud components install gke-gcloud-auth-plugin --quiet || {
             echo "gcloud components install failed, trying alternative method..."
-            # Download and install manually
-            curl -O https://storage.googleapis.com/cloud-sdk-release/artifacts/components/gke-gcloud-auth-plugin-linux-amd64
-            chmod +x gke-gcloud-auth-plugin-linux-amd64
-            sudo mv gke-gcloud-auth-plugin-linux-amd64 /usr/local/bin/gke-gcloud-auth-plugin
+            # Detect architecture and download appropriate binary
+            ARCH=$(uname -m)
+            if [ "$ARCH" = "x86_64" ]; then
+              BINARY_URL="https://storage.googleapis.com/cloud-sdk-release/artifacts/components/gke-gcloud-auth-plugin-linux-amd64"
+            elif [ "$ARCH" = "aarch64" ]; then
+              BINARY_URL="https://storage.googleapis.com/cloud-sdk-release/artifacts/components/gke-gcloud-auth-plugin-linux-arm64"
+            else
+              echo "Unsupported architecture: $ARCH"
+              exit 1
+            fi
+            
+            echo "Downloading gke-gcloud-auth-plugin for architecture: $ARCH"
+            curl -O $BINARY_URL
+            chmod +x gke-gcloud-auth-plugin-linux-*
+            sudo mv gke-gcloud-auth-plugin-linux-* /usr/local/bin/gke-gcloud-auth-plugin
           }
         fi
         
