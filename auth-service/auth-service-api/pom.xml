@@ -30,13 +30,23 @@
         </dependency>
         <!-- Validation -->
 
-        <!-- Json -->
+        <!-- Serde -->
         <dependency>
             <groupId>io.micronaut.serde</groupId>
-            <artifactId>micronaut-serde-jackson</artifactId>
-            <scope>compile</scope>
+            <artifactId>micronaut-serde-api</artifactId>
         </dependency>
-        <!-- Json -->
+        <!-- Serde -->
+
+        <!-- Core Micronaut dependencies -->
+        <dependency>
+            <groupId>io.micronaut</groupId>
+            <artifactId>micronaut-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micronaut</groupId>
+            <artifactId>micronaut-inject</artifactId>
+        </dependency>
+        <!-- Core Micronaut dependencies -->
 
         <!-- Documenting -->
         <dependency>
@@ -69,11 +79,7 @@
                                 </exclusion>
                             </exclusions>
                         </path>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
+
                         <path>
                             <groupId>io.micronaut.openapi</groupId>
                             <artifactId>micronaut-openapi</artifactId>
