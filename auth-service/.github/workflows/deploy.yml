@@ -202,6 +202,10 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
         
+    - name: Configure Docker for GCR
+      run: |
+        gcloud auth configure-docker gcr.io --quiet
+        
     - name: Get GKE Credentials
       uses: google-github-actions/get-gke-credentials@v2
       with:
@@ -252,16 +256,16 @@ jobs:
         export GITHUB_USERNAME="posadskiy"
         
         # Create temporary auth-service.yaml with image substitution
-        envsubst < k8s/auth-service.yaml | kubectl apply -f - --validate=false
+        envsubst < k8s/auth-service.yaml | kubectl apply -f -
         
         # Wait for auth-service to be ready
         echo "⏳ Waiting for auth-service to be ready..."
-        kubectl wait --for=condition=available --timeout=300s deployment/auth-service -n $NAMESPACE --validate=false
+        kubectl wait --for=condition=available --timeout=300s deployment/auth-service -n $NAMESPACE
         
         # Verify deployment
         echo "✅ Verifying deployment..."
-        kubectl get pods -n $NAMESPACE --validate=false
-        kubectl get services -n $NAMESPACE --validate=false
+        kubectl get pods -n $NAMESPACE
+        kubectl get services -n $NAMESPACE
         
         echo "✅ Auth-service deployment completed successfully!"
         
