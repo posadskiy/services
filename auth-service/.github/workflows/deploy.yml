@@ -240,16 +240,14 @@ jobs:
             exit 1
         fi
         
-        # Try to find existing gke-gcloud-auth-plugin or disable it
-        export USE_GKE_GCLOUD_AUTH_PLUGIN=False
-        # Alternative: try to find the plugin in common locations
-        if [ -f "/usr/bin/gke-gcloud-auth-plugin" ]; then
-            export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-        elif [ -f "/usr/local/bin/gke-gcloud-auth-plugin" ]; then
-            export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-        elif [ -f "/opt/google-cloud-sdk/bin/gke-gcloud-auth-plugin" ]; then
-            export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-        fi
+        # Install gke-gcloud-auth-plugin using snap (works on Ubuntu)
+        export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+        sudo snap install google-cloud-cli-gke-gcloud-auth-plugin --classic || {
+            echo "⚠️ Snap installation failed, trying alternative method..."
+            # Alternative: configure kubectl to use gcloud auth directly
+            export USE_GKE_GCLOUD_AUTH_PLUGIN=False
+            kubectl config set-credentials gke-user --token=$(gcloud auth print-access-token)
+        }
         
         # Get cluster credentials
         echo "🔐 Getting cluster credentials..."
