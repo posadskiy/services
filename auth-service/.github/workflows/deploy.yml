@@ -240,22 +240,19 @@ jobs:
         echo "🔐 Getting cluster credentials..."
         gcloud container clusters get-credentials $CLUSTER_NAME --zone=${{ secrets.GKE_REGION }}
         
-        # Deploy namespace
-        echo "📁 Creating namespace..."
-        kubectl apply -f ../k8s/namespace.yaml
-        
-        # Deploy ConfigMap and Secrets
-        echo "⚙️  Deploying ConfigMap and Secrets..."
-        kubectl apply -f ../k8s/configmap.yaml
-        kubectl apply -f ../k8s/secrets.yaml
-        
         # Deploy auth-service with version substitution
         echo "🔐 Deploying auth-service..."
         export IMAGE_VERSION=$VERSION
         export IMAGE_TAG=$IMAGE_TAG
+        #export AUTH_DATABASE_NAME="${{ secrets.AUTH_DATABASE_NAME }}"
+        #export AUTH_DATABASE_USER="${{ secrets.AUTH_DATABASE_USER }}"
+        #export AUTH_DATABASE_PASSWORD="${{ secrets.AUTH_DATABASE_PASSWORD }}"
+        #export JWT_GENERATOR_SIGNATURE_SECRET="${{ secrets.JWT_GENERATOR_SIGNATURE_SECRET }}"
+        #export GITHUB_TOKEN="${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}"
+        export GITHUB_USERNAME="posadskiy"
         
         # Create temporary auth-service.yaml with image substitution
-        cat ../k8s/services/auth-service.yaml | envsubst | kubectl apply -f -
+        envsubst < k8s/auth-service.yaml | kubectl apply -f -
         
         # Wait for auth-service to be ready
         echo "⏳ Waiting for auth-service to be ready..."
