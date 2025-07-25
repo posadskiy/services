@@ -241,7 +241,7 @@ jobs:
         fi
         
         export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-        gcloud components install gke-gcloud-auth-plugin
+        sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
         
         # Get cluster credentials
         echo "🔐 Getting cluster credentials..."
