@@ -240,9 +240,14 @@ jobs:
             exit 1
         fi
         
-        # Install gke-gcloud-auth-plugin using snap (works on Ubuntu)
+        # Install gke-gcloud-auth-plugin using the official method
         export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-        sudo apt-get install google-cloud-sdk-gke-gcloud-auth-plugin
+        
+        # Try to install using the official Google Cloud repository
+        echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+        curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+        sudo apt-get update
+        sudo apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin
         
         # Get cluster credentials
         echo "🔐 Getting cluster credentials..."
@@ -260,16 +265,16 @@ jobs:
         export GITHUB_USERNAME="posadskiy"
         
         # Create temporary auth-service.yaml with image substitution
-        envsubst < k8s/auth-service.yaml | kubectl apply -f - --validate=false
+        envsubst < k8s/auth-service.yaml | kubectl apply -f -
         
         # Wait for auth-service to be ready
         echo "⏳ Waiting for auth-service to be ready..."
-        kubectl wait --for=condition=available --timeout=300s deployment/auth-service -n $NAMESPACE --validate=false
+        kubectl wait --for=condition=available --timeout=300s deployment/auth-service -n $NAMESPACE
         
         # Verify deployment
         echo "✅ Verifying deployment..."
-        kubectl get pods -n $NAMESPACE --validate=false
-        kubectl get services -n $NAMESPACE --validate=false
+        kubectl get pods -n $NAMESPACE
+        kubectl get services -n $NAMESPACE
         
         echo "✅ Auth-service deployment completed successfully!"
         
