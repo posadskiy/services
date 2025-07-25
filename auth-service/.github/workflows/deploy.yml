@@ -240,8 +240,16 @@ jobs:
             exit 1
         fi
         
-        export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-        sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
+        # Try to find existing gke-gcloud-auth-plugin or disable it
+        export USE_GKE_GCLOUD_AUTH_PLUGIN=False
+        # Alternative: try to find the plugin in common locations
+        if [ -f "/usr/bin/gke-gcloud-auth-plugin" ]; then
+            export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+        elif [ -f "/usr/local/bin/gke-gcloud-auth-plugin" ]; then
+            export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+        elif [ -f "/opt/google-cloud-sdk/bin/gke-gcloud-auth-plugin" ]; then
+            export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+        fi
         
         # Get cluster credentials
         echo "🔐 Getting cluster credentials..."
