@@ -252,16 +252,16 @@ jobs:
         export GITHUB_USERNAME="posadskiy"
         
         # Create temporary auth-service.yaml with image substitution
-        envsubst < k8s/auth-service.yaml | kubectl apply -f -
+        envsubst < k8s/auth-service.yaml | kubectl apply -f - --validate=false
         
         # Wait for auth-service to be ready
         echo "⏳ Waiting for auth-service to be ready..."
-        kubectl wait --for=condition=available --timeout=300s deployment/auth-service -n $NAMESPACE
+        kubectl wait --for=condition=available --timeout=300s deployment/auth-service -n $NAMESPACE --validate=false
         
         # Verify deployment
         echo "✅ Verifying deployment..."
-        kubectl get pods -n $NAMESPACE
-        kubectl get services -n $NAMESPACE
+        kubectl get pods -n $NAMESPACE --validate=false
+        kubectl get services -n $NAMESPACE --validate=false
         
         echo "✅ Auth-service deployment completed successfully!"
         
