@@ -94,16 +94,16 @@ echo "🚀 Deploying all services..."
 export IMAGE_VERSION=$VERSION
 
 echo "🔐 Deploying auth-service..."
-envsubst < "$K8S_DIR/services/auth-service.yaml" | kubectl apply -f -
+envsubst < "$K8S_DIR/../auth-service/k8s/auth-service.yaml" | kubectl apply -f -
 
 echo "👤 Deploying user-service..."
-envsubst < "$K8S_DIR/services/user-service.yaml" | kubectl apply -f -
+envsubst < "$K8S_DIR/../user-service/k8s/user-service.yaml" | kubectl apply -f -
 
 echo "📧 Deploying email-service..."
-envsubst < "$K8S_DIR/services/email-service.yaml" | kubectl apply -f -
+envsubst < "$K8S_DIR/../email-service/k8s/email-service.yaml" | kubectl apply -f -
 
 echo "📝 Deploying email-template-service..."
-envsubst < "$K8S_DIR/services/email-template-service.yaml" | kubectl apply -f -
+envsubst < "$K8S_DIR/../email-template-service/k8s/email-template-service.yaml" | kubectl apply -f -
 
 # Wait for all services to be ready
 echo "⏳ Waiting for all services to be ready..."

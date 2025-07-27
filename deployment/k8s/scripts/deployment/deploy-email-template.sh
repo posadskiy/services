@@ -79,7 +79,7 @@ envsubst < "$K8S_DIR/secrets.yaml" | kubectl apply -f -
 # Deploy email-template-service with version substitution
 echo "📝 Deploying email-template-service..."
 export IMAGE_VERSION=$VERSION
-envsubst < "$K8S_DIR/services/email-template-service.yaml" | kubectl apply -f -
+envsubst < "$K8S_DIR/../email-template-service/k8s/email-template-service.yaml" | kubectl apply -f -
 
 # Wait for email-template-service to be ready
 echo "⏳ Waiting for email-template-service to be ready..."

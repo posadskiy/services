@@ -90,7 +90,7 @@ kubectl wait --for=condition=available --timeout=300s deployment/auth-db -n $NAM
 # Deploy auth-service with version substitution
 echo "🔐 Deploying auth-service..."
 export IMAGE_VERSION=$VERSION
-envsubst < "$K8S_DIR/services/auth-service.yaml" | kubectl apply -f -
+envsubst < "$K8S_DIR/../auth-service/k8s/auth-service.yaml" | kubectl apply -f -
 
 # Wait for auth-service to be ready
 echo "⏳ Waiting for auth-service to be ready..."
