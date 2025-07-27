@@ -22,7 +22,7 @@
         <packaging>jar</packaging>
         <jdk.version>21</jdk.version>
         <release.version>21</release.version>
-        <micronaut.aot.enabled>false</micronaut.aot.enabled>
+        <micronaut.aot.enabled>true</micronaut.aot.enabled>
         <micronaut.aot.packageName>com.posadskiy.email.service.aot.generated</micronaut.aot.packageName>
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.email.web.Application</exec.mainClass>
@@ -43,9 +43,14 @@
             <url>https://repo.maven.apache.org/maven2</url>
         </repository>
         <repository>
-            <id>github</id>
+            <id>github-user</id>
             <name>GitHub posadskiy Apache Maven Packages</name>
             <url>https://maven.pkg.github.com/posadskiy/user-service</url>
+        </repository>
+        <repository>
+            <id>github-email</id>
+            <name>GitHub posadskiy Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/posadskiy/email-service</url>
         </repository>
     </repositories>
 
@@ -111,5 +116,39 @@
             <version>${lombok.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Maven Release Plugin for version management -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>deploy</goals>
+                    <tagNameFormat>@{project.artifactId}-@{project.version}</tagNameFormat>
+                    <preparationGoals>clean install</preparationGoals>
+                    <completionGoals>clean install</completionGoals>
+                </configuration>
+            </plugin>
+            
+            <!-- Spotless Maven Plugin for code formatting -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.45.0</version>
+                <configuration>
+                    <java>
+                        <palantirJavaFormat>
+                            <version>2.71.0</version>
+                        </palantirJavaFormat>
+                    </java>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
