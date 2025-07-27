@@ -61,9 +61,6 @@ EMAIL_PROTOCOL=smtp
 EMAIL_AUTH=true
 EMAIL_STARTTLS_ENABLE=true
 
-# User Service Integration
-USER_SERVICE_URL=http://user-service:8080
-
 # JWT Configuration
 JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret_key_here
 ```
