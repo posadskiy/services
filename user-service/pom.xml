@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.user</groupId>
     <artifactId>user-service</artifactId>
-    <version>0.1.3</version>
+    <version>0.1.4</version>
     <packaging>pom</packaging>
     <modules>
         <module>user-service-api</module>
@@ -18,7 +18,6 @@
         <version>4.5.0</version>
     </parent>
     <properties>
-        <project.version>0.1</project.version>
         <packaging>jar</packaging>
         <jdk.version>21</jdk.version>
         <release.version>21</release.version>
@@ -28,10 +27,6 @@
         <micronaut.aot.packageName>email.service.aot.generated</micronaut.aot.packageName>
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.user.web.Application</exec.mainClass>
-        
-        <user-service-api.version>0.1.4</user-service-api.version>
-        <user-service-core.version>0.1.4</user-service-core.version>
-        <user-service-web.version>0.1.4</user-service-web.version>
         
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
         <spring-security-crypto.version>6.3.0</spring-security-crypto.version>
@@ -58,17 +53,17 @@
         <dependency>
                 <groupId>com.posadskiy.user</groupId>
                 <artifactId>user-service-api</artifactId>
-                <version>${user-service-api.version}</version>
+                <version>${project.version}</version>
         </dependency>
         <dependency>
                 <groupId>com.posadskiy.user</groupId>
                 <artifactId>user-service-core</artifactId>
-                <version>${user-service-core.version}</version>
+                <version>${project.version}</version>
         </dependency>
         <dependency>
                 <groupId>com.posadskiy.user</groupId>
                 <artifactId>user-service-web</artifactId>
-                <version>${user-service-web.version}</version>
+                <version>${project.version}</version>
         </dependency>
 
             <!-- Validation -->
