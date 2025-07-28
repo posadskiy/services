@@ -312,78 +312,75 @@ jobs:
         echo "✅ Production tests completed"
         
     - name: Create Release
-      uses: actions/github-script@v7
-      if: github.event_name == 'push'  # Only create release on tag push
-      with:
-        script: |
-          # Fetch all tags to ensure they're available
-          git fetch --tags
-          
-          # Get the previous tag to determine commit range
-          CURRENT_VERSION="${{ steps.version.outputs.version }}"
-          
-          # More robust approach to find previous tag
-          PREVIOUS_TAG=$(git tag --sort=-version:refname | while read tag; do
-          if [[ "$tag" != "v$CURRENT_VERSION" ]]; then
-          echo "$tag"
-          break
-          fi
-          done)
-          
-          # Use the previous tag for the commit range
-          COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
-          
-          # Create release body header
-          echo "## User Service Release ${{ steps.version.outputs.version }}" > release_body.md
-          echo "" >> release_body.md
-          echo "### 📝 Changes" >> release_body.md
-          
-          if [[ -n "$PREVIOUS_TAG" ]]; then
-          # Get all commit messages in the range, excluding all version bump commits
-          COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^- v[0-9]" || echo "")
-          if [[ -z "$COMMITS" ]]; then
-          echo "No changes since previous release." >> release_body.md
-          else
-          echo "$COMMITS" >> release_body.md
-          fi
-          else
-          # First release - include all commits except version bump commits
-          COMMITS=$(git log --pretty=format:"- %s" | grep -v "^- v[0-9]" || echo "")
-          if [[ -z "$COMMITS" ]]; then
-          echo "No changes since previous release." >> release_body.md
-          else
-          echo "$COMMITS" >> release_body.md
-          fi
-          fi
-          
-          # Add footer to release notes
-          echo "" >> release_body.md
-          echo "### 📦 Release Artifacts" >> release_body.md
-          echo "- Source code tagged with version ${{ steps.version.outputs.version }}" >> release_body.md
-          echo "- Maven artifacts available in GitHub Packages" >> release_body.md
-          echo "" >> release_body.md
-          echo "### 🔧 Build Instructions" >> release_body.md
-          echo '```bash' >> release_body.md
-          echo "mvn clean package -DskipTests" >> release_body.md
-          echo "java -jar user-service-web/target/user-service-web-*.jar" >> release_body.md
-          echo '```' >> release_body.md
-          echo "" >> release_body.md
-          echo "### 📝 Release Trigger" >> release_body.md
-          if [[ "${{ steps.version.outputs.trigger_type }}" == "manual" ]]; then
-          echo "This release was triggered by a manual workflow dispatch." >> release_body.md
-          else
-          echo "This release was triggered by a git tag push." >> release_body.md
-          fi
-          
-          # Create release using GitHub CLI
-          gh release create ${{ steps.version.outputs.tag }} \
-          --title "User Service ${{ steps.version.outputs.version }}" \
-          --notes-file release_body.md \
-          --draft=false \
-          --prerelease=false
+      env:
+        GH_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
+      run: |
+        # Fetch all tags to ensure they're available
+        git fetch --tags
         
-
-
+        # Get the previous tag to determine commit range
+        CURRENT_VERSION="${{ steps.version.outputs.version }}"
+        
+        # More robust approach to find previous tag
+        PREVIOUS_TAG=$(git tag --sort=-version:refname | while read tag; do
+        if [[ "$tag" != "v$CURRENT_VERSION" ]]; then
+        echo "$tag"
+        break
+        fi
+        done)
+        
+        # Use the previous tag for the commit range
+        COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
+        
+        # Create release body header
+        echo "## User Service Release ${{ steps.version.outputs.version }}" > release_body.md
+        echo "" >> release_body.md
+        echo "### 📝 Changes" >> release_body.md
+        
+        if [[ -n "$PREVIOUS_TAG" ]]; then
+        # Get all commit messages in the range, excluding all version bump commits
+        COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^- v[0-9]" || echo "")
+        if [[ -z "$COMMITS" ]]; then
+        echo "No changes since previous release." >> release_body.md
+        else
+        echo "$COMMITS" >> release_body.md
+        fi
+        else
+        # First release - include all commits except version bump commits
+        COMMITS=$(git log --pretty=format:"- %s" | grep -v "^- v[0-9]" || echo "")
+        if [[ -z "$COMMITS" ]]; then
+        echo "No changes since previous release." >> release_body.md
+        else
+        echo "$COMMITS" >> release_body.md
+        fi
+        fi
+        
+        # Add footer to release notes
+        echo "" >> release_body.md
+        echo "### 📦 Release Artifacts" >> release_body.md
+        echo "- Source code tagged with version ${{ steps.version.outputs.version }}" >> release_body.md
+        echo "- Maven artifacts available in GitHub Packages" >> release_body.md
+        echo "" >> release_body.md
+        echo "### 🔧 Build Instructions" >> release_body.md
+        echo '```bash' >> release_body.md
+        echo "mvn clean package -DskipTests" >> release_body.md
+        echo "java -jar user-service-web/target/user-service-web-*.jar" >> release_body.md
+        echo '```' >> release_body.md
+        echo "" >> release_body.md
+        echo "### 📝 Release Trigger" >> release_body.md
+        if [[ "${{ steps.version.outputs.trigger_type }}" == "manual" ]]; then
+        echo "This release was triggered by a manual workflow dispatch." >> release_body.md
+        else
+        echo "This release was triggered by a git tag push." >> release_body.md
+        fi
+        
+        # Create release using GitHub CLI
+        gh release create ${{ steps.version.outputs.tag }} \
+        --title "User Service ${{ steps.version.outputs.version }}" \
+        --notes-file release_body.md \
+        --draft=false \
+        --prerelease=false
+        
   # Monitoring and Alerting
   monitor:
     name: Monitor Deployment
