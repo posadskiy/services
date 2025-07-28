@@ -95,6 +95,8 @@ jobs:
           # Extract version from tag (remove 'v' prefix)
           VERSION=${GITHUB_REF#refs/tags/}
           VERSION=${VERSION#v}  # Remove 'v' prefix if present
+          TAG="v$VERSION"
+          TRIGGER_TYPE="tag"
         else
           # Manual dispatch - use provided version or latest tag
           if [[ -n "${{ github.event.inputs.version }}" ]]; then
@@ -103,10 +105,16 @@ jobs:
             # Get latest tag
             VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
           fi
+          TAG="v$VERSION"
+          TRIGGER_TYPE="manual"
         fi
         
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "trigger_type=$TRIGGER_TYPE" >> $GITHUB_OUTPUT
         echo "📦 Version: $VERSION"
+        echo "🏷️ Tag: $TAG"
+        echo "🔧 Trigger: $TRIGGER_TYPE"
         
     - name: Set up Docker Build
       uses: docker/setup-buildx-action@v3
@@ -308,41 +316,71 @@ jobs:
       if: github.event_name == 'push'  # Only create release on tag push
       with:
         script: |
-          const version = '${{ needs.build.outputs.version }}';
-          const releaseNotes = `
-          ## 🚀 Production Release ${version}
+          # Fetch all tags to ensure they're available
+          git fetch --tags
           
-          ### 📦 What's New
-          - Deployed to production environment
-          - All quality checks passed
-          - Built and pushed to Google Container Registry (GCR)
-          - Deployed to GKE cluster: ${{ secrets.GKE_CLUSTER_NAME }}
-          - Namespace: ${{ secrets.K8S_NAMESPACE || 'microservices' }}
+          # Get the previous tag to determine commit range
+          CURRENT_VERSION="${{ steps.version.outputs.version }}"
           
-          ### 🔗 Links
-          - [Production Environment](https://api.posadskiy.com/user)
-          - [Health Check](https://api.posadskiy.com/user/health)
-          - [API Documentation](https://api.posadskiy.com/user/swagger-ui)
-          - [GCR Registry](https://console.cloud.google.com/gcr/images/${{ env.PROJECT_ID }})
+          # More robust approach to find previous tag
+          PREVIOUS_TAG=$(git tag --sort=-version:refname | while read tag; do
+          if [[ "$tag" != "v$CURRENT_VERSION" ]]; then
+          echo "$tag"
+          break
+          fi
+          done)
           
-          ### 📊 Metrics
-          - Build Time: ${process.env.GITHUB_JOB} minutes
-          - Test Coverage: Available in artifacts
-          - Security Scan: Passed
-          - Container Registry: Google Container Registry (GCR)
+          # Use the previous tag for the commit range
+          COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
           
-          ---
-          *Released by GitHub Actions*`;
+          # Create release body header
+          echo "## User Service Release ${{ steps.version.outputs.version }}" > release_body.md
+          echo "" >> release_body.md
+          echo "### 📝 Changes" >> release_body.md
           
-          github.rest.repos.createRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            tag_name: `v${version}`,
-            name: `Release ${version}`,
-            body: releaseNotes,
-            draft: false,
-            prerelease: false
-          });
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+          # Get all commit messages in the range, excluding all version bump commits
+          COMMITS=$(git log --pretty=format:"- %s" $COMMIT_RANGE | grep -v "^- v[0-9]" || echo "")
+          if [[ -z "$COMMITS" ]]; then
+          echo "No changes since previous release." >> release_body.md
+          else
+          echo "$COMMITS" >> release_body.md
+          fi
+          else
+          # First release - include all commits except version bump commits
+          COMMITS=$(git log --pretty=format:"- %s" | grep -v "^- v[0-9]" || echo "")
+          if [[ -z "$COMMITS" ]]; then
+          echo "No changes since previous release." >> release_body.md
+          else
+          echo "$COMMITS" >> release_body.md
+          fi
+          fi
+          
+          # Add footer to release notes
+          echo "" >> release_body.md
+          echo "### 📦 Release Artifacts" >> release_body.md
+          echo "- Source code tagged with version ${{ steps.version.outputs.version }}" >> release_body.md
+          echo "- Maven artifacts available in GitHub Packages" >> release_body.md
+          echo "" >> release_body.md
+          echo "### 🔧 Build Instructions" >> release_body.md
+          echo '```bash' >> release_body.md
+          echo "mvn clean package -DskipTests" >> release_body.md
+          echo "java -jar user-service-web/target/user-service-web-*.jar" >> release_body.md
+          echo '```' >> release_body.md
+          echo "" >> release_body.md
+          echo "### 📝 Release Trigger" >> release_body.md
+          if [[ "${{ steps.version.outputs.trigger_type }}" == "manual" ]]; then
+          echo "This release was triggered by a manual workflow dispatch." >> release_body.md
+          else
+          echo "This release was triggered by a git tag push." >> release_body.md
+          fi
+          
+          # Create release using GitHub CLI
+          gh release create ${{ steps.version.outputs.tag }} \
+          --title "User Service ${{ steps.version.outputs.version }}" \
+          --notes-file release_body.md \
+          --draft=false \
+          --prerelease=false
         
 
 
