@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.email</groupId>
     <artifactId>email-service</artifactId>
-    <version>0.1.4</version>
+    <version>0.2.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>email-service-api</module>
@@ -30,7 +30,7 @@
         <micronaut.version>4.5.0</micronaut.version>
         <lombok.version>1.18.30</lombok.version>
         
-        <user-service-api.version>0.1.4</user-service-api.version>
+        <user-service-api.version>0.2.1</user-service-api.version>
         
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <javax.mail.version>1.6.2</javax.mail.version>
