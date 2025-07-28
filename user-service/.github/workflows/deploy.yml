@@ -305,12 +305,7 @@ jobs:
         echo "🏥 Running health checks..."
         echo "Testing health endpoint: https://api.posadskiy.com/user/health"
         curl -f https://api.posadskiy.com/user/health || echo "Health check failed"
-        
-        # Additional internal health check for debugging
-        echo "🔍 Testing internal health endpoint..."
-        kubectl run test-pod --image=curlimages/curl --rm -it --restart=Never -- \
-            curl -f http://user-service:8095/actuator/health || echo "Internal health check failed"
-        
+   
         echo "✅ Production tests completed"
         
     - name: Create Release
