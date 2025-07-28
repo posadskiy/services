@@ -10,7 +10,6 @@
     </parent>
 
     <artifactId>user-service-api</artifactId>
-    <version>${user-service-api.version}</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
