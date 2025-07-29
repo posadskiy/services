@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.email</groupId>
     <artifactId>email-template-service</artifactId>
-    <version>0.1.5</version>
+    <version>0.2.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>email-template-service-api</module>
@@ -28,8 +28,8 @@
         <micronaut.aot.packageName>com.posadskiy.email.template.service.aot.generated</micronaut.aot.packageName>
         <exec.mainClass>com.posadskiy.email.template.Application</exec.mainClass>
 
-        <email-service-api.version>0.1.4</email-service-api.version>
-        <user-service-api.version>0.1.4</user-service-api.version>
+        <email-service-api.version>0.2.0</email-service-api.version>
+        <user-service-api.version>0.2.1</user-service-api.version>
 
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
@@ -46,11 +46,6 @@
             <id>github</id>
             <name>GitHub posadskiy Apache Maven Packages</name>
             <url>https://maven.pkg.github.com/posadskiy/user-service</url>
-        </repository>
-        <repository>
-            <id>github-email-template</id>
-            <name>GitHub posadskiy Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/posadskiy/email-template-service</url>
         </repository>
     </repositories>
 
