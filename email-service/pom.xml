@@ -43,7 +43,7 @@
             <url>https://repo.maven.apache.org/maven2</url>
         </repository>
         <repository>
-            <id>github-user</id>
+            <id>github</id>
             <name>GitHub posadskiy Apache Maven Packages</name>
             <url>https://maven.pkg.github.com/posadskiy/user-service</url>
         </repository>
