@@ -71,6 +71,14 @@ services:
     restart: unless-stopped
     depends_on:
       - auth-service
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
     environment:
       MICRONAUT_ENVIRONMENTS: dev
       GITHUB_USERNAME: ${GITHUB_USERNAME}
@@ -103,6 +111,14 @@ services:
     restart: unless-stopped
     depends_on:
       - user-service
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
     environment:
       MICRONAUT_ENVIRONMENTS: dev
       GITHUB_USERNAME: ${GITHUB_USERNAME}
@@ -142,6 +158,14 @@ services:
     restart: unless-stopped
     depends_on:
       - email-service
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
     environment:
       MICRONAUT_ENVIRONMENTS: dev
       GITHUB_USERNAME: ${GITHUB_USERNAME}
