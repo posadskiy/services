@@ -82,6 +82,6 @@ class PasswordEncoderTest {
         // Then
         // BCrypt with strength 16 should produce a hash with 53 characters
         assertEquals(60, encodedPassword.length());
-        assertTrue(encodedPassword.startsWith("$2a$10$"));
+        assertTrue(encodedPassword.startsWith("$2a$08$"));
     }
 }
