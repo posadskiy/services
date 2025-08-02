@@ -267,11 +267,6 @@ jobs:
         echo "🔐 Deploying auth-service..."
         export IMAGE_VERSION=$VERSION
         export IMAGE_TAG=$IMAGE_TAG
-        #export AUTH_DATABASE_NAME="${{ secrets.AUTH_DATABASE_NAME }}"
-        #export AUTH_DATABASE_USER="${{ secrets.AUTH_DATABASE_USER }}"
-        #export AUTH_DATABASE_PASSWORD="${{ secrets.AUTH_DATABASE_PASSWORD }}"
-        #export JWT_GENERATOR_SIGNATURE_SECRET="${{ secrets.JWT_GENERATOR_SIGNATURE_SECRET }}"
-        #export GITHUB_TOKEN="${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}"
         export GITHUB_USERNAME="posadskiy"
         
         # Create temporary auth-service.yaml with image substitution
