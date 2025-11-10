@@ -33,3 +33,5 @@ echo "✅ Docker Hub registry secret created successfully!"
 echo "Secret name: dockerhub-registry-secret"
 echo "Namespace: $NAMESPACE"
 
+
+

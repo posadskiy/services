@@ -120,6 +120,42 @@ deploy_service "user-service"
 deploy_service "email-service"
 deploy_service "email-template-service"
 
+# Deploy Traefik Let's Encrypt configuration
+echo ""
+echo "🔐 Deploying Traefik Let's Encrypt configuration..."
+kubectl apply -f "$K8S_DIR/ingress/traefik-letsencrypt.yaml"
+
+# Wait for Traefik to restart with new configuration
+echo "⏳ Waiting for Traefik to apply Let's Encrypt configuration..."
+echo "   (Traefik will restart automatically to pick up the new HelmChartConfig)"
+
+# Wait for Helm install job to complete (if it exists)
+echo "   Waiting for Helm install job to complete..."
+if kubectl get job -n kube-system helm-install-traefik &>/dev/null; then
+  kubectl wait --for=condition=complete --timeout=300s job/helm-install-traefik -n kube-system || {
+    echo "⚠️  Warning: Helm install job did not complete successfully"
+    echo "   Checking job logs..."
+    kubectl logs -n kube-system job/helm-install-traefik --tail=20 || true
+  }
+fi
+
+# Wait for Traefik pod to be ready
+echo "   Waiting for Traefik pod to be ready..."
+if kubectl wait --for=condition=ready --timeout=120s pod -n kube-system -l app.kubernetes.io/name=traefik 2>/dev/null; then
+  echo "✅ Traefik pod is ready"
+else
+  echo "⚠️  Warning: Traefik pod not ready yet, continuing..."
+fi
+
+# Verify ACME configuration is applied
+echo "   Verifying ACME configuration..."
+if kubectl get pod -n kube-system -l app.kubernetes.io/name=traefik -o jsonpath='{.items[0].spec.containers[0].args}' 2>/dev/null | grep -q "certificatesresolvers.letsencrypt"; then
+  echo "✅ ACME configuration verified"
+else
+  echo "⚠️  Warning: ACME configuration not found in Traefik pod args"
+  echo "   This may be normal if HelmChartConfig hasn't been applied yet"
+fi
+
 # Deploy Traefik IngressRoute and Middleware
 echo ""
 echo "🌐 Deploying Traefik IngressRoute..."
@@ -154,4 +190,12 @@ echo ""
 echo "🔍 To check SSL certificate status:"
 echo "   kubectl get certificates -n $NAMESPACE"
 echo "   kubectl describe certificate -n $NAMESPACE"
+echo ""
+echo "🔍 To check Traefik Let's Encrypt configuration:"
+echo "   kubectl get helmchartconfig -n kube-system"
+echo "   kubectl describe helmchartconfig traefik -n kube-system"
+echo "   kubectl logs -n kube-system -l app.kubernetes.io/name=traefik | grep -i acme"
+echo ""
+echo "⚠️  Note: It may take a few minutes for Let's Encrypt to issue the certificate."
+echo "   The certificate will be automatically obtained when the first HTTPS request is made."
 
