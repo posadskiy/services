@@ -15,9 +15,11 @@ spec:
       labels:
         app: email-service
     spec:
+      imagePullSecrets:
+      - name: dockerhub-registry-secret
       containers:
       - name: email-service
-        image: gcr.io/posadskiy-shared-services-1/email-service:${IMAGE_VERSION}
+        image: posadskiy/email-service:${IMAGE_VERSION}
         ports:
         - containerPort: 8090
         env:
