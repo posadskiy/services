@@ -15,9 +15,11 @@ spec:
       labels:
         app: auth-service
     spec:
+      imagePullSecrets:
+      - name: dockerhub-registry-secret
       containers:
       - name: auth-service
-        image: gcr.io/posadskiy-shared-services-1/auth-service:${IMAGE_VERSION}
+        image: posadskiy/auth-service:${IMAGE_VERSION}
         ports:
         - containerPort: 8100
         env:
