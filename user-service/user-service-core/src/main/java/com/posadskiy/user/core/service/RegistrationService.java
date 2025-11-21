@@ -7,14 +7,12 @@ import com.posadskiy.user.core.mapper.entity.UserEntityMapper;
 import com.posadskiy.user.core.model.User;
 import com.posadskiy.user.core.utils.PasswordEncoder;
 import jakarta.inject.Singleton;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Optional;
 
 @Singleton
-@NoArgsConstructor
 public class RegistrationService {
     private UserEntityMapper userEntityMapper;
     private UsersRepository userRepository;
@@ -27,11 +25,26 @@ public class RegistrationService {
     public User registration(@NonNull User user) {
         final Optional<UserEntity> byEmail = userRepository.findByEmail(user.email());
         if (byEmail.isPresent()) throw new AuthException("User already exists");
-        
+
         var username = (StringUtils.isBlank(user.username())) ? user.email().split("@")[0] : user.username();
 
-        var encodedPassword = PasswordEncoder.encode(user.password());
-        var encodedPasswordUser = new User(user.id(), username, user.email(), encodedPassword);
+        var encodedPassword =
+                StringUtils.isBlank(user.password()) ? null : PasswordEncoder.encode(user.password());
+
+        var createdVia = StringUtils.isBlank(user.createdVia())
+                ? (encodedPassword == null ? "oauth" : "local")
+                : user.createdVia();
+
+        var encodedPasswordUser =
+                new User(
+                        user.id(),
+                        username,
+                        user.email(),
+                        encodedPassword,
+                        Boolean.TRUE.equals(user.emailVerified()),
+                        user.pictureUrl(),
+                        createdVia,
+                        user.authProviders());
 
         UserEntity savedUser = userRepository.save(
             userEntityMapper.mapToEntity(encodedPasswordUser)

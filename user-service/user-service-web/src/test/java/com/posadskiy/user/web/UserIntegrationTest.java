@@ -2,7 +2,6 @@ package com.posadskiy.user.web;
 
 import com.posadskiy.user.api.UserDto;
 import io.micronaut.http.HttpRequest;
-import io.micronaut.http.HttpStatus;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -44,7 +43,7 @@ class UserIntegrationTest {
     @Test
     void testRegistrationEndpoint_AnonymousAccess() {
         // Given
-        UserDto userDto = new UserDto(null, "testuser", "test@example.com", "password123");
+        UserDto userDto = UserDto.legacy(null, "testuser", "test@example.com", "password123");
 
         // When & Then
         // This test verifies that the registration endpoint allows anonymous access
@@ -64,7 +63,7 @@ class UserIntegrationTest {
     @Test
     void testRegistrationEndpoint_WithValidData() {
         // Given
-        UserDto userDto = new UserDto(null, "newuser", "newuser@example.com", "password123");
+        UserDto userDto = UserDto.legacy(null, "newuser", "newuser@example.com", "password123");
 
         // When & Then
         // This test verifies the registration endpoint with valid data
@@ -81,7 +80,7 @@ class UserIntegrationTest {
     @Test
     void testRegistrationEndpoint_WithInvalidData() {
         // Given
-        UserDto userDto = new UserDto(null, "", "invalid-email", "");
+        UserDto userDto = UserDto.legacy(null, "", "invalid-email", "");
 
         // When & Then
         // This test verifies the registration endpoint with invalid data

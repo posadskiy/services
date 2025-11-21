@@ -2,21 +2,38 @@ package com.posadskiy.user.core.mapper.entity;
 
 import com.posadskiy.user.core.db.entity.UserEntity;
 import com.posadskiy.user.core.model.User;
-import io.micronaut.context.annotation.Mapper.Mapping;
 import jakarta.inject.Singleton;
+import java.util.List;
 
 @Singleton
-public interface UserEntityMapper {
+public class UserEntityMapper {
 
-    @Mapping(from = "id", to = "id")
-    @Mapping(from = "username", to = "username")
-    @Mapping(from = "email", to = "email")
-    @Mapping(from = "passwordHash", to = "password")
-    User mapFromEntity(UserEntity user);
+    public User mapFromEntity(UserEntity user) {
+        if (user == null) {
+            return null;
+        }
+        return new User(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                user.getEmailVerified(),
+                user.getPictureUrl(),
+                user.getPasswordHash() == null ? "oauth" : "local",
+                List.of());
+    }
 
-    @Mapping(from = "id", to = "id")
-    @Mapping(from = "username", to = "username")
-    @Mapping(from = "email", to = "email")
-    @Mapping(from = "password", to = "passwordHash")
-    UserEntity mapToEntity(User user);
+    public UserEntity mapToEntity(User user) {
+        if (user == null) {
+            return null;
+        }
+        UserEntity entity = new UserEntity();
+        entity.setId(user.id());
+        entity.setUsername(user.username());
+        entity.setEmail(user.email());
+        entity.setPasswordHash(user.password());
+        entity.setEmailVerified(user.emailVerified() != null ? user.emailVerified() : Boolean.FALSE);
+        entity.setPictureUrl(user.pictureUrl());
+        return entity;
+    }
 }

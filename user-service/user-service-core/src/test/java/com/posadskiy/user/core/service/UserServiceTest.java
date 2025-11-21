@@ -1,16 +1,17 @@
 package com.posadskiy.user.core.service;
 
+import com.posadskiy.user.core.db.ExternalIdentityRepository;
 import com.posadskiy.user.core.db.UsersRepository;
 import com.posadskiy.user.core.db.entity.UserEntity;
 import com.posadskiy.user.core.mapper.entity.UserEntityMapper;
 import com.posadskiy.user.core.model.User;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -24,17 +25,20 @@ class UserServiceTest {
     @Mock
     private UsersRepository userRepository;
 
+    @Mock
+    private ExternalIdentityRepository externalIdentityRepository;
+
     private UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userEntityMapper, userRepository);
+        userService = new UserService(userEntityMapper, userRepository, externalIdentityRepository);
     }
 
     @Test
     void testGetUserById_Success() {
         // Given
-        String userId = "user123";
+        Long userId = 123L;
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
         userEntity.setUsername("testuser");
@@ -45,6 +49,7 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userEntityMapper.mapFromEntity(userEntity)).thenReturn(expectedUser);
+        when(externalIdentityRepository.findByUserId(userId)).thenReturn(Collections.emptyList());
 
         // When
         User result = userService.getUserById(userId);
@@ -59,7 +64,7 @@ class UserServiceTest {
     @Test
     void testGetUserById_UserNotFound() {
         // Given
-        String userId = "nonexistent";
+        Long userId = 99L;
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // When & Then

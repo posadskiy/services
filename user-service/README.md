@@ -8,6 +8,7 @@ A Micronaut-based user management service with comprehensive user registration, 
 - **JWT-based Authentication**: Secure token-based authentication
 - **Password Security**: Secure password hashing and validation
 - **User Profile Management**: User data CRUD operations
+- **Social Identity Linking**: Attach/detach external OAuth providers to user profiles
 - **PostgreSQL Database**: Persistent storage with Flyway migrations
 - **Distributed Tracing**: Jaeger integration for observability
 - **OpenAPI/Swagger**: Complete API documentation
@@ -114,6 +115,12 @@ docker-compose -f docker-compose.prod.yml up
 - `PUT /users/{id}` - Update user
 - `DELETE /users/{id}` - Delete user
 - `GET /users` - List all users
+
+### Social Identity Endpoints
+
+- `GET /v0/user/{id}/identities` - List linked OAuth providers for a user
+- `POST /v0/user/{id}/identities` - Link a provider to the user (used by auth-service sync jobs)
+- `DELETE /v0/user/{id}/identities/{provider}` - Soft-remove a provider link
 
 ### Authentication Endpoints
 

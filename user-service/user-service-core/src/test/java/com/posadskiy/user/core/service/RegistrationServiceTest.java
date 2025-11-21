@@ -37,7 +37,7 @@ class RegistrationServiceTest {
         // Given
         User inputUser = new User(null, "testuser", "test@example.com", "password123");
         UserEntity userEntity = new UserEntity();
-        userEntity.setId("user123");
+        userEntity.setId(123L);
         userEntity.setUsername("testuser");
         userEntity.setEmail("test@example.com");
         userEntity.setPasswordHash("hashedPassword");
@@ -65,7 +65,7 @@ class RegistrationServiceTest {
         // Given
         User inputUser = new User(null, "", "test@example.com", "password123");
         UserEntity userEntity = new UserEntity();
-        userEntity.setId("user123");
+        userEntity.setId(123L);
         userEntity.setUsername("test");
         userEntity.setEmail("test@example.com");
         userEntity.setPasswordHash("hashedPassword");
@@ -93,7 +93,7 @@ class RegistrationServiceTest {
         // Given
         User inputUser = new User(null, null, "test@example.com", "password123");
         UserEntity userEntity = new UserEntity();
-        userEntity.setId("user123");
+        userEntity.setId(123L);
         userEntity.setUsername("test");
         userEntity.setEmail("test@example.com");
         userEntity.setPasswordHash("hashedPassword");
@@ -121,7 +121,7 @@ class RegistrationServiceTest {
         // Given
         User inputUser = new User(null, "testuser", "test@example.com", "password123");
         UserEntity existingUser = new UserEntity();
-        existingUser.setId("existing123");
+        existingUser.setId(456L);
         existingUser.setUsername("existinguser");
         existingUser.setEmail("test@example.com");
 

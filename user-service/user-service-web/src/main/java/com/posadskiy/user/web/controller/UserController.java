@@ -6,6 +6,7 @@ import com.posadskiy.user.core.service.UserService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Header;
+import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
@@ -30,7 +31,7 @@ public class UserController {
 
     @Get("{id}")
     @ContinueSpan
-    public UserDto getUserById(@Header(AUTHORIZATION) String authorization, String id) {
+    public UserDto getUserById(@Header(AUTHORIZATION) String authorization, @PathVariable Long id) {
         return userDtoMapper.mapToDto(
             userService.getUserById(id)
         );

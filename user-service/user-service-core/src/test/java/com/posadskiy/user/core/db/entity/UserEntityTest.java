@@ -23,14 +23,14 @@ class UserEntityTest {
         UserEntity user = new UserEntity();
         LocalDateTime now = LocalDateTime.now();
         
-        user.setId("user123");
+        user.setId(123L);
         user.setUsername("testuser");
         user.setEmail("test@example.com");
         user.setPasswordHash("hashedPassword");
         user.setUpdatedAt(now);
         user.setCreatedAt(now);
         
-        assertEquals("user123", user.getId());
+        assertEquals(123L, user.getId());
         assertEquals("testuser", user.getUsername());
         assertEquals("test@example.com", user.getEmail());
         assertEquals("hashedPassword", user.getPasswordHash());
@@ -60,19 +60,19 @@ class UserEntityTest {
     @Test
     void testUserEntityEquality() {
         UserEntity user1 = new UserEntity();
-        user1.setId("user123");
+        user1.setId(123L);
         user1.setUsername("testuser");
         user1.setEmail("test@example.com");
         user1.setPasswordHash("hashedPassword");
         
         UserEntity user2 = new UserEntity();
-        user2.setId("user123");
+        user2.setId(123L);
         user2.setUsername("testuser");
         user2.setEmail("test@example.com");
         user2.setPasswordHash("hashedPassword");
         
         UserEntity user3 = new UserEntity();
-        user3.setId("user456");
+        user3.setId(456L);
         user3.setUsername("testuser");
         user3.setEmail("test@example.com");
         user3.setPasswordHash("hashedPassword");

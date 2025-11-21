@@ -15,7 +15,7 @@ class UserDtoTest {
 
     @Test
     void testConstructionAndGetters() {
-        UserDto dto = new UserDto("id123", "username", "user@example.com", "password");
+        UserDto dto = UserDto.legacy("id123", "username", "user@example.com", "password");
         assertEquals("id123", dto.id());
         assertEquals("username", dto.username());
         assertEquals("user@example.com", dto.email());
@@ -24,15 +24,15 @@ class UserDtoTest {
 
     @Test
     void testEqualsAndHashCode() {
-        UserDto dto1 = new UserDto("id", "user", "email", "pass");
-        UserDto dto2 = new UserDto("id", "user", "email", "pass");
+        UserDto dto1 = UserDto.legacy("id", "user", "email", "pass");
+        UserDto dto2 = UserDto.legacy("id", "user", "email", "pass");
         assertEquals(dto1, dto2);
         assertEquals(dto1.hashCode(), dto2.hashCode());
     }
 
     @Test
     void testSerialization() throws Exception {
-        UserDto dto = new UserDto("id", "user", "email", "pass");
+        UserDto dto = UserDto.legacy("id", "user", "email", "pass");
         String json = objectMapper.writeValueAsString(dto);
         assertNotNull(json);
         assertTrue(json.contains("user"));
