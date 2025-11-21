@@ -24,10 +24,7 @@ spec:
         - containerPort: 8090
         env:
         - name: MICRONAUT_ENVIRONMENTS
-          valueFrom:
-            configMapKeyRef:
-              name: microservices-config
-              key: MICRONAUT_ENVIRONMENTS
+          value: "prod"
         - name: GITHUB_USERNAME
           valueFrom:
             configMapKeyRef:
@@ -62,7 +59,7 @@ spec:
               key: JAEGER_ENDPOINT
         resources:
           requests:
-            memory: "512Mi"
+            memory: "256Mi"
             cpu: "250m"
           limits:
             memory: "1Gi"

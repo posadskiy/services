@@ -32,7 +32,7 @@ class EmailServiceTest {
         userClient = new UserClient() {
             @Override
             public UserDto getUserById(String authorization, String id) {
-                return new UserDto("user123", "testuser", "test@example.com", "password");
+                return UserDto.legacy("user123", "testuser", "test@example.com", "password");
             }
         };
         

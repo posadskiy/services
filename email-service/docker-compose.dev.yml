@@ -11,7 +11,7 @@ services:
     container_name: email-service
     restart: unless-stopped
     environment:
-      MICRONAUT_ENVIRONMENTS: dev
+      MICRONAUT_ENVIRONMENTS: docker
       GITHUB_USERNAME: ${GITHUB_USERNAME}
       GITHUB_TOKEN: ${GITHUB_TOKEN}
       JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}

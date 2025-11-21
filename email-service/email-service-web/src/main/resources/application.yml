@@ -1,0 +1,84 @@
+#tag::micronaut[]
+micronaut:
+  application:
+    name: email-service
+  server:
+    port: 8090
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger/swagger/
+        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
+  security:
+    authentication: bearer
+    intercept-url-map:
+      - pattern: /swagger-ui/**
+        access: isAnonymous()
+      - pattern: /swagger/**
+        access: isAnonymous()
+      - pattern: /prometheus
+        access: isAnonymous()
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
+        generator:
+          refresh-token:
+            enabled: true
+            secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
+      generator:
+        access-token:
+          expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:360000}
+  metrics:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+        descriptions: true
+        step: ${METRICS_STEP:1m}
+  endpoints:
+    prometheus:
+      enabled: true
+      sensitive: false
+    openapi:
+      enabled: true
+      sensitive: false
+#end::micronaut[]
+
+#tag::tracing[]
+tracing:
+  jaeger:
+    enabled: false
+    http-sender:
+      url: ${JAEGER_HTTP_SENDER_URL:http://jaeger:14268/api/traces}
+#end::tracing[]
+
+#tag::email[]
+email:
+  host: ${EMAIL_HOST:smtp.gmail.com}
+  port: ${EMAIL_PORT:587}
+  username: ${EMAIL_ADDRESS}
+  password: ${EMAIL_TOKEN}
+  protocol: ${EMAIL_PROTOCOL:smtp}
+  auth: ${EMAIL_AUTH:true}
+  starttls:
+    enable: ${EMAIL_STARTTLS_ENABLE:true}
+  connection-timeout: ${EMAIL_CONNECTION_TIMEOUT:30000}
+  timeout: ${EMAIL_TIMEOUT:60000}
+  write-timeout: ${EMAIL_WRITE_TIMEOUT:60000}
+#end::email[]
+
+#tag::logging[]
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.posadskiy.email: ${LOG_LEVEL_APP:INFO}
+    io.micronaut: ${LOG_LEVEL_MICRONAUT:INFO}
+    org.springframework.mail: ${LOG_LEVEL_MAIL:WARN}
+#end::logging[]
+
