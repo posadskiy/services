@@ -32,6 +32,3 @@ kubectl create secret docker-registry dockerhub-registry-secret \
 echo "✅ Docker Hub registry secret created successfully!"
 echo "Secret name: dockerhub-registry-secret"
 echo "Namespace: $NAMESPACE"
-
-
-

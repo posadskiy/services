@@ -88,6 +88,3 @@ spec:
   stripPrefix:
     prefixes:
       - /email-template
-
-
-

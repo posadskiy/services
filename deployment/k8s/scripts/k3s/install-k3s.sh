@@ -54,6 +54,3 @@ echo "2. Replace '127.0.0.1' with '$SERVER_IP' in the kubeconfig"
 echo "3. Save it to ~/.kube/config or set KUBECONFIG environment variable"
 echo ""
 echo "Or run: ssh $SSH_USER@$SERVER_IP 'sudo cat /etc/rancher/k3s/k3s.yaml' | sed 's/127.0.0.1/$SERVER_IP/' > ~/.kube/config"
-
-
-
