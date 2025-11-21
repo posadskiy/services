@@ -35,7 +35,7 @@ class EmailServiceTest {
     private EmailOperations emailOperations;
 
     @Mock
-    private ViewsRenderer viewsRenderer;
+    private ViewsRenderer<Object, ?> viewsRenderer;
 
     private EmailService emailService;
 
@@ -54,7 +54,7 @@ class EmailServiceTest {
         Recipient recipient = new Recipient("user123");
         EmailFormDto emailFormDto = new EmailFormDto(email, recipient, content);
 
-        UserDto userDto = new UserDto("user123", "john.doe", "john@example.com", "password");
+        UserDto userDto = UserDto.legacy("user123", "john.doe", "john@example.com", "password");
         Writable writable = new Writable() {
             @Override
             public void writeTo(OutputStream outputStream) throws IOException {
@@ -89,7 +89,7 @@ class EmailServiceTest {
         Recipient recipient = new Recipient("user123");
         EmailFormDto emailFormDto = new EmailFormDto(email, recipient, content);
 
-        UserDto userDto = new UserDto("user123", "john.doe", "john@example.com", "password");
+        UserDto userDto = UserDto.legacy("user123", "john.doe", "john@example.com", "password");
         Writable writable = new Writable() {
             @Override
             public void writeTo(OutputStream outputStream) throws IOException {
@@ -123,7 +123,7 @@ class EmailServiceTest {
         Recipient recipient = new Recipient(null);
         EmailFormDto emailFormDto = new EmailFormDto(email, recipient, content);
 
-        UserDto userDto = new UserDto(null, null, null, null);
+        UserDto userDto = UserDto.legacy(null, null, null, null);
         Writable writable = new Writable() {
             @Override
             public void writeTo(OutputStream outputStream) throws IOException {

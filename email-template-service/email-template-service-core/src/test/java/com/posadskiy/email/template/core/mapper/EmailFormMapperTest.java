@@ -20,7 +20,7 @@ class EmailFormMapperTest {
         Recipient recipient = new Recipient("user123");
         EmailFormDto dto = new EmailFormDto(email, recipient, content);
 
-        UserDto userDto = new UserDto("user123", "john.doe", "john.doe@example.com", "password");
+        UserDto userDto = UserDto.legacy("user123", "john.doe", "john.doe@example.com", "password");
 
         // When
         EmailForm result = mapper.toModel(dto, userDto);
@@ -46,7 +46,7 @@ class EmailFormMapperTest {
         Recipient recipient = new Recipient(null);
         EmailFormDto dto = new EmailFormDto(email, recipient, content);
 
-        UserDto userDto = new UserDto(null, null, null, null);
+        UserDto userDto = UserDto.legacy(null, null, null, null);
 
         // When
         EmailForm result = mapper.toModel(dto, userDto);
@@ -72,7 +72,7 @@ class EmailFormMapperTest {
         Recipient recipient = new Recipient("");
         EmailFormDto dto = new EmailFormDto(email, recipient, content);
 
-        UserDto userDto = new UserDto("", "", "", "");
+        UserDto userDto = UserDto.legacy("", "", "", "");
 
         // When
         EmailForm result = mapper.toModel(dto, userDto);

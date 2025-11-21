@@ -19,11 +19,7 @@ micronaut:
         access: isAnonymous()
       - pattern: /swagger/**
         access: isAnonymous()
-      - pattern: /v3/api-docs/**
-        access: isAnonymous()
       - pattern: /prometheus
-        access: isAnonymous()
-      - pattern: /health
         access: isAnonymous()
     token:
       jwt:
@@ -49,28 +45,25 @@ micronaut:
     prometheus:
       enabled: true
       sensitive: false
-    health:
+    openapi:
       enabled: true
       sensitive: false
-      details:
-        enabled: true
 #end::micronaut[]
 
-#tag::jaeger[]
+#tag::tracing[]
 tracing:
   jaeger:
     enabled: true
-    sampler:
-      probability: ${JAEGER_SAMPLER_PROBABILITY:0.01}
     http-sender:
       url: ${JAEGER_HTTP_SENDER_URL:http://jaeger:14268/api/traces}
-#end::jaeger[]
+#end::tracing[]
 
 #tag::logging[]
 logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
     com.posadskiy.email.template: ${LOG_LEVEL_APP:INFO}
-    io.micronaut: ${LOG_LEVEL_MICRONAUT:WARN}
+    io.micronaut: ${LOG_LEVEL_MICRONAUT:INFO}
     org.thymeleaf: ${LOG_LEVEL_TEMPLATE:WARN}
 #end::logging[]
+

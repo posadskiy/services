@@ -21,10 +21,14 @@ public class EmailService {
 
     private final UserClient userClient;
     private final EmailFormMapper emailFormMapper;
-    private final ViewsRenderer viewsRenderer;
+    private final ViewsRenderer<Object, ?> viewsRenderer;
     private final EmailOperations emailOperations;
 
-    public EmailService(UserClient userClient, EmailFormMapper emailFormMapper, EmailOperations emailOperations, ViewsRenderer viewsRenderer) {
+    public EmailService(
+            UserClient userClient,
+            EmailFormMapper emailFormMapper,
+            EmailOperations emailOperations,
+            ViewsRenderer<Object, ?> viewsRenderer) {
         this.userClient = userClient;
         this.emailFormMapper = emailFormMapper;
         this.emailOperations = emailOperations;
@@ -49,6 +53,7 @@ public class EmailService {
             throw new RuntimeException(e);
         }
 
-        emailOperations.sendHtmlBasedEmail(authorization, new SendEmailForm(user.id(), emailForm.email().subject(), out));
+        emailOperations.sendHtmlBasedEmail(
+                authorization, new SendEmailForm(String.valueOf(user.id()), emailForm.email().subject(), out));
     }
 }

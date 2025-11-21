@@ -1,0 +1,21 @@
+#tag::micronaut[]
+micronaut:
+  security:
+    intercept-url-map:
+      - pattern: /health
+        access: isAnonymous()
+  endpoints:
+    health:
+      enabled: true
+      sensitive: false
+      details:
+        enabled: true
+#end::micronaut[]
+
+#tag::jaeger[]
+tracing:
+  jaeger:
+    sampler:
+      probability: ${JAEGER_SAMPLER_PROBABILITY:0.1}
+#end::jaeger[]
+
