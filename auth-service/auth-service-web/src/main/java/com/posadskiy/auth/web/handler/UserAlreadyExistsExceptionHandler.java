@@ -13,11 +13,12 @@ import jakarta.inject.Singleton;
 @Produces
 @Singleton
 @Requires(classes = {AuthException.class, ExceptionHandler.class})
-public class UserAlreadyExistsExceptionHandler implements ExceptionHandler<AuthException, HttpResponse> {
+public class UserAlreadyExistsExceptionHandler
+        implements ExceptionHandler<AuthException, HttpResponse<ErrorMessage>> {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public HttpResponse handle(HttpRequest request, AuthException exception) {
+    public HttpResponse<ErrorMessage> handle(HttpRequest request, AuthException exception) {
         var message = new ErrorMessage(false, exception.getMessage());
 
         return HttpResponse.serverError(message).status(HttpStatus.BAD_REQUEST);

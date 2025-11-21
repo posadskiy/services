@@ -39,7 +39,7 @@ class CustomRefreshTokenPersistenceTest {
     void shouldNotPersistTokenWithNullEvent() {
         // When & Then
         assertDoesNotThrow(() -> refreshTokenPersistence.persistToken(null));
-        verify(refreshTokenRepository, never()).save(anyString(), anyString(), anyBoolean());
+        verify(refreshTokenRepository, never()).save(any(RefreshTokenEntity.class));
     }
 
     @Test

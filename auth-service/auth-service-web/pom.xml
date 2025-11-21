@@ -88,7 +88,22 @@
             <groupId>io.micronaut.security</groupId>
             <artifactId>micronaut-security-jwt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.micronaut.security</groupId>
+            <artifactId>micronaut-security-oauth2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micronaut.security</groupId>
+            <artifactId>micronaut-security-session</artifactId>
+        </dependency>
         <!-- Security -->
+
+        <!-- Views -->
+        <dependency>
+            <groupId>io.micronaut.views</groupId>
+            <artifactId>micronaut-views-thymeleaf</artifactId>
+        </dependency>
+        <!-- Views -->
 
         <!-- Validation -->
         <dependency>
@@ -101,6 +116,21 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
         <!-- Validation -->
+
+        <!-- Serialization -->
+        <dependency>
+            <groupId>io.micronaut.serde</groupId>
+            <artifactId>micronaut-serde-jackson</artifactId>
+        </dependency>
+        <!-- Serialization -->
+
+        <!-- JWT helpers -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>9.40</version>
+        </dependency>
+        <!-- JWT helpers -->
 
         <!-- Testing -->
         <dependency>

@@ -9,6 +9,7 @@ import io.micronaut.security.errors.OauthErrorResponseException;
 import io.micronaut.security.token.event.RefreshTokenGeneratedEvent;
 import io.micronaut.security.token.refresh.RefreshTokenPersistence;
 import jakarta.inject.Singleton;
+import java.util.Map;
 import java.util.Optional;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -30,7 +31,28 @@ public class CustomRefreshTokenPersistence implements RefreshTokenPersistence {
                 && event.getAuthentication() != null
                 && event.getAuthentication().getName() != null) {
             String payload = event.getRefreshToken();
-            refreshTokenRepository.save(event.getAuthentication().getName(), payload, false);
+            RefreshTokenEntity entity = new RefreshTokenEntity();
+            entity.setUsername(event.getAuthentication().getName());
+            entity.setRefreshToken(payload);
+            entity.setRevoked(Boolean.FALSE);
+            Map<String, Object> attributes = event.getAuthentication().getAttributes();
+            if (attributes != null) {
+                Object provider = attributes.get(SocialAuthConstants.ATTR_PROVIDER);
+                if (provider instanceof String providerValue) {
+                    entity.setProvider(providerValue);
+                }
+                Object identityId = attributes.get(SocialAuthConstants.ATTR_EXTERNAL_IDENTITY_ID);
+                if (identityId instanceof Number number) {
+                    entity.setExternalIdentityId(number.longValue());
+                } else if (identityId instanceof String identityIdString) {
+                    try {
+                        entity.setExternalIdentityId(Long.parseLong(identityIdString));
+                    } catch (NumberFormatException ignored) {
+                        // skip invalid id
+                    }
+                }
+            }
+            refreshTokenRepository.save(entity);
         }
     }
 

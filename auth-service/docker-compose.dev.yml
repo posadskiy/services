@@ -21,20 +21,24 @@ services:
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
         GITHUB_USERNAME: ${GITHUB_USERNAME}
-    volumes:
-      - ~/.m2:/root/.m2
     container_name: auth-service-local
     restart: unless-stopped
     depends_on:
       - database
     environment:
-      MICRONAUT_ENVIRONMENTS: dev
+      MICRONAUT_ENVIRONMENTS: docker
       GITHUB_USERNAME: ${GITHUB_USERNAME}
       GITHUB_TOKEN: ${GITHUB_TOKEN}
-      DATASOURCE_URL: jdbc:postgresql://auth-db-local:5432/${AUTH_DATABASE_NAME}
-      DATASOURCE_USERNAME: ${AUTH_DATABASE_USER}
-      DATASOURCE_PASSWORD: ${AUTH_DATABASE_PASSWORD}
+      AUTH_DATABASE_URL: jdbc:postgresql://auth-db:5432/auth_db
+      AUTH_DATABASE_USER: ${AUTH_DATABASE_USER}
+      AUTH_DATABASE_PASSWORD: ${AUTH_DATABASE_PASSWORD}
       JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
+      OAUTH_REDIRECT_BASE_URL: http://localhost:8100
+      OAUTH_TOKEN_ENCRYPTION_SECRET: ${OAUTH_TOKEN_ENCRYPTION_SECRET}
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-change-me}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-change-me}
+      FACEBOOK_OAUTH_CLIENT_ID: ${FACEBOOK_OAUTH_CLIENT_ID:-change-me}
+      FACEBOOK_OAUTH_CLIENT_SECRET: ${FACEBOOK_OAUTH_CLIENT_SECRET:-change-me}
     ports:
       - "8100:8100"
       - "5005:5005"  # Debug port

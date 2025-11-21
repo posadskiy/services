@@ -29,7 +29,7 @@ class UserAlreadyExistsExceptionHandlerTest {
         UserAlreadyExistsExceptionHandler handler = new UserAlreadyExistsExceptionHandler();
 
         // When
-        HttpResponse<?> response = handler.handle(HttpRequest.GET("/"), authException);
+        HttpResponse<ErrorMessage> response = handler.handle(HttpRequest.GET("/"), authException);
 
         // Then
         assertNotNull(response);
@@ -45,7 +45,7 @@ class UserAlreadyExistsExceptionHandlerTest {
         UserAlreadyExistsExceptionHandler handler = new UserAlreadyExistsExceptionHandler();
 
         // When
-        HttpResponse<?> response = handler.handle(HttpRequest.GET("/"), authException);
+        HttpResponse<ErrorMessage> response = handler.handle(HttpRequest.GET("/"), authException);
 
         // Then
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
@@ -109,9 +109,9 @@ class UserAlreadyExistsExceptionHandlerTest {
         UserAlreadyExistsExceptionHandler handler = new UserAlreadyExistsExceptionHandler();
 
         // When
-        HttpResponse<?> getResponse = handler.handle(HttpRequest.GET("/"), authException);
-        HttpResponse<?> postResponse = handler.handle(HttpRequest.POST("/", "data"), authException);
-        HttpResponse<?> putResponse = handler.handle(HttpRequest.PUT("/", "data"), authException);
+        HttpResponse<ErrorMessage> getResponse = handler.handle(HttpRequest.GET("/"), authException);
+        HttpResponse<ErrorMessage> postResponse = handler.handle(HttpRequest.POST("/", "data"), authException);
+        HttpResponse<ErrorMessage> putResponse = handler.handle(HttpRequest.PUT("/", "data"), authException);
 
         // Then
         assertEquals(HttpStatus.BAD_REQUEST, getResponse.getStatus());
@@ -130,7 +130,7 @@ class UserAlreadyExistsExceptionHandlerTest {
                 .header("User-Agent", "test-client");
 
         // When
-        HttpResponse<?> response = handler.handle(request, authException);
+        HttpResponse<ErrorMessage> response = handler.handle(request, authException);
 
         // Then
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
@@ -146,7 +146,7 @@ class UserAlreadyExistsExceptionHandlerTest {
         HttpRequest<?> request = HttpRequest.GET("/?param=value");
 
         // When
-        HttpResponse<?> response = handler.handle(request, authException);
+        HttpResponse<ErrorMessage> response = handler.handle(request, authException);
 
         // Then
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());

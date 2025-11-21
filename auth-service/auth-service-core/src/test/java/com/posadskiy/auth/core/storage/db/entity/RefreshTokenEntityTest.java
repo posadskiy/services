@@ -167,7 +167,6 @@ class RefreshTokenEntityTest {
     void shouldHandleDateTimeValues() {
         // Given
         LocalDateTime past = LocalDateTime.of(2020, 1, 1, 12, 0, 0);
-        LocalDateTime future = LocalDateTime.of(2030, 12, 31, 23, 59, 59);
 
         // When
         RefreshTokenEntity token = new RefreshTokenEntity();

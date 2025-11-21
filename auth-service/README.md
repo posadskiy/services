@@ -5,6 +5,7 @@ A Micronaut-based authentication and authorization service with JWT token manage
 ## 🚀 Features
 
 - **JWT-based Authentication**: Secure token-based authentication with access and refresh tokens
+- **Social Sign-In**: OAuth 2.1/OIDC login with Google, Facebook (extensible for more providers)
 - **User Registration & Management**: Complete user lifecycle management with email/password authentication
 - **Password Security**: Secure password hashing and validation using BCrypt
 - **Token Refresh**: Automatic token refresh mechanism with revocable refresh tokens
@@ -61,60 +62,132 @@ CREATE TABLE refresh_token (
 
 ### Environment Variables
 
-Create a `.env` file in the auth-service directory:
+Required environment variables (profile-specific defaults shown):
 
 ```bash
-# Database Configuration
-AUTH_DATABASE_NAME=auth_db
+# Database Configuration (REQUIRED)
+AUTH_DATABASE_URL=jdbc:postgresql://<host>:<port>/<database>
+  # dev: jdbc:postgresql://localhost:5432/auth_db (default)
+  # docker: jdbc:postgresql://database:5432/auth_db
+  # prod: Set via Kubernetes ConfigMap
 AUTH_DATABASE_USER=auth_user
 AUTH_DATABASE_PASSWORD=your_secure_password
 
-# JWT Configuration
+# JWT Configuration (REQUIRED)
 JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret_key_here
 
-# GitHub Packages (for Maven dependencies)
+# OAuth / Social Login (OPTIONAL - defaults provided for dev)
+OAUTH_REDIRECT_BASE_URL=http://localhost:8100
+OAUTH_TOKEN_ENCRYPTION_SECRET=32_character_min_secret
+GOOGLE_OAUTH_CLIENT_ID=google-client-id
+GOOGLE_OAUTH_CLIENT_SECRET=google-client-secret
+FACEBOOK_OAUTH_CLIENT_ID=facebook-app-id
+FACEBOOK_OAUTH_CLIENT_SECRET=facebook-app-secret
+
+# GitHub Packages (for Maven build only)
 GITHUB_USERNAME=your_github_username
 GITHUB_TOKEN=your_github_token
 ```
 
-### Development Setup
+**Note**: The `AUTH_DATABASE_URL` variable name is used consistently across all profiles (not `DATASOURCE_URL`).
 
-1. **Clone and Navigate**:
-   ```bash
-   cd auth-service
-   ```
+### Running the Application
 
-2. **Start with Docker Compose**:
-   ```bash
-   docker-compose -f docker-compose.dev.yml up
-   ```
+The service supports three deployment modes:
 
-3. **Access the Service**:
-   - Service: http://localhost:8100
-   - Swagger UI: http://localhost:8100/swagger-ui/index.html
-   - Prometheus Metrics: http://localhost:8100/prometheus
+#### 1. Development (Localhost) - `dev` profile
 
-### Production Setup
+For local development with a database running on localhost:
 
 ```bash
-docker-compose -f docker-compose.prod.yml up
+# Option 1: Use defaults (localhost:5432)
+./mvnw clean run -pl auth-service-web -Dmicronaut.environments=dev
+
+# Option 2: Override database connection
+export AUTH_DATABASE_URL=jdbc:postgresql://localhost:5432/auth_db
+export AUTH_DATABASE_USER=auth_user
+export AUTH_DATABASE_PASSWORD=your_password
+export JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret
+./mvnw clean run -pl auth-service-web -Dmicronaut.environments=dev
+
+# Option 3: Run the JAR directly
+java -jar -Dmicronaut.environments=dev auth-service-web/target/auth-service-web-*.jar
 ```
 
-## 🔧 Configuration
+**Default database connection**: `jdbc:postgresql://localhost:5432/auth_db` (can be overridden)
 
-### Development Configuration (`application-dev.yml`)
+#### 2. Docker Container - `docker` profile
 
+For running in Docker containers (local or remote):
+
+```bash
+# Using docker-compose.dev.yml (includes database)
+docker-compose -f docker-compose.dev.yml up
+
+# Or build and run manually
+docker build -t auth-service:latest .
+docker run -e MICRONAUT_ENVIRONMENTS=docker \
+  -e AUTH_DATABASE_URL=jdbc:postgresql://database:5432/auth_db \
+  -e AUTH_DATABASE_USER=auth_user \
+  -e AUTH_DATABASE_PASSWORD=your_password \
+  -e JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret \
+  auth-service:latest
+```
+
+**Database connection**: Uses Docker service name (e.g., `database:5432`)
+
+#### 3. Production (k3s) - `prod` profile
+
+For production deployment in Kubernetes/k3s:
+
+```bash
+# Deploy to k3s
+kubectl apply -f k8s/auth-service.yaml
+```
+
+**Configuration**: Managed via Kubernetes ConfigMaps and Secrets. The service automatically uses the `prod` profile when deployed.
+
+**Access the Service**:
+- Service: http://localhost:8100 (dev/docker) or via k3s ingress (prod)
+- Swagger UI: http://localhost:8100/swagger-ui/index.html
+- Prometheus Metrics: http://localhost:8100/prometheus
+- Health Check: http://localhost:8100/health
+
+## 🔧 Configuration Profiles
+
+### Development Profile (`application-dev.yml`)
+
+- **Environment**: `dev`
 - **Server Port**: 8100
+- **Database**: localhost:5432 (default)
 - **CORS**: Enabled for localhost:3000
 - **JWT Access Token**: 360000ms (6 minutes)
 - **Jaeger Tracing**: 100% sampling
 - **Prometheus**: Enabled with detailed metrics
+- **Use Case**: Local development on your machine
 
-### Production Configuration (`application-prod.yml`)
+### Docker Profile (`application-docker.yml`)
 
+- **Environment**: `docker`
+- **Server Port**: 8100
+- **Database**: Docker service name (e.g., `database:5432`)
+- **CORS**: Configured for container networking
+- **JWT Access Token**: 360000ms (6 minutes)
 - **Jaeger Tracing**: 10% sampling
-- **Enhanced Security**: Production-grade settings
-- **Optimized Performance**: Production-optimized configurations
+- **Prometheus**: Enabled
+- **Use Case**: Docker containers (local or remote)
+
+### Production Profile (`application-prod.yml`)
+
+- **Environment**: `prod`
+- **Server Port**: 8100
+- **Database**: Kubernetes service endpoint
+- **CORS**: Production settings
+- **JWT Access Token**: Configurable via env var
+- **Jaeger Tracing**: 1% sampling (configurable)
+- **Prometheus**: Enabled
+- **Health Checks**: Enabled
+- **Use Case**: k3s/Kubernetes production deployment
 
 ## 📡 API Endpoints
 
@@ -123,6 +196,11 @@ docker-compose -f docker-compose.prod.yml up
 - `POST /login` - User authentication
 - `POST /logout` - User logout
 - `POST /refresh` - Token refresh
+
+### OAuth 2.1 Endpoints
+
+- `GET /oauth2/authorize/{provider}` - issues a signed authorization request (PKCE) for the selected provider. Supports Google (`provider=google`) and Facebook (`provider=facebook`) out of the box.
+- `GET /oauth2/callback/{provider}` - exchanges the authorization code for provider tokens, links/creates the local account, and returns the platform JWT + refresh token pair.
 
 ### User Management
 
@@ -228,6 +306,7 @@ The service connects to:
 - **Password Hashing**: Secure password storage using BCrypt
 - **JWT Tokens**: Stateless authentication with configurable expiration
 - **Token Revocation**: Refresh token revocation capability
+- **Provider Token Hardening**: AES-GCM encryption at rest for OAuth access/refresh tokens
 - **CORS Protection**: Configurable cross-origin resource sharing
 - **Input Validation**: Comprehensive request validation
 - **Access Control**: Role-based authentication

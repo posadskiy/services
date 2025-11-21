@@ -1,0 +1,184 @@
+#tag::micronaut[]
+micronaut:
+  application:
+    name: auth-service
+  server:
+    port: 8100
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger/swagger/
+        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
+  security:
+    authentication: bearer
+    intercept-url-map:
+      - pattern: /swagger-ui/**
+        access: isAnonymous()
+      - pattern: /swagger/**
+        access: isAnonymous()
+      - pattern: /login
+        access: isAnonymous()
+      - pattern: /oauth2/**
+        access: isAnonymous()
+      - pattern: /prometheus
+        access: isAnonymous()
+    oauth2:
+      enabled: true
+      clients:
+        google:
+          client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+          client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET}
+          authorization:
+            url: https://accounts.google.com/o/oauth2/v2/auth
+            scopes:
+              - openid
+              - email
+              - profile
+          token:
+            url: https://oauth2.googleapis.com/token
+          jwks:
+            url: https://www.googleapis.com/oauth2/v3/certs
+          openid:
+            issuer: https://accounts.google.com
+          redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/google
+        facebook:
+          client-id: ${FACEBOOK_OAUTH_CLIENT_ID}
+          client-secret: ${FACEBOOK_OAUTH_CLIENT_SECRET}
+          authorization:
+            url: https://www.facebook.com/v14.0/dialog/oauth
+            scopes:
+              - public_profile
+              - email
+          token:
+            url: https://graph.facebook.com/v14.0/oauth/access_token
+          openid:
+            issuer: https://www.facebook.com
+          redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/facebook
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
+        generator:
+          refresh-token:
+            enabled: true
+            secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
+      generator:
+        access-token:
+          expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:360000}
+  metrics:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+        descriptions: true
+        step: ${METRICS_STEP:1m}
+    binders:
+      database:
+        enabled: true
+        include:
+          - "hikari"
+          - "jdbc"
+    distribution:
+      percentiles-histogram:
+        hikaricp.connections: true
+        hikaricp.connections.idle: true
+        hikaricp.connections.active: true
+        hikaricp.connections.pending: true
+        hikaricp.connections.max: true
+        hikaricp.connections.min: true
+        hikaricp.connections.timeout: true
+        hikaricp.connections.creation: true
+        hikaricp.connections.acquire: true
+        hikaricp.connections.usage: true
+        jdbc.connections.active: true
+        jdbc.connections.idle: true
+        jdbc.connections.max: true
+        jdbc.connections.min: true
+        jdbc.connections.timeout: true
+        jdbc.connections.creation: true
+        jdbc.connections.acquire: true
+        jdbc.connections.usage: true
+  endpoints:
+    prometheus:
+      enabled: true
+      sensitive: false
+    openapi:
+      enabled: true
+      sensitive: false
+#end::micronaut[]
+
+#tag::database[]
+datasources:
+  default:
+    url: ${AUTH_DATABASE_URL}
+    username: ${AUTH_DATABASE_USER}
+    password: ${AUTH_DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    schema-generate: NONE
+    dialect: POSTGRES
+flyway:
+  datasources:
+    default:
+      enabled: true
+      baseline-on-migrate: true
+#end::database[]
+
+#tag::tracing[]
+tracing:
+  jaeger:
+    enabled: true
+    http-sender:
+      url: ${JAEGER_HTTP_SENDER_URL:http://jaeger:14268/api/traces}
+#end::tracing[]
+
+#tag::logging[]
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.posadskiy.auth: ${LOG_LEVEL_APP:INFO}
+    io.micronaut: ${LOG_LEVEL_MICRONAUT:INFO}
+    org.hibernate.SQL: ${LOG_LEVEL_SQL:WARN}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_PARAMS:WARN}
+#end::logging[]
+
+social:
+  oauth:
+    redirect-base-url: ${OAUTH_REDIRECT_BASE_URL}
+    encryption-secret: ${OAUTH_TOKEN_ENCRYPTION_SECRET}
+    state-ttl: PT10M
+    jwt:
+      access-token-ttl: PT5M
+    providers:
+      google:
+        enabled: true
+        client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+        client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET}
+        authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+        token-uri: https://oauth2.googleapis.com/token
+        user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+        jwks-uri: https://www.googleapis.com/oauth2/v3/certs
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/google
+        pkce-required: true
+        scopes:
+          - openid
+          - email
+          - profile
+      facebook:
+        enabled: ${FACEBOOK_OAUTH_ENABLED:true}
+        client-id: ${FACEBOOK_OAUTH_CLIENT_ID}
+        client-secret: ${FACEBOOK_OAUTH_CLIENT_SECRET}
+        authorization-uri: https://www.facebook.com/v14.0/dialog/oauth
+        token-uri: https://graph.facebook.com/v14.0/oauth/access_token
+        user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/facebook
+        pkce-required: true
+        scopes:
+          - public_profile
+          - email
+
+

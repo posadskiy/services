@@ -1,9 +1,9 @@
 package com.posadskiy.auth.core.storage.db.entity;
 
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.data.annotation.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import lombok.Data;
 
@@ -23,15 +23,26 @@ public class UserEntity {
     @NotBlank
     private String email;
 
-    @NonNull
-    @NotNull
+    @Nullable
     private String passwordHash;
+
+    @MappedProperty("email_verified")
+    private Boolean emailVerified = Boolean.FALSE;
+
+    @MappedProperty("picture_url")
+    private String pictureUrl;
+
+    @MappedProperty("last_login_at")
+    private LocalDateTime lastLoginAt;
 
     @DateUpdated
     private LocalDateTime updatedAt;
 
     @DateCreated
     private LocalDateTime createdAt;
+
+    @Version
+    private Long version;
 
     public Long getId() {
         return id;
@@ -57,12 +68,36 @@ public class UserEntity {
         this.email = email;
     }
 
-    public @NonNull @NotNull String getPasswordHash() {
+    public @Nullable String getPasswordHash() {
         return passwordHash;
     }
 
-    public void setPasswordHash(@NonNull @NotNull String passwordHash) {
+    public void setPasswordHash(@Nullable String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public LocalDateTime getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
     }
 
     public LocalDateTime getUpdatedAt() {
@@ -79,5 +114,13 @@ public class UserEntity {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

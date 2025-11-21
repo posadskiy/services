@@ -5,6 +5,7 @@ import io.micronaut.data.annotation.DateCreated;
 import io.micronaut.data.annotation.GeneratedValue;
 import io.micronaut.data.annotation.Id;
 import io.micronaut.data.annotation.MappedEntity;
+import io.micronaut.data.annotation.MappedProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -26,6 +27,12 @@ public class RefreshTokenEntity {
     @NonNull
     @NotBlank
     private String refreshToken;
+
+    @MappedProperty("provider")
+    private String provider;
+
+    @MappedProperty("external_identity_id")
+    private Long externalIdentityId;
 
     @NonNull
     @NotNull
@@ -58,6 +65,22 @@ public class RefreshTokenEntity {
 
     public void setRefreshToken(@NonNull @NotBlank String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public Long getExternalIdentityId() {
+        return externalIdentityId;
+    }
+
+    public void setExternalIdentityId(Long externalIdentityId) {
+        this.externalIdentityId = externalIdentityId;
     }
 
     public @NonNull @NotNull Boolean getRevoked() {
