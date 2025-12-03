@@ -15,7 +15,7 @@
     <parent>
         <groupId>io.micronaut.platform</groupId>
         <artifactId>micronaut-parent</artifactId>
-        <version>4.5.0</version>
+        <version>4.10.3</version>
     </parent>
 
     <properties>
@@ -27,7 +27,7 @@
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.email.web.Application</exec.mainClass>
 
-        <micronaut.version>4.5.0</micronaut.version>
+        <micronaut.version>4.10.3</micronaut.version>
         <lombok.version>1.18.30</lombok.version>
         
         <user-service-api.version>0.2.1</user-service-api.version>
