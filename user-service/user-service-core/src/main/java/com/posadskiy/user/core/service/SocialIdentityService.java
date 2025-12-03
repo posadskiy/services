@@ -65,7 +65,7 @@ public class SocialIdentityService {
                 .forEach(
                         identity -> {
                             identity.setRevoked(Boolean.TRUE);
-                            externalIdentityRepository.update(identity);
+                            externalIdentityRepository.save(identity);
                         });
     }
 

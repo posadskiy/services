@@ -20,7 +20,9 @@ public class UserEntityMapper {
                 user.getEmailVerified(),
                 user.getPictureUrl(),
                 user.getPasswordHash() == null ? "oauth" : "local",
-                List.of());
+                List.of(),
+                user.getActive() != null ? user.getActive() : Boolean.TRUE,
+                user.getDeactivatedAt());
     }
 
     public UserEntity mapToEntity(User user) {
@@ -34,6 +36,8 @@ public class UserEntityMapper {
         entity.setPasswordHash(user.password());
         entity.setEmailVerified(user.emailVerified() != null ? user.emailVerified() : Boolean.FALSE);
         entity.setPictureUrl(user.pictureUrl());
+        entity.setActive(user.active() != null ? user.active() : Boolean.TRUE);
+        entity.setDeactivatedAt(user.deactivatedAt());
         return entity;
     }
 }

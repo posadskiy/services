@@ -33,6 +33,11 @@ public class UserEntity {
     @MappedProperty("last_login_at")
     private LocalDateTime lastLoginAt;
 
+    @MappedProperty("deactivated_at")
+    private LocalDateTime deactivatedAt;
+
+    private Boolean active = Boolean.TRUE;
+
     @DateUpdated
     private LocalDateTime updatedAt;
 
@@ -96,6 +101,22 @@ public class UserEntity {
 
     public void setLastLoginAt(LocalDateTime lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public LocalDateTime getDeactivatedAt() {
+        return deactivatedAt;
+    }
+
+    public void setDeactivatedAt(LocalDateTime deactivatedAt) {
+        this.deactivatedAt = deactivatedAt;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
     public LocalDateTime getUpdatedAt() {

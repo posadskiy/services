@@ -21,7 +21,9 @@ public class UserDtoMapper {
                 dto.emailVerified(),
                 dto.pictureUrl(),
                 dto.createdVia(),
-                providers);
+                providers,
+                true, // active - default to true when creating from DTO
+                null); // deactivatedAt - null for new users
     }
 
     public UserDto mapToDto(User user) {

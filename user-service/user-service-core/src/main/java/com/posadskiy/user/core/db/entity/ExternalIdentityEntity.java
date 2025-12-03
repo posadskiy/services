@@ -12,14 +12,46 @@ public class ExternalIdentityEntity {
     @GeneratedValue
     private Long id;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     @Relation(Relation.Kind.MANY_TO_ONE)
     @MappedProperty("user_id")
     private UserEntity user;
 
+    public UserEntity getUser() {
+        return user;
+    }
+
+    public void setUser(UserEntity user) {
+        this.user = user;
+    }
+
     private String provider;
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
 
     @MappedProperty("provider_user_id")
     private String providerUserId;
+
+    public String getProviderUserId() {
+        return providerUserId;
+    }
+
+    public void setProviderUserId(String providerUserId) {
+        this.providerUserId = providerUserId;
+    }
 
     private String email;
 

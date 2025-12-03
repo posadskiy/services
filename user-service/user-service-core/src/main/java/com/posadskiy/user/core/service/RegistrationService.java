@@ -44,7 +44,9 @@ public class RegistrationService {
                         Boolean.TRUE.equals(user.emailVerified()),
                         user.pictureUrl(),
                         createdVia,
-                        user.authProviders());
+                        user.authProviders(),
+                        true, // active - new users are always active
+                        null); // deactivatedAt - null for new users
 
         UserEntity savedUser = userRepository.save(
             userEntityMapper.mapToEntity(encodedPasswordUser)

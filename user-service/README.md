@@ -35,10 +35,34 @@ CREATE TABLE users (
     username      VARCHAR(255) NOT NULL UNIQUE,
     email         VARCHAR(255) NOT NULL UNIQUE,
     password_hash TEXT         NOT NULL,
+    active        BOOLEAN      NOT NULL DEFAULT TRUE,
+    deactivated_at TIMESTAMP WITH TIME ZONE,
     created_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 ```
+
+**GDPR-Compliant User Deletion**:
+
+**Primary Deletion Endpoint** - `DELETE /v0/user/{id}`:
+- GDPR-compliant deletion that always anonymizes user data (GDPR Article 17 - Right to Erasure)
+- **Always anonymizes by default** (no configuration needed):
+  - Replaces email with `deleted_user_{id}@deleted.local`
+  - Replaces username with `deleted_user_{id}`
+  - Removes password hash, picture URL, and other PII
+  - Deletes all external identity data (OAuth providers)
+  - Sets `active = FALSE` and `deactivated_at` timestamp
+  - Preserves data structure for analytics while removing PII
+- This is the primary and recommended endpoint for user deletion
+- GDPR-compliant by default - anonymization preserves data structure while removing all PII
+
+**Hard Delete Endpoint** - `POST /v0/user/{id}/hard-delete`:
+- Alternative endpoint for complete data removal (no anonymization)
+- Completely removes user and all related data from database
+- Use only when hard delete is explicitly required
+- May break referential integrity if other tables reference this user
+
+**Important**: The default anonymization behavior is GDPR-compliant and recommended. It removes all personally identifiable information while preserving data structure for business needs (analytics, fraud prevention). See [GDPR_COMPLIANCE.md](./GDPR_COMPLIANCE.md) for detailed compliance information.
 
 ## 🛠️ Setup & Installation
 
@@ -110,11 +134,15 @@ docker-compose -f docker-compose.prod.yml up
 
 ### User Management Endpoints
 
-- `POST /users/register` - User registration
-- `GET /users/{id}` - Get user by ID
-- `PUT /users/{id}` - Update user
-- `DELETE /users/{id}` - Delete user
-- `GET /users` - List all users
+- `POST /signup` - User registration
+- `GET /v0/user/{id}` - Get user by ID (returns 404 if user is deactivated)
+- `PUT /v0/user/{id}` - Update user username (only active users can be updated)
+- `DELETE /v0/user/{id}` - GDPR-compliant user deletion (always anonymizes data by default)
+  - Always anonymizes user data (removes PII, preserves structure for analytics)
+  - GDPR-compliant default behavior
+- `POST /v0/user/{id}/hard-delete` - Hard delete endpoint (complete data removal without anonymization)
+  - Use only when complete removal is explicitly required
+  - May break referential integrity
 
 ### Social Identity Endpoints
 

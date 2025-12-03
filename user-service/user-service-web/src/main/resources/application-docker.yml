@@ -1,8 +1,23 @@
 #tag::micronaut[]
 micronaut:
+  server:
+    cors:
+      enabled: true
+      allowed-origins:
+        - http://localhost:3000
+      allowed-methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowed-headers: "*"
+      allow-credentials: true
   security:
     intercept-url-map:
       - pattern: /health
+        access: isAnonymous()
+      - pattern: /signup
         access: isAnonymous()
   endpoints:
     health:

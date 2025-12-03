@@ -10,15 +10,13 @@ import io.micronaut.http.annotation.Post;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.tracing.annotation.NewSpan;
-import lombok.NoArgsConstructor;
 
 @Secured(SecurityRule.IS_ANONYMOUS)
 @Controller
-@NoArgsConstructor
 public class RegistrationController {
 
-    private RegistrationService registrationService;
-    private UserDtoMapper userDtoMapper;
+    private final RegistrationService registrationService;
+    private final UserDtoMapper userDtoMapper;
 
     public RegistrationController(RegistrationService registrationService, UserDtoMapper userDtoMapper) {
         this.registrationService = registrationService;
