@@ -10,4 +10,3 @@ import jakarta.validation.constraints.NotBlank;
 public record UpdateUsernameRequest(
         @NonNull @NotBlank String username) {
 }
-

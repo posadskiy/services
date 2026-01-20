@@ -6,10 +6,11 @@ import com.posadskiy.user.core.mapper.dto.UserDtoMapper;
 import com.posadskiy.user.core.service.UserService;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.*;
+import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
-import io.micronaut.security.annotation.Secured;
-import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.tracing.annotation.ContinueSpan;
 
 import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
@@ -24,6 +25,28 @@ public class UserController {
     public UserController(UserService userService, UserDtoMapper userDtoMapper) {
         this.userService = userService;
         this.userDtoMapper = userDtoMapper;
+    }
+
+    /**
+     * Get current authenticated user information.
+     * Extracts user ID from JWT token subject claim and returns user details.
+     * This endpoint provides a convenient way for authenticated users to retrieve their own information
+     * without needing to know their user ID.
+     *
+     * @param authentication The authenticated user's authentication object containing JWT claims
+     * @return UserDto containing the current user's information
+     * @throws IllegalArgumentException if the user ID in the token is invalid
+     */
+    @Get("/me")
+    @ContinueSpan
+    public UserDto getCurrentUser(Authentication authentication) {
+        String userIdStr = authentication.getName();
+        try {
+            Long userId = Long.parseLong(userIdStr);
+            return userDtoMapper.mapToDto(userService.getUserById(userId));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid user ID in authentication token: " + userIdStr, e);
+        }
     }
 
     @Get("{id}")
