@@ -1,5 +1,7 @@
-package com.posadskiy.auth.core.oauth;
+package com.posadskiy.auth.core.service;
 
+import com.posadskiy.auth.core.oauth.*;
+import com.posadskiy.auth.core.property.OAuthProviderConfigurationProperties;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.ObjectMapper;
 import jakarta.inject.Singleton;
@@ -13,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Base64;
 
 @Singleton
 public class OAuthTokenExchangeService {
@@ -30,10 +33,12 @@ public class OAuthTokenExchangeService {
         this.httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build();
     }
 
-    public ExternalProfile exchange(String providerName, String code, String stateValue) {
-        OAuthProviderConfigurationProperties provider = registry.require(providerName);
+    public ExternalProfile exchange(String code, String stateValue) {
         OAuthState state =
                 stateStore.consume(stateValue).orElseThrow(() -> new IllegalArgumentException("Invalid state value"));
+
+        String providerName = state.provider();
+        OAuthProviderConfigurationProperties provider = registry.require(providerName);
 
         Map<String, String> formParams = new HashMap<>();
         formParams.put("grant_type", "authorization_code");
@@ -49,11 +54,15 @@ public class OAuthTokenExchangeService {
         HttpRequest tokenRequest =
                 HttpRequest.newBuilder(URI.create(provider.getTokenUri()))
                         .header("Content-Type", "application/x-www-form-urlencoded")
+                        .header("Accept", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(formBody))
                         .build();
 
         TokenResponse tokenResponse = executeTokenRequest(tokenRequest);
         Map<String, Object> profileClaims = fetchUserInfo(provider, tokenResponse.accessToken());
+        if ((profileClaims == null || profileClaims.isEmpty()) && StringUtils.isNotEmpty(tokenResponse.idToken())) {
+            profileClaims = decodeIdTokenClaims(tokenResponse.idToken());
+        }
 
         String subject = readAsString(profileClaims, "sub");
         if (subject == null) {
@@ -147,6 +156,20 @@ public class OAuthTokenExchangeService {
     private String readAsString(Map<String, ?> map, String key) {
         Object value = map.get(key);
         return value == null ? null : String.valueOf(value);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> decodeIdTokenClaims(String idToken) {
+        try {
+            String[] parts = idToken.split("\\.");
+            if (parts.length < 2) {
+                return Map.of();
+            }
+            byte[] decoded = Base64.getUrlDecoder().decode(parts[1]);
+            return objectMapper.readValue(decoded, Map.class);
+        } catch (Exception e) {
+            return Map.of();
+        }
     }
 
     private record TokenResponse(

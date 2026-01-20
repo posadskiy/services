@@ -1,7 +1,6 @@
 package com.posadskiy.auth.core.service;
 
 import com.posadskiy.auth.core.oauth.ExternalProfile;
-import com.posadskiy.auth.core.oauth.TokenEncryptionService;
 import com.posadskiy.auth.core.storage.db.ExternalIdentityRepository;
 import com.posadskiy.auth.core.storage.db.UsersRepository;
 import com.posadskiy.auth.core.storage.db.entity.ExternalIdentityEntity;

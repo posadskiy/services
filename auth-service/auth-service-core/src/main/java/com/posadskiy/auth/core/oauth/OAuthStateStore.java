@@ -1,6 +1,8 @@
 package com.posadskiy.auth.core.oauth;
 
+import com.posadskiy.auth.core.property.SocialOAuthConfigurationProperties;
 import jakarta.inject.Singleton;
+
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
@@ -23,13 +25,13 @@ public class OAuthStateStore {
     public OAuthState create(String provider, String redirectUri, String codeVerifier, String nonce) {
         String stateValue = generateStateValue();
         OAuthState state =
-                new OAuthState(
-                        stateValue,
-                        provider,
-                        redirectUri,
-                        codeVerifier,
-                        nonce,
-                        Instant.now().plus(ttl));
+            new OAuthState(
+                stateValue,
+                provider,
+                redirectUri,
+                codeVerifier,
+                nonce,
+                Instant.now().plus(ttl));
         states.put(stateValue, state);
         return state;
     }

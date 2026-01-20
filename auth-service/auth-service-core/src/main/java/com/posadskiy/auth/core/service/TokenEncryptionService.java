@@ -1,5 +1,6 @@
-package com.posadskiy.auth.core.oauth;
+package com.posadskiy.auth.core.service;
 
+import com.posadskiy.auth.core.property.SocialOAuthConfigurationProperties;
 import jakarta.inject.Singleton;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

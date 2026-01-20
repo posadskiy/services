@@ -1,4 +1,4 @@
-package com.posadskiy.auth.core.oauth;
+package com.posadskiy.auth.core.service;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;

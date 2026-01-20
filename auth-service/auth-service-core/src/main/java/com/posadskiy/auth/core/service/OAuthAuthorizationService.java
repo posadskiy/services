@@ -1,5 +1,9 @@
-package com.posadskiy.auth.core.oauth;
+package com.posadskiy.auth.core.service;
 
+import com.posadskiy.auth.core.property.OAuthProviderConfigurationProperties;
+import com.posadskiy.auth.core.oauth.OAuthProviderRegistry;
+import com.posadskiy.auth.core.oauth.OAuthState;
+import com.posadskiy.auth.core.oauth.OAuthStateStore;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.http.uri.UriBuilder;
 import jakarta.inject.Singleton;
@@ -28,6 +32,21 @@ public class OAuthAuthorizationService {
         String redirectUri =
                 StringUtils.isNotEmpty(overrideRedirectUri) ? overrideRedirectUri : provider.getRedirectUri();
 
+        // Validate redirect URI
+        if (StringUtils.isEmpty(redirectUri)) {
+            throw new IllegalStateException(
+                    "Redirect URI is not configured for provider '" + providerName + "'. " +
+                    "Please ensure OAUTH_REDIRECT_BASE_URL environment variable is set (e.g., http://localhost:8100)");
+        }
+        
+        // Validate redirect URI format
+        if (!redirectUri.startsWith("http://") && !redirectUri.startsWith("https://")) {
+            throw new IllegalStateException(
+                    "Redirect URI must be an absolute URL starting with http:// or https://. " +
+                    "Current value: " + redirectUri + ". " +
+                    "Please check OAUTH_REDIRECT_BASE_URL environment variable.");
+        }
+
         String codeVerifier = generateRandomCodeVerifier();
         String codeChallenge = createCodeChallenge(codeVerifier);
         String nonce = generateNonce();
@@ -54,7 +73,7 @@ public class OAuthAuthorizationService {
         if (scopes == null || scopes.isEmpty()) {
             return "openid email profile";
         }
-        return scopes.stream().collect(Collectors.joining(" "));
+        return String.join(" ", scopes);
     }
 
     private String generateRandomCodeVerifier() {

@@ -79,10 +79,23 @@ JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret_key_here
 # OAuth / Social Login (OPTIONAL - defaults provided for dev)
 OAUTH_REDIRECT_BASE_URL=http://localhost:8100
 OAUTH_TOKEN_ENCRYPTION_SECRET=32_character_min_secret
+OAUTH_FRONTEND_REDIRECT_URL=http://localhost:3000/oauth/callback
 GOOGLE_OAUTH_CLIENT_ID=google-client-id
 GOOGLE_OAUTH_CLIENT_SECRET=google-client-secret
 FACEBOOK_OAUTH_CLIENT_ID=facebook-app-id
 FACEBOOK_OAUTH_CLIENT_SECRET=facebook-app-secret
+APPLE_OAUTH_ENABLED=false
+APPLE_OAUTH_CLIENT_ID=apple-service-id
+APPLE_OAUTH_CLIENT_SECRET=apple-signed-client-secret
+MICROSOFT_OAUTH_ENABLED=false
+MICROSOFT_OAUTH_CLIENT_ID=microsoft-client-id
+MICROSOFT_OAUTH_CLIENT_SECRET=microsoft-client-secret
+GITHUB_OAUTH_ENABLED=false
+GITHUB_OAUTH_CLIENT_ID=github-client-id
+GITHUB_OAUTH_CLIENT_SECRET=github-client-secret
+DISCORD_OAUTH_ENABLED=false
+DISCORD_OAUTH_CLIENT_ID=discord-client-id
+DISCORD_OAUTH_CLIENT_SECRET=discord-client-secret
 
 # GitHub Packages (for Maven build only)
 GITHUB_USERNAME=your_github_username
@@ -90,6 +103,34 @@ GITHUB_TOKEN=your_github_token
 ```
 
 **Note**: The `AUTH_DATABASE_URL` variable name is used consistently across all profiles (not `DATASOURCE_URL`).
+
+## OAuth provider setup (local redirect: `http://localhost:8100/oauth2/callback/{provider}`)
+
+### Apple (web)
+- Apple Developer → Identifiers → Service IDs → create a Service ID and enable **Sign in with Apple**.
+- Add domain + redirect URL: `http://localhost:8100/oauth2/callback/apple`.
+- Keys → create key with Sign in with Apple, download `.p8`, note **Key ID** and **Team ID**.
+- Generate a signed client secret JWT (Team ID, Key ID, Service ID as client_id) and set `APPLE_OAUTH_CLIENT_SECRET`.
+- Follow button styling per [Apple HIG](https://developer.apple.com/design/human-interface-guidelines/sign-in-with-apple).
+
+### Microsoft (personal + work/school)
+- Azure Portal → App registrations → New registration (accounts in any identity provider).
+- Redirect URI: `http://localhost:8100/oauth2/callback/microsoft`.
+- Certificates & secrets → create client secret.
+- API permissions → add `openid`, `profile`, `email`, `offline_access`.
+- Use `MICROSOFT_OAUTH_CLIENT_ID` and secret; tenant `common`.
+
+### GitHub
+- GitHub → Settings → Developer settings → OAuth Apps → New OAuth App.
+- Callback URL: `http://localhost:8100/oauth2/callback/github`.
+- Copy Client ID and generate Client secret.
+- Scopes: `read:user`, `user:email` for email access.
+
+### Discord
+- Discord Developer Portal → New Application.
+- OAuth2 → General: set redirect `http://localhost:8100/oauth2/callback/discord`.
+- OAuth2 → URL Generator: scopes `identify`, `email` (PKCE supported).
+- Copy Client ID and Client Secret.
 
 ### Running the Application
 

@@ -1,4 +1,4 @@
-package com.posadskiy.auth.core.oauth;
+package com.posadskiy.auth.core.property;
 
 import io.micronaut.context.annotation.EachProperty;
 import io.micronaut.context.annotation.Parameter;

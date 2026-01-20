@@ -14,6 +14,14 @@ micronaut:
           redirect-uri: http://localhost:8100/oauth2/callback/google
         facebook:
           redirect-uri: http://localhost:8100/oauth2/callback/facebook
+        apple:
+          redirect-uri: http://localhost:8100/oauth2/callback/apple
+        microsoft:
+          redirect-uri: http://localhost:8100/oauth2/callback/microsoft
+        github:
+          redirect-uri: http://localhost:8100/oauth2/callback/github
+        discord:
+          redirect-uri: http://localhost:8100/oauth2/callback/discord
 #end::micronaut[]
 
 #tag::database[]
@@ -47,4 +55,12 @@ social:
         redirect-uri: http://localhost:8100/oauth2/callback/google
       facebook:
         redirect-uri: http://localhost:8100/oauth2/callback/facebook
+      apple:
+        redirect-uri: http://localhost:8100/oauth2/callback/apple
+      microsoft:
+        redirect-uri: http://localhost:8100/oauth2/callback/microsoft
+      github:
+        redirect-uri: http://localhost:8100/oauth2/callback/github
+      discord:
+        redirect-uri: http://localhost:8100/oauth2/callback/discord
 #end::oauth[]

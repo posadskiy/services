@@ -1,5 +1,6 @@
 package com.posadskiy.auth.core.oauth;
 
+import com.posadskiy.auth.core.property.OAuthProviderConfigurationProperties;
 import jakarta.inject.Singleton;
 import java.util.Collection;
 import java.util.Map;

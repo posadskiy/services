@@ -148,9 +148,11 @@ logging:
 
 social:
   oauth:
-    redirect-base-url: ${OAUTH_REDIRECT_BASE_URL}
+    redirect-base-url: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}
     encryption-secret: ${OAUTH_TOKEN_ENCRYPTION_SECRET}
     state-ttl: PT10M
+    session-ttl: PT5M
+    frontend-redirect-url: ${OAUTH_FRONTEND_REDIRECT_URL}
     jwt:
       access-token-ttl: PT5M
     providers:
@@ -162,23 +164,75 @@ social:
         token-uri: https://oauth2.googleapis.com/token
         user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
         jwks-uri: https://www.googleapis.com/oauth2/v3/certs
-        redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/google
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/google
         pkce-required: true
         scopes:
           - openid
           - email
           - profile
       facebook:
-        enabled: ${FACEBOOK_OAUTH_ENABLED:true}
-        client-id: ${FACEBOOK_OAUTH_CLIENT_ID}
-        client-secret: ${FACEBOOK_OAUTH_CLIENT_SECRET}
+        ## disabled for now 
+        enabled: ${FACEBOOK_OAUTH_ENABLED:false}
+        client-id: ${FACEBOOK_OAUTH_CLIENT_ID:none}
+        client-secret: ${FACEBOOK_OAUTH_CLIENT_SECRET:none}
         authorization-uri: https://www.facebook.com/v14.0/dialog/oauth
         token-uri: https://graph.facebook.com/v14.0/oauth/access_token
         user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
-        redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/facebook
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/facebook
         pkce-required: true
         scopes:
           - public_profile
+          - email
+      apple:
+        enabled: ${APPLE_OAUTH_ENABLED:false}
+        client-id: ${APPLE_OAUTH_CLIENT_ID}
+        client-secret: ${APPLE_OAUTH_CLIENT_SECRET}
+        authorization-uri: https://appleid.apple.com/auth/authorize
+        token-uri: https://appleid.apple.com/auth/token
+        user-info-uri:
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/apple
+        pkce-required: true
+        scopes:
+          - openid
+          - email
+          - name
+      microsoft:
+        enabled: ${MICROSOFT_OAUTH_ENABLED:false}
+        client-id: ${MICROSOFT_OAUTH_CLIENT_ID}
+        client-secret: ${MICROSOFT_OAUTH_CLIENT_SECRET}
+        authorization-uri: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+        token-uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
+        user-info-uri: https://graph.microsoft.com/oidc/userinfo
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/microsoft
+        pkce-required: true
+        scopes:
+          - openid
+          - email
+          - profile
+          - offline_access
+      github:
+        enabled: true
+        client-id: ${GITHUB_OAUTH_CLIENT_ID}
+        client-secret: ${GITHUB_OAUTH_CLIENT_SECRET}
+        authorization-uri: https://github.com/login/oauth/authorize
+        token-uri: https://github.com/login/oauth/access_token
+        user-info-uri: https://api.github.com/user
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/github
+        pkce-required: true
+        scopes:
+          - read:user
+          - user:email
+      discord:
+        enabled: ${DISCORD_OAUTH_ENABLED:false}
+        client-id: ${DISCORD_OAUTH_CLIENT_ID}
+        client-secret: ${DISCORD_OAUTH_CLIENT_SECRET}
+        authorization-uri: https://discord.com/api/oauth2/authorize
+        token-uri: https://discord.com/api/oauth2/token
+        user-info-uri: https://discord.com/api/users/@me
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/discord
+        pkce-required: true
+        scopes:
+          - identify
           - email
 
 
