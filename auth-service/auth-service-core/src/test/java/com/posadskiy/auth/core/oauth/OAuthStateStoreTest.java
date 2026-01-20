@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
+
+import com.posadskiy.auth.core.property.SocialOAuthConfigurationProperties;
 import org.junit.jupiter.api.Test;
 
 class OAuthStateStoreTest {
