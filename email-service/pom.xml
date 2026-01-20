@@ -28,7 +28,7 @@
         <exec.mainClass>com.posadskiy.email.web.Application</exec.mainClass>
 
         <micronaut.version>4.10.3</micronaut.version>
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.42</lombok.version>
         
         <user-service-api.version>0.2.1</user-service-api.version>
         
