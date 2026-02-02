@@ -12,18 +12,20 @@ micronaut:
       sensitive: false
       details:
         enabled: true
+      jdbc:
+        enabled: false  # avoid DB connection on every /health probe so pool can go to 0 when idle (Neon)
 #end::micronaut[]
 
 #tag::database[]
+# Hikari properties must be under datasources.default (not .hikari) per Micronaut JDBC config
 datasources:
   default:
-    hikari:
-      maximum-pool-size: ${DB_MAX_POOL_SIZE:20}
-      minimum-idle: ${DB_MIN_IDLE:10}
-      connection-timeout: ${DB_CONNECTION_TIMEOUT:10000}
-      idle-timeout: ${DB_IDLE_TIMEOUT:300000}
-      max-lifetime: ${DB_MAX_LIFETIME:900000}
-      leak-detection-threshold: 60000
+    maximum-pool-size: ${DB_MAX_POOL_SIZE:3}
+    minimum-idle: ${DB_MIN_IDLE:0}
+    connection-timeout: ${DB_CONNECTION_TIMEOUT:10000}
+    idle-timeout: ${DB_IDLE_TIMEOUT:60000}
+    max-lifetime: ${DB_MAX_LIFETIME:600000}
+    leak-detection-threshold: 60000
 flyway:
   datasources:
     default:

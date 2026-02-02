@@ -115,9 +115,9 @@ micronaut:
 #tag::database[]
 datasources:
   default:
-    url: ${AUTH_DATABASE_URL}
-    username: ${AUTH_DATABASE_USER}
-    password: ${AUTH_DATABASE_PASSWORD}
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     schema-generate: NONE
     dialect: POSTGRES
