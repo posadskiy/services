@@ -5,9 +5,9 @@ metadata:
   namespace: microservices
 data:
   MICRONAUT_ENVIRONMENTS: "prod"
-  AUTH_DATABASE_URL: "jdbc:postgresql://ep-spring-star-ag0jfnwi-pooler.c-2.eu-central-1.aws.neon.tech:5432/auth_db?sslmode=require"
+  AUTH_DATABASE_URL: "jdbc:postgresql://shared-posadskiy.e.aivencloud.com:25370/defaultdb?sslmode=require"
   AUTH_DATABASE_NAME: "auth_db"
-  AUTH_DATABASE_USER: "neondb_owner"
+  AUTH_DATABASE_USER: "avnadmin"
   GITHUB_USERNAME: "posadskiy"
   JAEGER_ENDPOINT: "http://jaeger-collector.observability-stack:14268/api/traces"
   EMAIL_HOST: "smtp.gmail.com"
