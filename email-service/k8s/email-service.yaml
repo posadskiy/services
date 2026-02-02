@@ -20,6 +20,7 @@ spec:
       containers:
       - name: email-service
         image: posadskiy/email-service:${IMAGE_VERSION}
+        imagePullPolicy: Always
         ports:
         - containerPort: 8090
         env:

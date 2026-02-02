@@ -12,6 +12,8 @@ micronaut:
       sensitive: false
       details:
         enabled: true
+      jdbc:
+        enabled: false  # avoid DB connection on every /health probe so pool can go to 0 when idle (Neon)
 #end::micronaut[]
 
 #tag::jaeger[]
