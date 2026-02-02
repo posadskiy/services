@@ -75,10 +75,6 @@ spec:
           value: "3"
         - name: DATASOURCES_DEFAULT_HIKARI_MINIMUM_IDLE
           value: "0"
-        - name: DATASOURCES_DEFAULT_MAXIMUM_POOL_SIZE
-          value: "3"
-        - name: DATASOURCES_DEFAULT_MINIMUM_IDLE
-          value: "0"
         resources:
           requests:
             memory: "256Mi"

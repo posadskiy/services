@@ -118,7 +118,6 @@
                         <path>
                             <groupId>io.micronaut.data</groupId>
                             <artifactId>micronaut-data-processor</artifactId>
-                            <version>${micronaut.version}</version>
                         </path>
                         <path>
                             <groupId>org.projectlombok</groupId>
