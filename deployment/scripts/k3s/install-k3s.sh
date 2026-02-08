@@ -2,7 +2,7 @@
 set -e
 
 # install-k3s.sh - Install k3s on Ubuntu server
-# Usage: ./install-k3s.sh [server_ip] [ssh_user]
+# Usage: ./install-k3s.sh <server_ip> <ssh_user>
 #
 # This script will:
 # 1. SSH to the server
@@ -10,8 +10,13 @@ set -e
 # 3. Configure kubectl access
 # 4. Set up kubeconfig for remote access
 
-SERVER_IP=${1:-"168.119.57.22"}
-SSH_USER=${2:-"root"}
+if [ -z "$1" ] || [ -z "$2" ]; then
+  echo "Usage: $0 <server_ip> <ssh_user>"
+  echo "Example: $0 192.168.1.100 admin"
+  exit 1
+fi
+SERVER_IP=$1
+SSH_USER=$2
 
 echo "Installing k3s on server: $SSH_USER@$SERVER_IP"
 

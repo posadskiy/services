@@ -1,3 +1,6 @@
+# Run from shared-services-configuration/ with .env or exported vars (see README).
+# Build contexts point to sibling service folders (../auth-service, etc.).
+
 services:
   auth-db:
     image: postgres:15
@@ -16,7 +19,7 @@ services:
 
   auth-service:
     build:
-      context: auth-service
+      context: ../auth-service
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
@@ -67,7 +70,7 @@ services:
         
   user-service:
     build:
-      context: user-service
+      context: ../user-service
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
@@ -107,7 +110,7 @@ services:
         
   email-service:
     build:
-      context: email-service
+      context: ../email-service
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
@@ -154,7 +157,7 @@ services:
         
   email-template-service:
     build:
-      context: email-template-service/
+      context: ../email-template-service
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}

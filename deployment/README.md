@@ -1,264 +1,148 @@
-# Microservices Platform
+# Shared Services Configuration
 
-A comprehensive microservices platform built with Micronaut, featuring authentication, user management, email services, and distributed tracing.
+This repo holds **shared configuration** for the microservices platform: Docker Compose to run all services locally, and the **`deployment/`** folder to prepare the k3s cluster and build images. Individual services (auth, user, email, email-template) live in sibling directories and have their own READMEs.
 
-## 🏗️ Architecture Overview
+---
 
-This platform consists of four core microservices:
+## What’s in this repo
 
-- **Auth Service**: JWT-based authentication and user registration
-- **User Service**: User management and profile operations
-- **Email Service**: SMTP email sending capabilities
-- **Email Template Service**: Dynamic email template rendering
+- **`docker-compose.dev.yml`** / **`docker-compose.prod.yml`** – run all services (and DB) from here
+- **`deployment/`** – scripts and manifests to prepare the cluster (namespace, ConfigMap, Secrets, Traefik) and build/push images; services are deployed from each service’s `k8s/` folder
 
-## 🚀 Services
+---
 
-### [Auth Service](auth-service/README.md)
-- JWT-based authentication with access and refresh tokens
-- User registration and password management
-- PostgreSQL with Flyway migrations
-- Comprehensive security features
-
-### [User Service](user-service/README.md)
-- Complete user lifecycle management
-- User profile CRUD operations
-- Integration with authentication service
-- Secure password handling with BCrypt
-
-### [Email Service](email-service/README.md)
-- SMTP email sending with authentication
-- Template support for HTML and text emails
-- Integration with user service for validation
-- Multi-format email content support
-
-### [Email Template Service](email-template-service/README.md)
-- Dynamic email template rendering
-- HTML and text template processing
-- Template variable substitution
-- Template management and validation
-
-## 🛠️ Technology Stack
-
-- **Framework**: Micronaut 4.5.0
-- **Language**: Java 21
-- **Database**: PostgreSQL 15+ with Flyway migrations
-- **Authentication**: JWT tokens with refresh mechanism
-- **Monitoring**: Jaeger for distributed tracing, Prometheus for metrics
-- **Documentation**: OpenAPI/Swagger UI
-- **Containerization**: Docker & Docker Compose
-- **Testing**: JUnit 5, Mockito, Micronaut Test
-
-## 🚀 Quick Start
+## Docker Compose (local run)
 
 ### Prerequisites
 
-- Java 21
-- Maven 3.9+
-- Docker & Docker Compose
-- PostgreSQL 15+
+- Docker and Docker Compose  
+- Optional networks: `user-web-network`, `observability-stack-network`  
+  `docker network create user-web-network`  
+  `docker network create observability-stack-network`
 
-### Development Setup
+### Environment
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd shared
-   ```
-
-2. **Start all services**:
-   ```bash
-   docker-compose -f docker-compose.dev.yml up
-   ```
-
-3. **Access the services**:
-   - Auth Service: http://localhost:8100
-   - User Service: http://localhost:8095
-   - Email Service: http://localhost:8090
-   - Email Template Service: http://localhost:8091
-
-4. **Access Swagger UI**:
-   - Auth Service: http://localhost:8100/swagger-ui/index.html
-   - User Service: http://localhost:8095/swagger-ui/index.html
-   - Email Service: http://localhost:8090/swagger-ui/index.html
-   - Email Template Service: http://localhost:8091/swagger-ui/index.html
-
-### Production Setup
+Create a `.env` in this directory (or export in shell):
 
 ```bash
+# Database
+AUTH_DATABASE_NAME=auth_db
+AUTH_DATABASE_USER=postgres
+AUTH_DATABASE_PASSWORD=your_secure_password
+
+# JWT
+JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret_key_here
+
+# GitHub (Maven)
+GITHUB_USERNAME=your_github_username
+GITHUB_TOKEN=your_github_personal_access_token
+
+# Email (SMTP)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USERNAME=your_email@gmail.com
+EMAIL_PASSWORD=your_app_password
+EMAIL_PROTOCOL=smtp
+EMAIL_AUTH=true
+EMAIL_STARTTLS_ENABLE=true
+EMAIL_DEBUG=true
+```
+
+### Commands
+
+```bash
+# Development
+docker-compose -f docker-compose.dev.yml up -d
+# Logs: docker-compose -f docker-compose.dev.yml logs -f
+
+# Production
 docker-compose -f docker-compose.prod.yml up
 ```
 
-## 🧪 Testing
+### Ports
 
-### Comprehensive Test Coverage
+| Service                | API  | Debug |
+|------------------------|------|-------|
+| Auth Service           | 8100 | 5005  |
+| User Service           | 8095 | 5006  |
+| Email Service          | 8090 | 5007  |
+| Email Template Service | 8091 | 5008  |
+| PostgreSQL             | 5432 | -     |
 
-All services include extensive test coverage:
+Jaeger UI: http://localhost:16686
 
-- **Unit Tests**: Isolated component testing with proper mocking
-- **Integration Tests**: End-to-end HTTP endpoint testing
-- **API Tests**: DTO serialization/deserialization validation
-- **Security Tests**: Authentication and authorization flow testing
-- **Swagger UI Tests**: Documentation accessibility validation
+---
 
-### Test Results Summary
+## Deployment folder (`deployment/`)
 
-| Service | Total Tests | API Tests | Core Tests | Web Tests |
-|---------|-------------|-----------|------------|-----------|
-| Auth Service | 15 | 3 | 9 | 3 |
-| User Service | 17 | 3 | 33 | 17 |
-| Email Service | 17 | 3 | 9 | 5 |
-| Email Template Service | 18 | 3 | 9 | 6 |
+The **`deployment/`** directory is used to **prepare** the k3s cluster and **build** images. It does **not** deploy individual services; each service is deployed from its own **`<service>/k8s/`** folder.
 
-### Running Tests
+### What’s in `deployment/`
 
-```bash
-# All services
-mvn test
+| Path | Purpose |
+|------|--------|
+| `configmap.yaml` | Shared ConfigMap (DB URLs, env) for namespace `microservices` |
+| `secrets.yaml` | Shared Secrets (envsubst placeholders; set vars before apply) |
+| `namespace.yaml` | Namespace `microservices` |
+| `ingress/traefik-letsencrypt.yaml` | Cluster-level: Traefik ACME (Let’s Encrypt) in kube-system |
+| `ingress/traefik-ingressroute.yaml` | Shared IngressRoute (e.g. api.posadskiy.com) |
+| `ingress/traefik-middleware.yaml` | Shared middlewares (CORS, rate limit) |
+| `scripts/common/get-version.sh` | Get version from a service’s pom.xml |
+| `scripts/dockerhub/create-registry-secret.sh` | Create Docker Hub pull secret in a namespace |
+| `scripts/dockerhub/build-and-push-all.sh` | Build and push all service images (calls each service’s build script) |
+| `scripts/k3s/install-k3s.sh` | Install k3s on a server (args: &lt;server_ip&gt; &lt;ssh_user&gt;) |
+| `scripts/k3s/setup-env.sh` | Check required env vars and cluster/registry access |
+| `scripts/k3s/deploy-to-k3s.sh` | **Prepare cluster only**: namespace, secret, ConfigMap, Secrets, Traefik ingress (no service deployments) |
 
-# Specific service
-cd auth-service && mvn test
+### What’s in each service (e.g. `auth-service/k8s/`)
 
-# Specific test class
-mvn test -Dtest=UserServiceTest
-```
+- **`<service>.yaml`** – Kubernetes Deployment manifest  
+- **`scripts/deploy.sh`** – Deploy this service (uses `SHARED_K8S` → `../shared-services-configuration/deployment`)  
+- **`scripts/build-and-push.sh`** – Build and push this service’s image  
 
-## 🔍 Monitoring & Observability
+---
 
-### Distributed Tracing
+### How to use it (order of operations)
 
-All services are configured with Jaeger for distributed tracing:
-- **Development**: 100% sampling rate
-- **Production**: 10% sampling rate
-- **Jaeger UI**: http://localhost:16686
-
-### Metrics
-
-Prometheus metrics are available at:
-- Auth Service: http://localhost:8100/prometheus
-- User Service: http://localhost:8095/prometheus
-- Email Service: http://localhost:8090/prometheus
-- Email Template Service: http://localhost:8091/prometheus
-
-## 🔐 Security Features
-
-- **JWT Authentication**: Secure token-based authentication across all services
-- **Password Security**: BCrypt hashing for secure password storage
-- **CORS Protection**: Configurable cross-origin resource sharing
-- **Input Validation**: Comprehensive request validation
-- **Access Control**: Role-based access control
-- **TLS Support**: Encrypted communication
-
-## 🐳 Docker Deployment
-
-### Development Build
+#### 1. Set environment variables (no defaults)
 
 ```bash
-# Build all services
-docker-compose -f docker-compose.dev.yml build
-
-# Run all services
-docker-compose -f docker-compose.dev.yml up
+export DOCKERHUB_USERNAME=your-username
+export DOCKERHUB_TOKEN=your-token
+export K3S_SERVER_IP=your-server-ip
+export K3S_SSH_USER=your-ssh-user
+# Plus vars for deployment/secrets.yaml: AUTH_DATABASE_PASSWORD, JWT_GENERATOR_SIGNATURE_SECRET, GITHUB_*, etc.
 ```
 
-### Production Build
+#### 2. Install k3s (only if the server doesn’t have it)
 
 ```bash
-# Build all services for production
-docker-compose -f docker-compose.prod.yml build
-
-# Run all services in production
-docker-compose -f docker-compose.prod.yml up
+cd deployment
+./scripts/k3s/install-k3s.sh <server_ip> <ssh_user>
 ```
 
-## 🚀 Kubernetes Deployment
+Configure `kubectl` (e.g. copy kubeconfig from the server).
 
-The platform includes Kubernetes manifests in the `k8s/` directory:
+#### 3. Prepare the cluster (once per cluster)
+
+From **`shared-services-configuration/deployment`**:
 
 ```bash
-# Deploy all services to Kubernetes
-kubectl apply -f k8s/
-
-# Deploy specific service
-kubectl apply -f k8s/services/auth-service.yaml
+./scripts/k3s/deploy-to-k3s.sh
 ```
 
-## 📊 Performance Features
+Creates namespace, registry secret, ConfigMap, Secrets, Traefik. Does **not** deploy any service.
 
-- **Connection Pooling**: HikariCP for database connections
-- **Async Processing**: Non-blocking I/O operations
-- **Caching**: Built-in caching mechanisms
-- **Resource Management**: Efficient memory and CPU usage
-- **Load Balancing**: Kubernetes-native load balancing
+---
 
-## 🔧 Configuration
+### Quick reference
 
-### Environment Variables
+| Goal | Where | Command |
+|------|--------|--------|
+| Prepare cluster | `deployment` | `./scripts/k3s/deploy-to-k3s.sh` |
+| Install k3s | `deployment` | `./scripts/k3s/install-k3s.sh <ip> <user>` |
+| Build/push all images | `deployment` | `./scripts/dockerhub/build-and-push-all.sh [version]` |
+| Deploy one service | service folder | `export SHARED_K8S=.../deployment` then `./k8s/scripts/deploy.sh [version]` |
+| Build/push one service | service folder | `export SHARED_K8S=.../deployment` then `./k8s/scripts/build-and-push.sh [version]` |
 
-Each service requires specific environment variables. See individual service README files for detailed configuration:
-
-- [Auth Service Configuration](auth-service/README.md#environment-variables)
-- [User Service Configuration](user-service/README.md#environment-variables)
-- [Email Service Configuration](email-service/README.md#environment-variables)
-- [Email Template Service Configuration](email-template-service/README.md#environment-variables)
-
-### Database Configuration
-
-All services use PostgreSQL with Flyway migrations:
-- **Auth Service**: `auth_db`
-- **User Service**: `user_db`
-- **Email Service**: `email_db`
-- **Email Template Service**: `email_template_db`
-
-## 📝 API Documentation
-
-Each service provides comprehensive API documentation via Swagger UI:
-
-- **Auth Service**: http://localhost:8100/swagger-ui/index.html
-- **User Service**: http://localhost:8095/swagger-ui/index.html
-- **Email Service**: http://localhost:8090/swagger-ui/index.html
-- **Email Template Service**: http://localhost:8091/swagger-ui/index.html
-
-## 🚀 CI/CD Pipeline
-
-The platform includes automated CI/CD pipelines with:
-
-- **Automated Testing**: Comprehensive test suites for all services
-- **Docker Image Building**: Automated container image creation
-- **GitHub Packages**: Container registry integration
-- **Release Management**: Automated versioning and releases
-
-## 📝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
-
-### Development Guidelines
-
-- Follow the existing code style and patterns
-- Add comprehensive tests for new features
-- Update documentation for API changes
-- Ensure security best practices are followed
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the individual service documentation
-- Review the test cases for usage examples
-- Consult the API documentation via Swagger UI
-
-## 🔗 Related Documentation
-
-- [Docker Setup Guide](README-Docker.md)
-- [Auth Service Documentation](auth-service/README.md)
-- [User Service Documentation](user-service/README.md)
-- [Email Service Documentation](email-service/README.md)
-- [Email Template Service Documentation](email-template-service/README.md) 
+---

@@ -45,9 +45,6 @@ echo "✅ All required environment variables are set"
 
 # Check SSH access
 echo "🔍 Checking SSH access to k3s server..."
-K3S_SERVER_IP=${K3S_SERVER_IP:-"168.119.57.22"}
-K3S_SSH_USER=${K3S_SSH_USER:-"root"}
-
 if ! ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no "$K3S_SSH_USER@$K3S_SERVER_IP" "echo 'SSH connection successful'" 2>/dev/null; then
   echo "❌ Error: Cannot connect to k3s server via SSH"
   echo "Please ensure SSH key is set up for passwordless access"
@@ -84,11 +81,11 @@ fi
 echo "🔍 Checking if Docker images exist..."
 SERVICES=("auth-service" "user-service" "email-service" "email-template-service")
 MISSING_IMAGES=()
-
-COMMON_SCRIPTS_DIR="$(dirname "$SCRIPT_DIR")/../common"
+SERVICES_ROOT="$(dirname "$(dirname "$K8S_DIR")")"
+COMMON_SCRIPTS_DIR="$K8S_DIR/scripts/common"
 if [ -f "$COMMON_SCRIPTS_DIR/get-version.sh" ]; then
   for service in "${SERVICES[@]}"; do
-    SERVICE_DIR="$(dirname "$(dirname "$K8S_DIR")")/$service"
+    SERVICE_DIR="$SERVICES_ROOT/$service"
     if [ -f "$SERVICE_DIR/pom.xml" ]; then
       SERVICE_VERSION=$("$COMMON_SCRIPTS_DIR/get-version.sh" "$SERVICE_DIR")
       if ! docker manifest inspect "$DOCKERHUB_USERNAME/$service:$SERVICE_VERSION" &>/dev/null; then
@@ -96,7 +93,7 @@ if [ -f "$COMMON_SCRIPTS_DIR/get-version.sh" ]; then
       fi
     fi
   done
-  
+
   if [ ${#MISSING_IMAGES[@]} -ne 0 ]; then
     echo "⚠️  Warning: Some Docker images are missing:"
     for image in "${MISSING_IMAGES[@]}"; do
@@ -104,8 +101,7 @@ if [ -f "$COMMON_SCRIPTS_DIR/get-version.sh" ]; then
     done
     echo ""
     echo "Please build and push images first:"
-    echo "  cd $K8S_DIR/../.."
-    echo "  ./k8s/scripts/dockerhub/build-and-push-all.sh"
+    echo "  $K8S_DIR/scripts/dockerhub/build-and-push-all.sh"
   else
     echo "✅ All Docker images exist"
   fi

@@ -5,7 +5,7 @@ metadata:
   namespace: microservices
 data:
   MICRONAUT_ENVIRONMENTS: "prod"
-  AUTH_DATABASE_URL: "jdbc:postgresql://shared-posadskiy.e.aivencloud.com:25370/defaultdb?sslmode=require"
+  AUTH_DATABASE_URL: "jdbc:postgresql://shared-posadskiy.e.aivencloud.com:25370/auth_db?sslmode=require"
   AUTH_DATABASE_NAME: "auth_db"
   AUTH_DATABASE_USER: "avnadmin"
   GITHUB_USERNAME: "posadskiy"
