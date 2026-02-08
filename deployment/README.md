@@ -97,7 +97,7 @@ The **`deployment/`** directory is used to **prepare** the k3s cluster and **bui
 ### What’s in each service (e.g. `auth-service/k8s/`)
 
 - **`<service>.yaml`** – Kubernetes Deployment manifest  
-- **`scripts/deploy.sh`** – Deploy this service (uses `SHARED_K8S` → `../shared-services-configuration/deployment`)  
+- **`scripts/deploy.sh <version>`** – Deploy this service (cluster must already be prepared)  
 - **`scripts/build-and-push.sh`** – Build and push this service’s image  
 
 ---
@@ -141,8 +141,8 @@ Creates namespace, registry secret, ConfigMap, Secrets, Traefik. Does **not** de
 |------|--------|--------|
 | Prepare cluster | `deployment` | `./scripts/k3s/deploy-to-k3s.sh` |
 | Install k3s | `deployment` | `./scripts/k3s/install-k3s.sh <ip> <user>` |
-| Build/push all images | `deployment` | `./scripts/dockerhub/build-and-push-all.sh [version]` |
-| Deploy one service | service folder | `export SHARED_K8S=.../deployment` then `./k8s/scripts/deploy.sh [version]` |
-| Build/push one service | service folder | `export SHARED_K8S=.../deployment` then `./k8s/scripts/build-and-push.sh [version]` |
+| Build/push all images | `deployment` | `./scripts/dockerhub/build-and-push-all.sh <version>` |
+| Deploy one service | service folder | `./k8s/scripts/deploy.sh <version>` |
+| Build/push one service | service folder | `./k8s/scripts/build-and-push.sh <version>` |
 
 ---
