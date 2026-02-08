@@ -179,14 +179,20 @@ docker run -e MICRONAUT_ENVIRONMENTS=docker \
 
 #### 3. Production (k3s) - `prod` profile
 
-For production deployment in Kubernetes/k3s:
+For production deployment in Kubernetes/k3s, use this service's k8s scripts (they use shared config from `shared-services-configuration/deployment`):
 
 ```bash
-# Deploy to k3s
-kubectl apply -f k8s/auth-service.yaml
+# Deploy this service (applies shared namespace/ConfigMap/Secrets then auth-service manifest)
+export SHARED_K8S="$(pwd)/../shared-services-configuration/deployment"
+./k8s/scripts/deploy.sh [version]
+
+# Build and push image
+./k8s/scripts/build-and-push.sh [version]
 ```
 
-**Configuration**: Managed via Kubernetes ConfigMaps and Secrets. The service automatically uses the `prod` profile when deployed.
+Or prepare the cluster from shared config: `../shared-services-configuration/deployment/scripts/k3s/deploy-to-k3s.sh` (then deploy each service from its folder).
+
+**Configuration**: Managed via Kubernetes ConfigMaps and Secrets in `shared-services-configuration/deployment`. The service uses the `prod` profile when deployed.
 
 **Access the Service**:
 - Service: http://localhost:8100 (dev/docker) or via k3s ingress (prod)
@@ -363,11 +369,15 @@ The service connects to:
 
 ### Kubernetes
 
-The service includes Kubernetes manifests in the `k8s/` directory:
+The service has its own **`k8s/`** folder: manifest `k8s/auth-service.yaml` and scripts **`k8s/scripts/deploy.sh`**, **`k8s/scripts/build-and-push.sh`**. Shared cluster config (namespace, ConfigMap, Secrets, Traefik) lives in **`shared-services-configuration/deployment/`**.
 
 ```bash
-# Deploy to Kubernetes
-kubectl apply -f k8s/
+# Deploy this service (requires SHARED_K8S or run from repo with default path)
+export SHARED_K8S="$(pwd)/../shared-services-configuration/deployment"
+./k8s/scripts/deploy.sh [version]
+
+# Build and push image
+./k8s/scripts/build-and-push.sh [version]
 ```
 
 ### GitHub Actions
