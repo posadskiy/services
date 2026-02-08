@@ -7,7 +7,7 @@ This repo holds **shared configuration** for the microservices platform: Docker 
 ## What’s in this repo
 
 - **`docker-compose.dev.yml`** / **`docker-compose.prod.yml`** – run all services (and DB) from here
-- **`deployment/`** – scripts and manifests to prepare the cluster (namespace, ConfigMap, Secrets, Traefik) and build/push images; services are deployed from each service’s `k8s/` folder
+- **`deployment/`** – scripts and manifests to prepare the cluster (namespace, ConfigMap, Secrets, Traefik) and build/push images; services are deployed from each service’s `deployment/` folder
 
 ---
 
@@ -75,7 +75,7 @@ Jaeger UI: http://localhost:16686
 
 ## Deployment folder (`deployment/`)
 
-The **`deployment/`** directory is used to **prepare** the k3s cluster and **build** images. It does **not** deploy individual services; each service is deployed from its own **`<service>/k8s/`** folder.
+The **`deployment/`** directory is used to **prepare** the k3s cluster and **build** images. It does **not** deploy individual services; each service is deployed from its own **`<service>/deployment/`** folder.
 
 ### What’s in `deployment/`
 
@@ -94,7 +94,7 @@ The **`deployment/`** directory is used to **prepare** the k3s cluster and **bui
 | `scripts/k3s/setup-env.sh` | Check required env vars and cluster/registry access |
 | `scripts/k3s/deploy-to-k3s.sh` | **Prepare cluster only**: namespace, secret, ConfigMap, Secrets, Traefik ingress (no service deployments) |
 
-### What’s in each service (e.g. `auth-service/k8s/`)
+### What’s in each service (e.g. `auth-service/deployment/`)
 
 - **`<service>.yaml`** – Kubernetes Deployment manifest  
 - **`scripts/deploy.sh <version>`** – Deploy this service (cluster must already be prepared)  
@@ -142,7 +142,7 @@ Creates namespace, registry secret, ConfigMap, Secrets, Traefik. Does **not** de
 | Prepare cluster | `deployment` | `./scripts/k3s/deploy-to-k3s.sh` |
 | Install k3s | `deployment` | `./scripts/k3s/install-k3s.sh <ip> <user>` |
 | Build/push all images | `deployment` | `./scripts/dockerhub/build-and-push-all.sh <version>` |
-| Deploy one service | service folder | `./k8s/scripts/deploy.sh <version>` |
-| Build/push one service | service folder | `./k8s/scripts/build-and-push.sh <version>` |
+| Deploy one service | service folder | `./deployment/scripts/deploy.sh <version>` |
+| Build/push one service | service folder | `./deployment/scripts/build-and-push.sh <version>` |
 
 ---
