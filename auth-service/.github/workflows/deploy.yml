@@ -270,7 +270,7 @@ jobs:
         export GITHUB_USERNAME="posadskiy"
         
         # Create temporary auth-service.yaml with image substitution
-        envsubst < k8s/auth-service.yaml | kubectl apply -f -
+        envsubst < deployment/auth-service.yaml | kubectl apply -f -
         
         # Wait for auth-service to be ready
         echo "⏳ Waiting for auth-service to be ready..."
