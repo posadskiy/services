@@ -8,7 +8,7 @@ set -e
 
 SERVICE_NAME="email-service"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SERVICE_K8S="$(dirname "$(dirname "$SCRIPT_DIR")")"
+SERVICE_DEPLOYMENT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 NAMESPACE="microservices"
 
 if [ $# -lt 1 ]; then
@@ -37,7 +37,7 @@ echo ""
 
 echo "🚀 Applying $SERVICE_NAME manifest (version: $VERSION)..."
 export IMAGE_VERSION=$VERSION
-envsubst < "$SERVICE_K8S/$SERVICE_NAME.yaml" | kubectl apply -f -
+envsubst < "$SERVICE_DEPLOYMENT/$SERVICE_NAME.yaml" | kubectl apply -f -
 
 echo ""
 echo "⏳ Waiting for deployment..."

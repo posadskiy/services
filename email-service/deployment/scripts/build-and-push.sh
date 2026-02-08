@@ -6,8 +6,8 @@ set -e
 
 SERVICE_NAME="email-service"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SERVICE_K8S="$(dirname "$(dirname "$SCRIPT_DIR")")"
-SERVICE_ROOT="$(dirname "$SERVICE_K8S")"
+SERVICE_DEPLOYMENT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+SERVICE_ROOT="$(dirname "$SERVICE_DEPLOYMENT")"
 
 if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
   echo "Error: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN environment variables are required" >&2
