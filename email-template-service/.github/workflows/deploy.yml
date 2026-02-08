@@ -270,7 +270,7 @@ jobs:
         export GITHUB_USERNAME="posadskiy"
         
         # Create temporary email-template-service.yaml with image substitution
-        envsubst < k8s/email-template-service.yaml | kubectl apply -f -
+        envsubst < deployment/email-template-service.yaml | kubectl apply -f -
         
         # Wait for email-template-service to be ready
         echo "⏳ Waiting for email-template-service to be ready..."
