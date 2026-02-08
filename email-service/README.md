@@ -207,11 +207,15 @@ The service connects to:
 
 ### Kubernetes
 
-The service includes Kubernetes manifests in the `k8s/` directory:
+The service has its own **`k8s/`** folder: manifest `k8s/email-service.yaml` and scripts **`k8s/scripts/deploy.sh`**, **`k8s/scripts/build-and-push.sh`**. Shared cluster config (namespace, ConfigMap, Secrets, Traefik) lives in **`shared-services-configuration/deployment/`**.
 
 ```bash
-# Deploy to Kubernetes
-kubectl apply -f k8s/
+# Deploy this service (requires SHARED_K8S or run from repo with default path)
+export SHARED_K8S="$(pwd)/../shared-services-configuration/deployment"
+./k8s/scripts/deploy.sh [version]
+
+# Build and push image
+./k8s/scripts/build-and-push.sh [version]
 ```
 
 ### GitHub Actions

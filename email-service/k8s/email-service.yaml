@@ -19,7 +19,7 @@ spec:
       - name: dockerhub-registry-secret
       containers:
       - name: email-service
-        image: posadskiy/email-service:${IMAGE_VERSION}
+        image: ${DOCKERHUB_USERNAME}/email-service:${IMAGE_VERSION}
         imagePullPolicy: Always
         ports:
         - containerPort: 8090
