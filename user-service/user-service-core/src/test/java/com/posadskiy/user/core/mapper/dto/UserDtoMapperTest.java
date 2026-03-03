@@ -8,17 +8,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserDtoMapperTest {
 
     @Test
-    void testUserDtoMapperInterface() {
-        // Test that the interface exists and has the expected methods
+    void testUserDtoMapperHasExpectedMethods() {
         assertNotNull(UserDtoMapper.class);
-        assertTrue(UserDtoMapper.class.isInterface());
-        
-        // Verify the interface has the expected methods
         try {
             UserDtoMapper.class.getMethod("mapFromDto", UserDto.class);
             UserDtoMapper.class.getMethod("mapToDto", User.class);
         } catch (NoSuchMethodException e) {
-            fail("UserDtoMapper interface should have mapFromDto and mapToDto methods");
+            fail("UserDtoMapper should have mapFromDto and mapToDto methods");
         }
     }
 } 
