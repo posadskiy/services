@@ -9,5 +9,10 @@
       <username>${GITHUB_USERNAME}</username>
       <password>${GITHUB_TOKEN}</password>
     </server>
+    <server>
+      <id>github-email</id>
+      <username>${GITHUB_USERNAME}</username>
+      <password>${GITHUB_TOKEN}</password>
+    </server>
   </servers>
-</settings> 
+</settings>
