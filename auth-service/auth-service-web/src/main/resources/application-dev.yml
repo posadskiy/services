@@ -7,6 +7,16 @@ micronaut:
         ui:
           allowed-origins:
             - http://localhost:3000
+          allowed-methods:
+            - GET
+            - POST
+            - OPTIONS
+            - PUT
+            - DELETE
+          allowed-headers:
+            - Content-Type
+            - Authorization
+          allow-credentials: true
   security:
     oauth2:
       clients:
