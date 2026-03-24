@@ -26,6 +26,7 @@ spec:
     accessControlAllowCredentials: true
     accessControlAllowOriginList:
       - https://repeaty.posadskiy.com
+      - https://costy.posadskiy.com
     accessControlMaxAge: 1728000
     customRequestHeaders:
       X-Forwarded-Proto: https
