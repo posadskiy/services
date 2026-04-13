@@ -6,14 +6,14 @@
     <parent>
         <groupId>com.posadskiy.auth</groupId>
         <artifactId>auth-service</artifactId>
-        <version>0.4.1</version>
+        <version>0.5.0</version>
     </parent>
 
     <artifactId>auth-service-web</artifactId>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <micronaut.aot.enabled>true</micronaut.aot.enabled>
         <micronaut.runtime>netty</micronaut.runtime>
@@ -53,10 +53,14 @@
         </dependency>
         <!-- Logging -->
 
-        <!-- Tracing -->
+        <!-- Tracing (OTel → Alloy / Tempo) -->
         <dependency>
             <groupId>io.micronaut.tracing</groupId>
-            <artifactId>micronaut-tracing-jaeger</artifactId>
+            <artifactId>micronaut-tracing-opentelemetry-http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
             <scope>compile</scope>
         </dependency>
         <!-- Tracing -->

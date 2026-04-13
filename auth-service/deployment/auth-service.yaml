@@ -14,6 +14,10 @@ spec:
     metadata:
       labels:
         app: auth-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/prometheus"
+        prometheus.io/port: "8100"
     spec:
       imagePullSecrets:
       - name: dockerhub-registry-secret
@@ -86,13 +90,14 @@ spec:
             secretKeyRef:
               name: microservices-secrets
               key: FACEBOOK_OAUTH_CLIENT_SECRET
-        - name: JAEGER_SERVICE_NAME
+        - name: OTEL_SERVICE_NAME
           value: "auth-service"
-        - name: JAEGER_ENDPOINT
-          valueFrom:
-            configMapKeyRef:
-              name: microservices-config
-              key: JAEGER_ENDPOINT
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://grafana-alloy.observability.svc.cluster.local:4317"
+        - name: OTEL_TRACES_SAMPLER
+          value: parentbased_traceidratio
+        - name: OTEL_TRACES_SAMPLER_ARG
+          value: "1.0"
         - name: DB_MAX_POOL_SIZE
           value: "3"
         - name: DB_MIN_IDLE
