@@ -24,12 +24,12 @@ micronaut:
         enabled: true
 #end::micronaut[]
 
-#tag::jaeger[]
-tracing:
-  jaeger:
+#tag::otel[]
+otel:
+  traces:
     sampler:
-      probability: 1
-#end::jaeger[]
+      arg: ${OTEL_TRACES_SAMPLER_ARG:1.0}
+#end::otel[]
 
 #tag::logging[]
 logging:

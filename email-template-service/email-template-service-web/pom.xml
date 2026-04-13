@@ -12,8 +12,8 @@
     <artifactId>email-template-service-web</artifactId>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -51,10 +51,14 @@
         </dependency>
         <!-- Logging -->
 
-        <!-- Tracing -->
+        <!-- Tracing (OTel → Alloy / Tempo) -->
         <dependency>
             <groupId>io.micronaut.tracing</groupId>
-            <artifactId>micronaut-tracing-jaeger</artifactId>
+            <artifactId>micronaut-tracing-opentelemetry-http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
             <scope>compile</scope>
         </dependency>
         <!-- Tracing -->

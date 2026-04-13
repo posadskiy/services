@@ -6,8 +6,7 @@ set -e
 
 SERVICE_NAME="email-template-service"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SERVICE_DEPLOYMENT="$(dirname "$(dirname "$SCRIPT_DIR")")"
-SERVICE_ROOT="$(dirname "$SERVICE_DEPLOYMENT")"
+SERVICE_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
   echo "Error: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN environment variables are required" >&2

@@ -12,10 +12,10 @@ micronaut:
         enabled: true
 #end::micronaut[]
 
-#tag::jaeger[]
-tracing:
-  jaeger:
+#tag::otel[]
+otel:
+  traces:
     sampler:
-      probability: ${JAEGER_SAMPLER_PROBABILITY:0.1}
-#end::jaeger[]
+      arg: ${OTEL_TRACES_SAMPLER_ARG:1.0}
+#end::otel[]
 

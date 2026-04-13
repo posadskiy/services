@@ -25,6 +25,9 @@ micronaut:
           secret:
             generator:
               secret: "pleaseChangeThisSecretForANewOne"
+  tracing:
+    opentelemetry:
+      enabled: false
 
 email:
   service:
@@ -37,4 +40,8 @@ user:
 logging:
   level:
     com.posadskiy.email.template: DEBUG
-    io.micronaut.security: DEBUG 
+    io.micronaut.security: DEBUG
+
+otel:
+  traces:
+    exporter: none

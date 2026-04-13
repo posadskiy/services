@@ -8,7 +8,7 @@ set -e
 
 SERVICE_NAME="email-template-service"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SERVICE_DEPLOYMENT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+SERVICE_DEPLOYMENT="$(dirname "$SCRIPT_DIR")"
 NAMESPACE="microservices"
 
 if [ $# -lt 1 ]; then

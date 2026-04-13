@@ -41,6 +41,9 @@ micronaut:
         enabled: true
         descriptions: true
         step: ${METRICS_STEP:1m}
+  tracing:
+    opentelemetry:
+      enabled: true
   endpoints:
     prometheus:
       enabled: true
@@ -50,13 +53,17 @@ micronaut:
       sensitive: false
 #end::micronaut[]
 
-#tag::tracing[]
-tracing:
-  jaeger:
-    enabled: true
-    http-sender:
-      url: ${JAEGER_HTTP_SENDER_URL:http://jaeger:14268/api/traces}
-#end::tracing[]
+#tag::otel[]
+otel:
+  exporter:
+    otlp:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
+      protocol: grpc
+  traces:
+    exporter: otlp
+    sampler:
+      arg: ${OTEL_TRACES_SAMPLER_ARG:1.0}
+#end::otel[]
 
 #tag::logging[]
 logging:

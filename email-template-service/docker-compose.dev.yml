@@ -20,6 +20,10 @@ services:
       # Service URLs for Docker Compose (use service names)
       USER_SERVICE_URL: http://user-service:8095
       EMAIL_SERVICE_URL: http://email-service:8090
+      OTEL_SERVICE_NAME: email-template-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
     ports:
       - "8090:8090"
       - "5007:5007"  # Debug port
