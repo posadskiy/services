@@ -17,6 +17,10 @@ services:
       JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
       EMAIL_ADDRESS: ${DEV_EMAIL_ADDRESS}
       EMAIL_TOKEN: ${DEV_EMAIL_TOKEN}
+      OTEL_SERVICE_NAME: email-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
     ports:
       - "8090:8090"
       - "5007:5007"  # Debug port

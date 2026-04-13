@@ -37,6 +37,9 @@ micronaut:
           expiration: 360000
   metrics:
     enabled: false
+  tracing:
+    opentelemetry:
+      enabled: false
   endpoints:
     prometheus:
       enabled: false
@@ -61,11 +64,9 @@ flyway:
       enabled: false
 #end::database[]
 
-#tag::tracing[]
-tracing:
-  jaeger:
-    enabled: false
-#end::tracing[]
+otel:
+  traces:
+    exporter: none
 
 #tag::logging[]
 logging:
