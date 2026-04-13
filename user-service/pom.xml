@@ -15,13 +15,13 @@
     <parent>
         <groupId>io.micronaut.platform</groupId>
         <artifactId>micronaut-parent</artifactId>
-        <version>4.10.7</version>
+        <version>4.10.11</version>
     </parent>
     <properties>
         <packaging>jar</packaging>
         <jdk.version>25</jdk.version>
         <release.version>25</release.version>
-        <micronaut.version>4.10.7</micronaut.version>
+        <micronaut.version>4.10.11</micronaut.version>
         <lombok.version>1.18.42</lombok.version>
         <micronaut.aot.enabled>true</micronaut.aot.enabled>
         <micronaut.aot.packageName>com.posadskiy.user.service.aot.generated</micronaut.aot.packageName>
@@ -31,6 +31,7 @@
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
         <spring-security-crypto.version>6.3.0</spring-security-crypto.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
     </properties>
 
     <repositories>
@@ -69,6 +70,12 @@
                 <groupId>com.posadskiy.user</groupId>
                 <artifactId>user-service-web</artifactId>
                 <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>${logstash-logback-encoder.version}</version>
         </dependency>
 
             <!-- Validation -->

@@ -32,9 +32,9 @@ flyway:
       validate-on-migrate: true
 #end::database[]
 
-#tag::jaeger[]
-tracing:
-  jaeger:
+#tag::otel[]
+otel:
+  traces:
     sampler:
-      probability: ${JAEGER_SAMPLER_PROBABILITY:0.01}
-#end::jaeger[]
+      arg: "1.0"
+#end::otel[]
