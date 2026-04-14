@@ -6,6 +6,8 @@ micronaut:
         access: isAnonymous()
       - pattern: /health
         access: isAnonymous()
+      - pattern: /prometheus
+        access: isAnonymous()
   endpoints:
     health:
       enabled: true
