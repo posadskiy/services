@@ -17,7 +17,6 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 VERSION=$1
-TAG_DATE=$(date +%Y%m%d%H%M%S)
 
 echo "🚀 Building and pushing $SERVICE_NAME to Docker Hub (version: $VERSION)..."
 docker buildx build --platform linux/amd64 \
@@ -25,7 +24,6 @@ docker buildx build --platform linux/amd64 \
   --build-arg GITHUB_USERNAME=$GITHUB_USERNAME \
   -f "$SERVICE_ROOT/Dockerfile.prod" \
   -t $DOCKERHUB_USERNAME/$SERVICE_NAME:$VERSION \
-  -t $DOCKERHUB_USERNAME/$SERVICE_NAME:$TAG_DATE \
   -t $DOCKERHUB_USERNAME/$SERVICE_NAME:latest \
   "$SERVICE_ROOT/" --push
 
