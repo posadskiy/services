@@ -114,4 +114,81 @@ class AuthFlowTest extends PostgresMicronautTest {
                         .retrieve(HttpRequest.POST("/login", new LoginRequest("system", "anypassword"))));
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatus());
     }
+
+    @Test
+    void accountMeRequiresBearerAndReturnsProfile() {
+        client.toBlocking()
+                .retrieve(
+                        HttpRequest.POST("/users", new RegisterRequest("me@example.com", "correcthorse", "meuser")),
+                        UserResponse.class);
+        TokenResponse tokens = client.toBlocking()
+                .retrieve(
+                        HttpRequest.POST("/login", new LoginRequest("me@example.com", "correcthorse")),
+                        TokenResponse.class);
+
+        HttpClientResponseException anonymous = assertThrows(
+                HttpClientResponseException.class, () -> client.toBlocking().retrieve(HttpRequest.GET("/account/me")));
+        assertEquals(HttpStatus.UNAUTHORIZED, anonymous.getStatus());
+
+        UserResponse me = client.toBlocking()
+                .retrieve(HttpRequest.GET("/account/me").bearerAuth(tokens.accessToken()), UserResponse.class);
+        assertEquals("me@example.com", me.email());
+        assertEquals("meuser", me.username());
+    }
+
+    @Test
+    void discoveryAndKeysArePublic() {
+        String discovery =
+                client.toBlocking().retrieve(HttpRequest.GET("/.well-known/openid-configuration"), String.class);
+        assertTrue(discovery.contains("https://auth.test"));
+        assertTrue(discovery.contains("refresh_token"));
+
+        io.micronaut.http.HttpResponse<String> keys =
+                client.toBlocking().exchange(HttpRequest.GET("/keys"), String.class);
+        assertEquals(HttpStatus.OK, keys.getStatus());
+        assertNotNull(keys.body());
+        assertTrue(keys.getHeaders().contains("X-Content-Type-Options"));
+    }
+
+    @Test
+    void oauthAuthorizeStartsPkceFlow() {
+        io.micronaut.http.HttpResponse<String> response =
+                client.toBlocking().exchange(HttpRequest.GET("/oauth2/authorize/google"), String.class);
+        assertEquals(HttpStatus.OK, response.getStatus());
+        String body = response.body();
+        assertTrue(body.contains("accounts.google.com"));
+        assertTrue(body.contains("code_challenge"));
+        assertTrue(body.contains("test-google-client"));
+        assertTrue(response.getHeaders().getAll("Set-Cookie").stream()
+                .anyMatch(value -> value.startsWith("oauth_browser=")));
+    }
+
+    @Test
+    void unknownOauthProviderIsRejected() {
+        HttpClientResponseException ex = assertThrows(
+                HttpClientResponseException.class,
+                () -> client.toBlocking().retrieve(HttpRequest.GET("/oauth2/authorize/facebook")));
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+    }
+
+    @Test
+    void weakPasswordIsRejected() {
+        HttpClientResponseException ex = assertThrows(
+                HttpClientResponseException.class,
+                () -> client.toBlocking()
+                        .retrieve(
+                                HttpRequest.POST("/users", new RegisterRequest("weak@example.com", "short", "weak"))));
+        assertTrue(ex.getStatus().getCode() >= 400);
+    }
+
+    @Test
+    void clientCredentialsRejectsUnknownClient() {
+        HttpClientResponseException ex = assertThrows(
+                HttpClientResponseException.class,
+                () -> client.toBlocking()
+                        .retrieve(HttpRequest.POST(
+                                "/oauth/token",
+                                new RefreshRequest("client_credentials", null, "nope", "wrong", null, null))));
+        assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatus());
+    }
 }

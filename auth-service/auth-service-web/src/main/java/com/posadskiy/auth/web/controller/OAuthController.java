@@ -17,6 +17,7 @@ import com.posadskiy.auth.core.service.SocialLoginService;
 import com.posadskiy.auth.core.service.SocialLoginService.SocialLoginResult;
 import com.posadskiy.auth.core.service.TokenService;
 import com.posadskiy.auth.core.service.UserAccountService;
+import com.posadskiy.auth.core.storage.db.ExternalIdentityRepository;
 import com.posadskiy.auth.core.storage.db.entity.OAuthLoginCodeEntity;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpRequest;
@@ -59,6 +60,7 @@ public class OAuthController {
     private final TokenService tokenService;
     private final OAuthLoginCodeService loginCodeService;
     private final UserAccountService userAccountService;
+    private final ExternalIdentityRepository externalIdentityRepository;
     private final AuthProperties authProperties;
     private final AuthMetrics metrics;
 
@@ -69,6 +71,7 @@ public class OAuthController {
             TokenService tokenService,
             OAuthLoginCodeService loginCodeService,
             UserAccountService userAccountService,
+            ExternalIdentityRepository externalIdentityRepository,
             AuthProperties authProperties,
             AuthMetrics metrics) {
         this.authorizationService = authorizationService;
@@ -77,6 +80,7 @@ public class OAuthController {
         this.tokenService = tokenService;
         this.loginCodeService = loginCodeService;
         this.userAccountService = userAccountService;
+        this.externalIdentityRepository = externalIdentityRepository;
         this.authProperties = authProperties;
         this.metrics = metrics;
     }
@@ -123,8 +127,14 @@ public class OAuthController {
     public TokenResponse finalizeLogin(@Body @Valid OAuthFinalizeRequest request) {
         OAuthLoginCodeEntity loginCode = loginCodeService.consume(request.code(), request.codeVerifier());
         var user = userAccountService.requireActive(loginCode.getUserId());
+        String provider = loginCode.getExternalIdentityId() == null
+                ? null
+                : externalIdentityRepository
+                        .findById(loginCode.getExternalIdentityId())
+                        .map(identity -> identity.getProvider())
+                        .orElse(null);
         metrics.loginSuccess("oauth");
-        return tokenService.issueForUser(user, null, loginCode.getExternalIdentityId());
+        return tokenService.issueForUser(user, provider, loginCode.getExternalIdentityId());
     }
 
     private HttpResponse<?> complete(String provider, String code, String state, String binding, String appleUserJson) {
