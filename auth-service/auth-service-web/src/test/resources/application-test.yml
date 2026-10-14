@@ -11,6 +11,8 @@ micronaut:
         access: isAnonymous()
       - pattern: /users
         access: isAnonymous()
+      - pattern: /signup
+        access: isAnonymous()
       - pattern: /oauth/token
         access: isAnonymous()
       - pattern: /oauth/revoke

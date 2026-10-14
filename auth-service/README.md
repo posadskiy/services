@@ -4,7 +4,7 @@ Micronaut 5 authentication service: email/password accounts plus Google and Appl
 
 ## What it does
 
-- `POST /users` — register with email + password (BCrypt cost 10 by default)
+- `POST /users` and `POST /signup` — register with email + password (BCrypt cost 10 by default)
 - `POST /login` — password login, returns access + refresh tokens
 - `POST /oauth/token` — `refresh_token`, `password`, or `client_credentials`
 - `POST /oauth/revoke` / `POST /logout` — revoke a refresh token family
