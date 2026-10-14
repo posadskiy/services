@@ -24,8 +24,10 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
 
+    # `install` (not `verify`) is required: Micronaut AOT forks a nested Maven
+    # that resolves sibling modules from the local repo, not the reactor.
     - name: Unit & integration tests
-      run: ./mvnw -B verify
+      run: ./mvnw -B install
 
     - name: Code formatting
       run: ./mvnw -B spotless:check

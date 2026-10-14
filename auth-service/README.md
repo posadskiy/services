@@ -60,7 +60,7 @@ Health: `GET /health/liveness` and `GET /health/readiness`.
 ```bash
 ./mvnw test          # Testcontainers PostgreSQL (Docker required)
 ./mvnw spotless:check
-./mvnw -DskipTests install
+./mvnw install       # needed for Micronaut AOT (nested Maven reads sibling modules from ~/.m2)
 ```
 
 ## Configuration notes
