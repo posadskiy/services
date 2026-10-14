@@ -19,11 +19,7 @@ public class AuditService {
 
     public void record(Long userId, String eventType, String detail) {
         try {
-            AuditEventEntity entity = new AuditEventEntity();
-            entity.setUserId(userId);
-            entity.setEventType(eventType);
-            entity.setDetail(detail);
-            repository.save(entity);
+            repository.save(new AuditEventEntity(null, userId, eventType, detail, null));
         } catch (Exception e) {
             LOG.warn("Failed to persist audit event type={}", eventType, e);
         }

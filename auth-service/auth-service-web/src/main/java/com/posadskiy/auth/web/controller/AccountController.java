@@ -41,7 +41,7 @@ public class AccountController {
     public HttpResponse<Void> deactivate() {
         UserEntity user = userAccountService.requireActive(currentUserId());
         userAccountService.deactivate(user);
-        tokenService.revokeAll(user.getId());
+        tokenService.revokeAll(user.id());
         return HttpResponse.noContent();
     }
 

@@ -1,11 +1,9 @@
 package com.posadskiy.auth.core.jwt;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.posadskiy.auth.core.config.AuthProperties;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.security.token.claims.ClaimsAudienceProvider;
@@ -126,14 +124,5 @@ public class JwtCryptoFactory {
 
     private static boolean notBlank(String value) {
         return value != null && !value.isBlank();
-    }
-
-    /** Used by tests to mint a throwaway ES256 pair. */
-    public static ECKey generateEs256ForTests() {
-        try {
-            return new ECKeyGenerator(Curve.P_256).keyID("test").generate();
-        } catch (JOSEException e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

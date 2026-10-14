@@ -25,16 +25,16 @@ public class IdTokenValidator {
         if (idToken == null || idToken.isBlank()) {
             throw new OAuthException("Provider did not return an ID token");
         }
-        if (provider.getJwksUri() == null || provider.getJwksUri().isBlank()) {
+        if (provider.jwksUri() == null || provider.jwksUri().isBlank()) {
             throw new OAuthException("Provider JWKS URI is not configured");
         }
         try {
             JWTClaimsSet claims = processor(provider).process(idToken, null);
-            if (provider.getIssuer() != null && !issuerMatches(provider.getIssuer(), claims.getIssuer())) {
+            if (provider.issuer() != null && !provider.issuer().equals(claims.getIssuer())) {
                 throw new OAuthException("ID token issuer mismatch");
             }
             List<String> audience = claims.getAudience();
-            if (audience == null || !audience.contains(provider.getClientId())) {
+            if (audience == null || !audience.contains(provider.clientId())) {
                 throw new OAuthException("ID token audience mismatch");
             }
             String tokenNonce = claims.getStringClaim("nonce");
@@ -49,20 +49,12 @@ public class IdTokenValidator {
         }
     }
 
-    private boolean issuerMatches(String expected, String actual) {
-        if (expected.contains("{tenantid}")) {
-            return actual != null && actual.startsWith("https://login.microsoftonline.com/");
-        }
-        return expected.equals(actual);
-    }
-
-    @SuppressWarnings("unchecked")
     private ConfigurableJWTProcessor<SecurityContext> processor(OAuthProviderProperties provider) {
-        return processors.computeIfAbsent(provider.getName(), name -> {
+        return processors.computeIfAbsent(provider.name(), name -> {
             try {
                 ConfigurableJWTProcessor<SecurityContext> processor = new DefaultJWTProcessor<>();
                 var source = JWKSourceBuilder.create(
-                                URI.create(provider.getJwksUri()).toURL())
+                                URI.create(provider.jwksUri()).toURL())
                         .retrying(true)
                         .build();
                 processor.setJWSKeySelector(

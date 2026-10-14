@@ -14,8 +14,7 @@ public class OAuthProviderRegistry {
     private final Map<String, OAuthProviderProperties> providers = new ConcurrentHashMap<>();
 
     public OAuthProviderRegistry(Collection<OAuthProviderProperties> providerConfigurations) {
-        providerConfigurations.forEach(
-                provider -> providers.put(provider.getName().toLowerCase(), provider));
+        providerConfigurations.forEach(provider -> providers.put(provider.name().toLowerCase(), provider));
     }
 
     public Optional<OAuthProviderProperties> find(String provider) {
@@ -27,7 +26,7 @@ public class OAuthProviderRegistry {
 
     public OAuthProviderProperties require(String provider) {
         return find(provider)
-                .filter(OAuthProviderProperties::isEnabled)
+                .filter(OAuthProviderProperties::enabled)
                 .orElseThrow(() -> new OAuthException("Unsupported OAuth provider: " + provider));
     }
 }

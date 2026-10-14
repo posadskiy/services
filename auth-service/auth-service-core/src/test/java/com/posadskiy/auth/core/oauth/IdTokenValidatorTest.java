@@ -43,10 +43,20 @@ class IdTokenValidatorTest {
         });
         server.start();
 
-        provider = new OAuthProviderProperties("google");
-        provider.setClientId("test-google-client");
-        provider.setIssuer("https://accounts.google.com");
-        provider.setJwksUri("http://127.0.0.1:" + server.getAddress().getPort() + "/jwks");
+        provider = new OAuthProviderProperties(
+                "google",
+                true,
+                "test-google-client",
+                null,
+                null,
+                null,
+                "http://127.0.0.1:" + server.getAddress().getPort() + "/jwks",
+                "https://accounts.google.com",
+                null,
+                null,
+                null,
+                null,
+                null);
         validator = new IdTokenValidator();
     }
 
@@ -71,18 +81,18 @@ class IdTokenValidatorTest {
 
     @Test
     void rejectsAudienceMismatch() throws Exception {
-        String token = signedToken("abc", "someone-else", provider.getIssuer());
+        String token = signedToken("abc", "someone-else", provider.issuer());
         assertThrows(OAuthException.class, () -> validator.validate(provider, token, "abc"));
     }
 
     @Test
     void rejectsIssuerMismatch() throws Exception {
-        String token = signedToken("abc", provider.getClientId(), "https://evil.example");
+        String token = signedToken("abc", provider.clientId(), "https://evil.example");
         assertThrows(OAuthException.class, () -> validator.validate(provider, token, "abc"));
     }
 
     private String signedToken(String nonce) throws Exception {
-        return signedToken(nonce, provider.getClientId(), provider.getIssuer());
+        return signedToken(nonce, provider.clientId(), provider.issuer());
     }
 
     private String signedToken(String nonce, String audience, String issuer) throws Exception {

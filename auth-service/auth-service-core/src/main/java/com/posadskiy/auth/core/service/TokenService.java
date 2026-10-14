@@ -48,9 +48,9 @@ public class TokenService {
 
     public TokenResponse issueForUser(UserEntity user, String provider, Long externalIdentityId) {
         String access = accessToken(user, provider, externalIdentityId);
-        String refresh = persistRefresh(user.getId(), provider, externalIdentityId, UUID.randomUUID());
+        String refresh = persistRefresh(user.id(), provider, externalIdentityId, UUID.randomUUID());
         return new TokenResponse(
-                access, refresh, properties.jwt().accessTokenTtl().toSeconds(), "Bearer", user.getId());
+                access, refresh, properties.jwt().accessTokenTtl().toSeconds(), "Bearer", user.id());
     }
 
     @Transactional
@@ -61,36 +61,33 @@ public class TokenService {
                     metrics.refresh("unknown");
                     return new InvalidCredentialsException();
                 });
-        if (Boolean.TRUE.equals(existing.getRevoked()) || Instant.now().isAfter(existing.getExpiresAt())) {
-            refreshTokenRepository.revokeFamily(existing.getFamilyId());
+        if (existing.revoked() || Instant.now().isAfter(existing.expiresAt())) {
+            refreshTokenRepository.revokeFamily(existing.familyId());
             metrics.refresh("revoked");
-            auditService.record(existing.getUserId(), "REFRESH_REUSE_OR_EXPIRED", null);
+            auditService.record(existing.userId(), "REFRESH_REUSE_OR_EXPIRED", null);
             throw new InvalidCredentialsException();
         }
-        UserEntity user = userAccountService.requireActive(existing.getUserId());
-        existing.setRevoked(Boolean.TRUE);
-        existing.setLastUsedAt(Instant.now());
-        String next = persistRefresh(
-                user.getId(), existing.getProvider(), existing.getExternalIdentityId(), existing.getFamilyId());
+        UserEntity user = userAccountService.requireActive(existing.userId());
+        String next =
+                persistRefresh(user.id(), existing.provider(), existing.externalIdentityId(), existing.familyId());
         RefreshTokenEntity replacement = refreshTokenRepository
                 .findByTokenHash(SecureTokens.sha256Hex(next))
                 .orElseThrow();
-        existing.setReplacedById(replacement.getId());
-        refreshTokenRepository.update(existing);
+        refreshTokenRepository.update(existing.consumed(Instant.now(), replacement.id()));
         metrics.refresh("success");
         return new TokenResponse(
-                accessToken(user, existing.getProvider(), existing.getExternalIdentityId()),
+                accessToken(user, existing.provider(), existing.externalIdentityId()),
                 next,
                 properties.jwt().accessTokenTtl().toSeconds(),
                 "Bearer",
-                user.getId());
+                user.id());
     }
 
     @Transactional
     public void revoke(String refreshToken) {
         refreshTokenRepository
                 .findByTokenHash(SecureTokens.sha256Hex(refreshToken))
-                .ifPresent(token -> refreshTokenRepository.revokeFamily(token.getFamilyId()));
+                .ifPresent(token -> refreshTokenRepository.revokeFamily(token.familyId()));
     }
 
     @Transactional
@@ -101,18 +98,17 @@ public class TokenService {
 
     public TokenResponse clientCredentials(String clientId, String clientSecret) {
         OAuthClientProperties client = clients.stream()
-                .filter(OAuthClientProperties::isEnabled)
-                .filter(c -> c.getClientId().equals(clientId))
+                .filter(OAuthClientProperties::enabled)
+                .filter(c -> c.clientId().equals(clientId))
                 .findFirst()
                 .orElseThrow(InvalidCredentialsException::new);
-        if (client.getClientSecret() == null
-                || !SecureTokens.equalsConstantTime(client.getClientSecret(), clientSecret)) {
+        if (client.clientSecret() == null || !SecureTokens.equalsConstantTime(client.clientSecret(), clientSecret)) {
             throw new InvalidCredentialsException();
         }
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("token_use", "access");
         attributes.put("client_id", clientId);
-        Authentication authentication = Authentication.build(clientId, client.getRoles(), attributes);
+        Authentication authentication = Authentication.build(clientId, client.roles(), attributes);
         int ttl = (int) properties.jwt().accessTokenTtl().toSeconds();
         String access = tokenGenerator
                 .generateToken(authentication, ttl)
@@ -122,10 +118,10 @@ public class TokenService {
 
     private String accessToken(UserEntity user, String provider, Long externalIdentityId) {
         Map<String, Object> attributes = new HashMap<>();
-        attributes.put("email", user.getEmail());
-        attributes.put("email_verified", user.getEmailVerified());
-        if (user.getPictureUrl() != null) {
-            attributes.put("picture", user.getPictureUrl());
+        attributes.put("email", user.email());
+        attributes.put("email_verified", user.emailVerified());
+        if (user.pictureUrl() != null) {
+            attributes.put("picture", user.pictureUrl());
         }
         if (provider != null) {
             attributes.put("idp_provider", provider);
@@ -133,7 +129,7 @@ public class TokenService {
         if (externalIdentityId != null) {
             attributes.put("external_identity_id", externalIdentityId);
         }
-        Authentication authentication = Authentication.build(String.valueOf(user.getId()), user.roleList(), attributes);
+        Authentication authentication = Authentication.build(String.valueOf(user.id()), user.roleList(), attributes);
         int ttl = (int) properties.jwt().accessTokenTtl().toSeconds();
         return tokenGenerator
                 .generateToken(authentication, ttl)
@@ -142,15 +138,18 @@ public class TokenService {
 
     private String persistRefresh(Long userId, String provider, Long externalIdentityId, UUID familyId) {
         String value = SecureTokens.randomUrl(64);
-        RefreshTokenEntity entity = new RefreshTokenEntity();
-        entity.setUserId(userId);
-        entity.setTokenHash(SecureTokens.sha256Hex(value));
-        entity.setFamilyId(familyId);
-        entity.setProvider(provider);
-        entity.setExternalIdentityId(externalIdentityId);
-        entity.setRevoked(Boolean.FALSE);
-        entity.setExpiresAt(Instant.now().plus(properties.token().refreshTokenTtl()));
-        refreshTokenRepository.save(entity);
+        refreshTokenRepository.save(new RefreshTokenEntity(
+                null,
+                userId,
+                SecureTokens.sha256Hex(value),
+                familyId,
+                null,
+                provider,
+                externalIdentityId,
+                false,
+                Instant.now().plus(properties.token().refreshTokenTtl()),
+                null,
+                null));
         return value;
     }
 }

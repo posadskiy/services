@@ -10,7 +10,7 @@ import com.posadskiy.auth.core.oauth.ExternalProfile;
 import com.posadskiy.auth.core.oauth.IdTokenValidator;
 import com.posadskiy.auth.core.oauth.OAuthOutboundClient;
 import com.posadskiy.auth.core.oauth.OAuthProviderRegistry;
-import com.posadskiy.auth.core.oauth.OAuthState;
+import com.posadskiy.auth.core.storage.db.entity.OAuthStateEntity;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.ObjectMapper;
 import jakarta.inject.Singleton;
@@ -44,7 +44,8 @@ public class OAuthTokenExchangeService {
 
     public ExchangeResult exchange(
             String providerPath, String code, String stateValue, String browserBinding, String appleUserJson) {
-        OAuthState state = stateStore.consume(stateValue).orElseThrow(() -> new OAuthException("Invalid state value"));
+        OAuthStateEntity state =
+                stateStore.consume(stateValue).orElseThrow(() -> new OAuthException("Invalid state value"));
         if (!state.provider().equalsIgnoreCase(providerPath)) {
             throw new OAuthException("OAuth provider mismatch");
         }
@@ -57,11 +58,11 @@ public class OAuthTokenExchangeService {
         form.put("grant_type", "authorization_code");
         form.put("code", code);
         form.put("redirect_uri", state.redirectUri());
-        form.put("client_id", provider.getClientId());
+        form.put("client_id", provider.clientId());
         form.put("client_secret", appleClientSecretService.clientSecret(provider));
         form.put("code_verifier", state.codeVerifier());
 
-        Map<String, Object> tokenJson = readJson(outboundClient.postForm(provider.getTokenUri(), form));
+        Map<String, Object> tokenJson = readJson(outboundClient.postForm(provider.tokenUri(), form));
         String idToken = stringValue(tokenJson, "id_token");
         JWTClaimsSet claims = idTokenValidator.validate(provider, idToken, state.nonce());
 

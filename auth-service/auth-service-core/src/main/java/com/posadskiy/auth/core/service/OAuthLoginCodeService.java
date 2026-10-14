@@ -23,13 +23,13 @@ public class OAuthLoginCodeService {
 
     public String create(UserEntity user, Long identityId, String codeChallenge) {
         String code = SecureTokens.randomUrl(32);
-        OAuthLoginCodeEntity entity = new OAuthLoginCodeEntity();
-        entity.setCodeHash(SecureTokens.sha256Hex(code));
-        entity.setUserId(user.getId());
-        entity.setExternalIdentityId(identityId);
-        entity.setCodeChallenge(codeChallenge);
-        entity.setExpiresAt(Instant.now().plus(properties.oauth().loginCodeTtl()));
-        repository.save(entity);
+        repository.save(new OAuthLoginCodeEntity(
+                SecureTokens.sha256Hex(code),
+                user.id(),
+                identityId,
+                codeChallenge,
+                Instant.now().plus(properties.oauth().loginCodeTtl()),
+                null));
         return code;
     }
 
@@ -37,11 +37,11 @@ public class OAuthLoginCodeService {
         OAuthLoginCodeEntity entity = repository
                 .findById(SecureTokens.sha256Hex(code))
                 .orElseThrow(() -> new OAuthException("Invalid login code"));
-        repository.deleteById(entity.getCodeHash());
-        if (Instant.now().isAfter(entity.getExpiresAt())) {
+        repository.deleteById(entity.codeHash());
+        if (Instant.now().isAfter(entity.expiresAt())) {
             throw new OAuthException("Login code expired");
         }
-        if (entity.getCodeChallenge() != null && !Pkce.matches(codeVerifier, entity.getCodeChallenge())) {
+        if (entity.codeChallenge() != null && !Pkce.matches(codeVerifier, entity.codeChallenge())) {
             throw new OAuthException("Invalid code verifier");
         }
         return entity;

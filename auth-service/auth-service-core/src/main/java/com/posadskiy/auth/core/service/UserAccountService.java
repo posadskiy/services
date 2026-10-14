@@ -41,17 +41,15 @@ public class UserAccountService {
         if (usersRepository.findByEmailNormalized(normalized).isPresent()) {
             throw new AuthException("An account with that email already exists", 409);
         }
-        UserEntity user = new UserEntity();
-        user.setEmail(email.trim());
-        user.setEmailNormalized(normalized);
-        user.setUsername(uniqueUsername(username, normalized));
-        user.setPasswordHash(passwordHasher.hash(rawPassword));
-        user.setEmailVerified(Boolean.FALSE);
-        user.setRoles("ROLE_USER");
-        user.setActive(Boolean.TRUE);
-        user.setPasswordChangedAt(Instant.now());
-        UserEntity saved = usersRepository.save(user);
-        auditService.record(saved.getId(), "USER_REGISTERED", "email");
+        UserEntity saved = usersRepository.save(UserEntity.newAccount(
+                uniqueUsername(username, normalized),
+                email.trim(),
+                normalized,
+                passwordHasher.hash(rawPassword),
+                false,
+                null,
+                Instant.now()));
+        auditService.record(saved.id(), "USER_REGISTERED", "email");
         return saved;
     }
 
@@ -64,31 +62,27 @@ public class UserAccountService {
             passwordHasher.dummyVerify(rawPassword);
             throw new InvalidCredentialsException();
         }
-        if (!Boolean.TRUE.equals(user.getActive())) {
+        if (!user.active()) {
             passwordHasher.dummyVerify(rawPassword);
             throw new AuthException("Account is disabled", 403);
         }
-        if (user.getPasswordHash() == null || !passwordHasher.verify(rawPassword, user.getPasswordHash())) {
+        if (user.passwordHash() == null || !passwordHasher.verify(rawPassword, user.passwordHash())) {
             throw new InvalidCredentialsException();
         }
-        user.setLastLoginAt(Instant.now());
-        usersRepository.update(user);
-        return user;
+        return usersRepository.update(user.loggedInAt(Instant.now()));
     }
 
     public UserEntity requireActive(Long userId) {
         UserEntity user = usersRepository.findById(userId).orElseThrow(InvalidCredentialsException::new);
-        if (!Boolean.TRUE.equals(user.getActive())) {
+        if (!user.active()) {
             throw new AuthException("Account is disabled", 403);
         }
         return user;
     }
 
     public UserEntity deactivate(UserEntity user) {
-        user.setActive(Boolean.FALSE);
-        user.setDeactivatedAt(Instant.now());
-        UserEntity updated = usersRepository.update(user);
-        auditService.record(user.getId(), "USER_DEACTIVATED", null);
+        UserEntity updated = usersRepository.update(user.deactivatedAt(Instant.now()));
+        auditService.record(user.id(), "USER_DEACTIVATED", null);
         return updated;
     }
 

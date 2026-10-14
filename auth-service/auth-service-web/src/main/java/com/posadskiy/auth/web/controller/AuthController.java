@@ -62,7 +62,7 @@ public class AuthController {
         try {
             UserEntity user = userAccountService.authenticate(request.username(), request.password());
             metrics.loginSuccess("password");
-            auditService.record(user.getId(), "LOGIN_SUCCESS", "password");
+            auditService.record(user.id(), "LOGIN_SUCCESS", "password");
             return tokenService.issueForUser(user, "password", null);
         } catch (AuthException e) {
             metrics.loginFailure("password");
@@ -114,11 +114,6 @@ public class AuthController {
 
     static UserResponse toResponse(UserEntity user) {
         return new UserResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                Boolean.TRUE.equals(user.getEmailVerified()),
-                user.getPictureUrl(),
-                user.roleList());
+                user.id(), user.username(), user.email(), user.emailVerified(), user.pictureUrl(), user.roleList());
     }
 }

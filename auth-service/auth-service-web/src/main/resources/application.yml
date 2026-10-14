@@ -163,7 +163,6 @@ auth:
         jwks-uri: https://www.googleapis.com/oauth2/v3/certs
         issuer: https://accounts.google.com
         redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/google
-        pkce-required: true
         scopes:
           - openid
           - email
@@ -177,7 +176,6 @@ auth:
         jwks-uri: https://appleid.apple.com/auth/keys
         issuer: https://appleid.apple.com
         redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/apple
-        pkce-required: true
         apple-team-id: ${APPLE_OAUTH_TEAM_ID:}
         apple-key-id: ${APPLE_OAUTH_KEY_ID:}
         apple-private-key-pem: ${APPLE_OAUTH_PRIVATE_KEY_PEM:}

@@ -13,177 +13,117 @@ import java.util.Arrays;
 import java.util.List;
 
 @MappedEntity("users")
-public class UserEntity {
+public record UserEntity(
+        @Id @GeneratedValue @Nullable Long id,
+        String username,
+        String email,
+        @MappedProperty("email_normalized") String emailNormalized,
+        @Nullable @MappedProperty("password_hash") String passwordHash,
+        @MappedProperty("email_verified") boolean emailVerified,
+        @Nullable @MappedProperty("picture_url") String pictureUrl,
+        String roles,
+        @Nullable @MappedProperty("last_login_at") Instant lastLoginAt,
+        @Nullable @MappedProperty("password_changed_at") Instant passwordChangedAt,
+        boolean active,
+        @Nullable @MappedProperty("deactivated_at") Instant deactivatedAt,
+        @DateUpdated @Nullable Instant updatedAt,
+        @DateCreated @Nullable Instant createdAt,
+        @Version @Nullable Long version) {
 
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    private String username;
-    private String email;
-
-    @MappedProperty("email_normalized")
-    private String emailNormalized;
-
-    @Nullable
-    @MappedProperty("password_hash")
-    private String passwordHash;
-
-    @MappedProperty("email_verified")
-    private Boolean emailVerified = Boolean.FALSE;
-
-    @MappedProperty("picture_url")
-    private String pictureUrl;
-
-    private String roles = "ROLE_USER";
-
-    @MappedProperty("last_login_at")
-    private Instant lastLoginAt;
-
-    @MappedProperty("password_changed_at")
-    private Instant passwordChangedAt;
-
-    private Boolean active = Boolean.TRUE;
-
-    @MappedProperty("deactivated_at")
-    private Instant deactivatedAt;
-
-    @DateUpdated
-    private Instant updatedAt;
-
-    @DateCreated
-    private Instant createdAt;
-
-    @Version
-    private Long version;
-
-    public Long getId() {
-        return id;
+    public UserEntity {
+        if (roles == null || roles.isBlank()) {
+            roles = "ROLE_USER";
+        }
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getEmailNormalized() {
-        return emailNormalized;
-    }
-
-    public void setEmailNormalized(String emailNormalized) {
-        this.emailNormalized = emailNormalized;
-    }
-
-    public @Nullable String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(@Nullable String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public Boolean getEmailVerified() {
-        return emailVerified;
-    }
-
-    public void setEmailVerified(Boolean emailVerified) {
-        this.emailVerified = emailVerified;
-    }
-
-    public String getPictureUrl() {
-        return pictureUrl;
-    }
-
-    public void setPictureUrl(String pictureUrl) {
-        this.pictureUrl = pictureUrl;
-    }
-
-    public String getRoles() {
-        return roles;
-    }
-
-    public void setRoles(String roles) {
-        this.roles = roles;
+    public static UserEntity newAccount(
+            String username,
+            String email,
+            String emailNormalized,
+            String passwordHash,
+            boolean emailVerified,
+            String pictureUrl,
+            Instant passwordChangedAt) {
+        return new UserEntity(
+                null,
+                username,
+                email,
+                emailNormalized,
+                passwordHash,
+                emailVerified,
+                pictureUrl,
+                "ROLE_USER",
+                null,
+                passwordChangedAt,
+                true,
+                null,
+                null,
+                null,
+                null);
     }
 
     public List<String> roleList() {
-        if (roles == null || roles.isBlank()) {
-            return List.of("ROLE_USER");
-        }
         return Arrays.stream(roles.split(","))
                 .map(String::trim)
-                .filter(s -> !s.isEmpty())
+                .filter(role -> !role.isEmpty())
                 .toList();
     }
 
-    public Instant getLastLoginAt() {
-        return lastLoginAt;
+    public UserEntity loggedInAt(Instant at) {
+        return new UserEntity(
+                id,
+                username,
+                email,
+                emailNormalized,
+                passwordHash,
+                emailVerified,
+                pictureUrl,
+                roles,
+                at,
+                passwordChangedAt,
+                active,
+                deactivatedAt,
+                updatedAt,
+                createdAt,
+                version);
     }
 
-    public void setLastLoginAt(Instant lastLoginAt) {
-        this.lastLoginAt = lastLoginAt;
+    public UserEntity withProfile(Instant loggedInAt, boolean verified, @Nullable String picture) {
+        String nextPicture = picture == null || picture.isBlank() ? pictureUrl : picture;
+        return new UserEntity(
+                id,
+                username,
+                email,
+                emailNormalized,
+                passwordHash,
+                emailVerified || verified,
+                nextPicture,
+                roles,
+                loggedInAt,
+                passwordChangedAt,
+                active,
+                deactivatedAt,
+                updatedAt,
+                createdAt,
+                version);
     }
 
-    public Instant getPasswordChangedAt() {
-        return passwordChangedAt;
-    }
-
-    public void setPasswordChangedAt(Instant passwordChangedAt) {
-        this.passwordChangedAt = passwordChangedAt;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public Instant getDeactivatedAt() {
-        return deactivatedAt;
-    }
-
-    public void setDeactivatedAt(Instant deactivatedAt) {
-        this.deactivatedAt = deactivatedAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Long getVersion() {
-        return version;
-    }
-
-    public void setVersion(Long version) {
-        this.version = version;
+    public UserEntity deactivatedAt(Instant at) {
+        return new UserEntity(
+                id,
+                username,
+                email,
+                emailNormalized,
+                passwordHash,
+                emailVerified,
+                pictureUrl,
+                roles,
+                lastLoginAt,
+                passwordChangedAt,
+                false,
+                at,
+                updatedAt,
+                createdAt,
+                version);
     }
 }

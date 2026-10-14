@@ -5,8 +5,8 @@ import com.posadskiy.auth.core.crypto.SecureTokens;
 import com.posadskiy.auth.core.exception.OAuthException;
 import com.posadskiy.auth.core.oauth.DatabaseOAuthStateStore;
 import com.posadskiy.auth.core.oauth.OAuthProviderRegistry;
-import com.posadskiy.auth.core.oauth.OAuthState;
 import com.posadskiy.auth.core.oauth.Pkce;
+import com.posadskiy.auth.core.storage.db.entity.OAuthStateEntity;
 import io.micronaut.http.uri.UriBuilder;
 import jakarta.inject.Singleton;
 import java.util.List;
@@ -24,28 +24,28 @@ public class OAuthAuthorizationService {
 
     public AuthorizationRequest authorize(String providerName, String browserBinding, String codeChallenge) {
         OAuthProviderProperties provider = registry.require(providerName);
-        String redirectUri = provider.getRedirectUri();
+        String redirectUri = provider.redirectUri();
         if (redirectUri == null || (!redirectUri.startsWith("http://") && !redirectUri.startsWith("https://"))) {
             throw new OAuthException("Redirect URI is not configured for provider " + providerName);
         }
         String codeVerifier = Pkce.verifier();
         String nonce = SecureTokens.randomUrl(32);
-        OAuthState state =
+        OAuthStateEntity state =
                 stateStore.create(providerName, redirectUri, codeVerifier, nonce, browserBinding, codeChallenge);
 
-        var builder = UriBuilder.of(provider.getAuthorizationUri())
-                .queryParam("client_id", provider.getClientId())
+        var builder = UriBuilder.of(provider.authorizationUri())
+                .queryParam("client_id", provider.clientId())
                 .queryParam("response_type", "code")
-                .queryParam("scope", formatScopes(provider.getScopes()))
+                .queryParam("scope", formatScopes(provider.scopes()))
                 .queryParam("redirect_uri", redirectUri)
-                .queryParam("state", state.value())
+                .queryParam("state", state.stateValue())
                 .queryParam("nonce", nonce)
                 .queryParam("code_challenge", Pkce.challengeS256(codeVerifier))
                 .queryParam("code_challenge_method", "S256");
         if ("apple".equalsIgnoreCase(providerName)) {
             builder.queryParam("response_mode", "form_post");
         }
-        return new AuthorizationRequest(builder.build().toString(), state.value(), nonce);
+        return new AuthorizationRequest(builder.build().toString(), state.stateValue(), nonce);
     }
 
     private String formatScopes(List<String> scopes) {

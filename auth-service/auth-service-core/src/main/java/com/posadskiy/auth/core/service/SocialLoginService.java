@@ -39,30 +39,25 @@ public class SocialLoginService {
                 profile.provider(), profile.providerUserId());
         if (existingIdentity.isPresent()) {
             ExternalIdentityEntity identity = existingIdentity.get();
-            if (Boolean.TRUE.equals(identity.getRevoked())) {
+            if (identity.revoked()) {
                 throw new OAuthException("This social identity has been revoked", 403);
             }
             UserEntity user = usersRepository
-                    .findById(identity.getUserId())
+                    .findById(identity.userId())
                     .orElseThrow(() -> new OAuthException("Linked user is missing"));
-            if (!Boolean.TRUE.equals(user.getActive())) {
+            if (!user.active()) {
                 throw new OAuthException("Account is disabled", 403);
             }
-            updateIdentity(identity, profile);
-            touchUser(user, profile);
+            identity = externalIdentityRepository.update(identity.refreshed(profile, Instant.now()));
+            user = touchUser(user, profile);
             return new SocialLoginResult(user, identity);
         }
 
         UserEntity user = resolveUserForNewIdentity(profile);
-        ExternalIdentityEntity identity = new ExternalIdentityEntity();
-        identity.setProvider(profile.provider());
-        identity.setProviderUserId(profile.providerUserId());
-        identity.setUserId(user.getId());
-        identity.setRevoked(Boolean.FALSE);
-        updateIdentity(identity, profile);
-        identity = externalIdentityRepository.save(identity);
-        touchUser(user, profile);
-        auditService.record(user.getId(), "SOCIAL_LINKED", profile.provider());
+        ExternalIdentityEntity identity =
+                externalIdentityRepository.save(ExternalIdentityEntity.linked(user.id(), profile, Instant.now()));
+        user = touchUser(user, profile);
+        auditService.record(user.id(), "SOCIAL_LINKED", profile.provider());
         return new SocialLoginResult(user, identity);
     }
 
@@ -80,48 +75,28 @@ public class SocialLoginService {
                     "This email already has an account. Sign in and link this provider after verifying ownership.");
         }
         UserEntity user = existing.get();
-        if (!Boolean.TRUE.equals(user.getActive())) {
+        if (!user.active()) {
             throw new OAuthException("Account is disabled", 403);
         }
         return user;
     }
 
     private UserEntity createUserFromProfile(ExternalProfile profile, String email) {
-        UserEntity user = new UserEntity();
         String normalized = EmailNormalizer.normalize(email);
-        user.setEmail(email);
-        user.setEmailNormalized(normalized);
-        user.setUsername(buildUsername(profile, normalized));
-        user.setEmailVerified(profile.emailVerified());
-        user.setPasswordHash(null);
-        user.setPictureUrl(profile.pictureUrl());
-        user.setRoles("ROLE_USER");
-        user.setActive(Boolean.TRUE);
-        UserEntity saved = usersRepository.save(user);
-        auditService.record(saved.getId(), "USER_REGISTERED", profile.provider());
+        UserEntity saved = usersRepository.save(UserEntity.newAccount(
+                buildUsername(profile, normalized),
+                email,
+                normalized,
+                null,
+                profile.emailVerified(),
+                profile.pictureUrl(),
+                null));
+        auditService.record(saved.id(), "USER_REGISTERED", profile.provider());
         return saved;
     }
 
-    private void updateIdentity(ExternalIdentityEntity identity, ExternalProfile profile) {
-        identity.setEmail(profile.email());
-        identity.setDisplayName(profile.displayName());
-        identity.setPictureUrl(profile.pictureUrl());
-        identity.setLastLoginAt(Instant.now());
-        identity.setRevoked(Boolean.FALSE);
-        if (identity.getId() != null) {
-            externalIdentityRepository.update(identity);
-        }
-    }
-
-    private void touchUser(UserEntity user, ExternalProfile profile) {
-        user.setLastLoginAt(Instant.now());
-        if (profile.emailVerified()) {
-            user.setEmailVerified(Boolean.TRUE);
-        }
-        if (StringUtils.isNotEmpty(profile.pictureUrl())) {
-            user.setPictureUrl(profile.pictureUrl());
-        }
-        usersRepository.update(user);
+    private UserEntity touchUser(UserEntity user, ExternalProfile profile) {
+        return usersRepository.update(user.withProfile(Instant.now(), profile.emailVerified(), profile.pictureUrl()));
     }
 
     private String buildUsername(ExternalProfile profile, String email) {

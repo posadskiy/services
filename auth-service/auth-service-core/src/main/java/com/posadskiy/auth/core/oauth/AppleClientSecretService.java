@@ -16,29 +16,27 @@ import java.util.Date;
 public class AppleClientSecretService {
 
     public String clientSecret(OAuthProviderProperties provider) {
-        if (!"apple".equalsIgnoreCase(provider.getName())) {
-            return provider.getClientSecret();
+        if (!"apple".equalsIgnoreCase(provider.name())) {
+            return provider.clientSecret();
         }
-        if (provider.getApplePrivateKeyPem() == null
-                || provider.getAppleTeamId() == null
-                || provider.getAppleKeyId() == null) {
-            return provider.getClientSecret();
+        if (provider.applePrivateKeyPem() == null || provider.appleTeamId() == null || provider.appleKeyId() == null) {
+            return provider.clientSecret();
         }
         try {
             Instant now = Instant.now();
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                    .issuer(provider.getAppleTeamId())
-                    .subject(provider.getClientId())
+                    .issuer(provider.appleTeamId())
+                    .subject(provider.clientId())
                     .audience("https://appleid.apple.com")
                     .issueTime(Date.from(now))
                     .expirationTime(Date.from(now.plusSeconds(86400 * 180L)))
                     .build();
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
-                    .keyID(provider.getAppleKeyId())
+                    .keyID(provider.appleKeyId())
                     .type(JOSEObjectType.JWT)
                     .build();
             SignedJWT jwt = new SignedJWT(header, claims);
-            jwt.sign(new ECDSASigner(JwtCryptoFactory.privateKey(provider.getApplePrivateKeyPem())));
+            jwt.sign(new ECDSASigner(JwtCryptoFactory.privateKey(provider.applePrivateKeyPem())));
             return jwt.serialize();
         } catch (Exception e) {
             throw new IllegalStateException("Unable to mint Apple client secret", e);
