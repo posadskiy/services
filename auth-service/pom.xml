@@ -15,23 +15,22 @@
     <parent>
         <groupId>io.micronaut.platform</groupId>
         <artifactId>micronaut-parent</artifactId>
-        <version>4.10.11</version>
+        <version>5.2.2</version>
     </parent>
     <properties>
         <packaging>jar</packaging>
         <jdk.version>25</jdk.version>
         <release.version>25</release.version>
-        <micronaut.version>4.10.11</micronaut.version>
-        <lombok.version>1.18.42</lombok.version>
+        <micronaut.version>5.2.2</micronaut.version>
+        <lombok.version>1.18.48</lombok.version>
         <micronaut.aot.enabled>true</micronaut.aot.enabled>
         <micronaut.aot.packageName>com.posadskiy.auth.service.aot.generated</micronaut.aot.packageName>
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.auth.web.Application</exec.mainClass>
         
-        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
+        <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
         <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
-        <spring-security-crypto.version>6.3.0</spring-security-crypto.version>
-        <commons-lang3.version>3.14.0</commons-lang3.version>
+        <spring-security-crypto.version>6.5.11</spring-security-crypto.version>
     </properties>
 
     <repositories>
@@ -94,13 +93,6 @@
         </dependency>
         <!-- Security -->
 
-        <!-- Utilities -->
-        <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons-lang3.version}</version>
-        </dependency>
-            <!-- Utilities -->
         </dependencies>
     </dependencyManagement>
 

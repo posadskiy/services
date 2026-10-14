@@ -104,13 +104,6 @@
         </dependency>
         <!-- Testing -->
 
-        <!-- Utils -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-        <!-- Utils -->
-
         <dependency>
             <groupId>io.micronaut.reactor</groupId>
             <artifactId>micronaut-reactor</artifactId>

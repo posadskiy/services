@@ -132,7 +132,6 @@
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
-            <version>9.40</version>
         </dependency>
         <!-- JWT helpers -->
 
