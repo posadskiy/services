@@ -16,5 +16,6 @@ public record OAuthStateEntity(
         String nonce,
         @MappedProperty("browser_binding_hash") String browserBindingHash,
         @Nullable @MappedProperty("code_challenge") String codeChallenge,
+        @Nullable @MappedProperty("frontend_redirect_url") String frontendRedirectUrl,
         @MappedProperty("expires_at") Instant expiresAt,
         @DateCreated @Nullable Instant createdAt) {}

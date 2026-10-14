@@ -1,9 +1,11 @@
 package com.posadskiy.auth.core.service;
 
+import com.posadskiy.auth.core.config.AuthProperties;
 import com.posadskiy.auth.core.config.OAuthProviderProperties;
 import com.posadskiy.auth.core.crypto.SecureTokens;
 import com.posadskiy.auth.core.exception.OAuthException;
 import com.posadskiy.auth.core.oauth.DatabaseOAuthStateStore;
+import com.posadskiy.auth.core.oauth.FrontendReturnUrls;
 import com.posadskiy.auth.core.oauth.OAuthProviderRegistry;
 import com.posadskiy.auth.core.oauth.Pkce;
 import com.posadskiy.auth.core.storage.db.entity.OAuthStateEntity;
@@ -16,22 +18,30 @@ public class OAuthAuthorizationService {
 
     private final OAuthProviderRegistry registry;
     private final DatabaseOAuthStateStore stateStore;
+    private final AuthProperties properties;
 
-    public OAuthAuthorizationService(OAuthProviderRegistry registry, DatabaseOAuthStateStore stateStore) {
+    public OAuthAuthorizationService(
+            OAuthProviderRegistry registry, DatabaseOAuthStateStore stateStore, AuthProperties properties) {
         this.registry = registry;
         this.stateStore = stateStore;
+        this.properties = properties;
     }
 
-    public AuthorizationRequest authorize(String providerName, String browserBinding, String codeChallenge) {
+    public AuthorizationRequest authorize(
+            String providerName, String browserBinding, String codeChallenge, String returnTo) {
         OAuthProviderProperties provider = registry.require(providerName);
         String redirectUri = provider.redirectUri();
         if (redirectUri == null || (!redirectUri.startsWith("http://") && !redirectUri.startsWith("https://"))) {
             throw new OAuthException("Redirect URI is not configured for provider " + providerName);
         }
+        String frontendRedirect = FrontendReturnUrls.resolve(
+                returnTo,
+                properties.oauth().frontendRedirectUrl(),
+                properties.oauth().allowedFrontendRedirectUrls());
         String codeVerifier = Pkce.verifier();
         String nonce = SecureTokens.randomUrl(32);
-        OAuthStateEntity state =
-                stateStore.create(providerName, redirectUri, codeVerifier, nonce, browserBinding, codeChallenge);
+        OAuthStateEntity state = stateStore.create(
+                providerName, redirectUri, codeVerifier, nonce, browserBinding, codeChallenge, frontendRedirect);
 
         var builder = UriBuilder.of(provider.authorizationUri())
                 .queryParam("client_id", provider.clientId())

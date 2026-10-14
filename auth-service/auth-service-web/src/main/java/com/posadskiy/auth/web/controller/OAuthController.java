@@ -89,10 +89,11 @@ public class OAuthController {
     public HttpResponse<AuthorizationRedirectResponse> authorize(
             @PathVariable @NotBlank String provider,
             @QueryValue(value = "code_challenge", defaultValue = "") String codeChallenge,
+            @QueryValue(value = "return_to", defaultValue = "") String returnTo,
             HttpRequest<?> request) {
         String binding = existingOrNewBinding(request);
-        AuthorizationRequest authorization =
-                authorizationService.authorize(provider, binding, blankToNull(codeChallenge));
+        AuthorizationRequest authorization = authorizationService.authorize(
+                provider, binding, blankToNull(codeChallenge), blankToNull(returnTo));
         MutableHttpResponse<AuthorizationRedirectResponse> response = HttpResponse.ok(
                 new AuthorizationRedirectResponse(authorization.authorizationUri(), authorization.state()));
         response.cookie(browserCookie(binding, request.isSecure()));
@@ -145,7 +146,10 @@ public class OAuthController {
             ExchangeResult exchange = tokenExchangeService.exchange(provider, code, state, binding, appleUserJson);
             ExternalProfile profile = exchange.profile();
             SocialLoginResult login = socialLoginService.handle(profile);
-            String frontend = authProperties.oauth().frontendRedirectUrl();
+            String frontend = exchange.frontendRedirectUrl();
+            if (frontend == null || frontend.isBlank()) {
+                frontend = authProperties.oauth().frontendRedirectUrl();
+            }
             if (frontend != null && !frontend.isBlank()) {
                 String sessionCode =
                         loginCodeService.create(login.user(), login.identity().id(), exchange.codeChallenge());

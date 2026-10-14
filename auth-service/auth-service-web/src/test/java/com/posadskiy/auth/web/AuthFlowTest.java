@@ -164,6 +164,27 @@ class AuthFlowTest extends PostgresMicronautTest {
     }
 
     @Test
+    void oauthAuthorizeRejectsReturnUrlOutsideAllowlist() {
+        HttpClientResponseException ex = assertThrows(
+                HttpClientResponseException.class,
+                () -> client.toBlocking()
+                        .retrieve(HttpRequest.GET(
+                                "/oauth2/authorize/google?return_to=https://evil.example/oauth/callback")));
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+    }
+
+    @Test
+    void oauthAuthorizeAcceptsAllowlistedReturnUrl() {
+        io.micronaut.http.HttpResponse<String> response = client.toBlocking()
+                .exchange(
+                        HttpRequest.GET(
+                                "/oauth2/authorize/google?return_to=https://costy.posadskiy.com/oauth/callback"),
+                        String.class);
+        assertEquals(HttpStatus.OK, response.getStatus());
+        assertTrue(response.body().contains("accounts.google.com"));
+    }
+
+    @Test
     void unknownOauthProviderIsRejected() {
         HttpClientResponseException ex = assertThrows(
                 HttpClientResponseException.class,

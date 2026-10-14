@@ -78,7 +78,7 @@ public class OAuthTokenExchangeService {
             email = stringValue(readJson(appleUserJson), "email");
         }
         ExternalProfile profile = new ExternalProfile(state.provider(), subject, email, emailVerified, name, picture);
-        return new ExchangeResult(profile, state.codeChallenge());
+        return new ExchangeResult(profile, state.codeChallenge(), state.frontendRedirectUrl());
     }
 
     @SuppressWarnings("unchecked")
@@ -120,5 +120,5 @@ public class OAuthTokenExchangeService {
         return Boolean.parseBoolean(String.valueOf(value == null ? "false" : value));
     }
 
-    public record ExchangeResult(ExternalProfile profile, String codeChallenge) {}
+    public record ExchangeResult(ExternalProfile profile, String codeChallenge, String frontendRedirectUrl) {}
 }

@@ -60,7 +60,8 @@ otel:
 auth:
   oauth:
     redirect-base-url: ${OAUTH_REDIRECT_BASE_URL}
-    frontend-redirect-url: ${OAUTH_FRONTEND_REDIRECT_URL}
+    frontend-redirect-url: ${OAUTH_FRONTEND_REDIRECT_URL:}
+    allowed-frontend-redirect-urls: ${OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS:}
     providers:
       google:
         redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/google

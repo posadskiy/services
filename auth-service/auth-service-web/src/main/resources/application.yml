@@ -151,6 +151,7 @@ auth:
   oauth:
     redirect-base-url: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}
     frontend-redirect-url: ${OAUTH_FRONTEND_REDIRECT_URL:}
+    allowed-frontend-redirect-urls: ${OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS:}
     state-ttl: PT10M
     login-code-ttl: PT5M
     providers:

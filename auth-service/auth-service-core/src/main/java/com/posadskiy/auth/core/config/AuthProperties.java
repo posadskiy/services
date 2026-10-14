@@ -34,5 +34,6 @@ public record AuthProperties(Jwt jwt, Password password, Token token, RateLimit 
             Duration stateTtl,
             Duration loginCodeTtl,
             String redirectBaseUrl,
-            @Nullable String frontendRedirectUrl) {}
+            @Nullable String frontendRedirectUrl,
+            @Nullable String allowedFrontendRedirectUrls) {}
 }

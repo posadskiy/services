@@ -61,6 +61,12 @@ spec:
               name: microservices-config
               key: OAUTH_FRONTEND_REDIRECT_URL
               optional: true
+        - name: OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS
+              optional: true
         - name: GOOGLE_OAUTH_CLIENT_ID
           valueFrom:
             secretKeyRef:
