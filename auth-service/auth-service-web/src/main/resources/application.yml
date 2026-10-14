@@ -60,7 +60,7 @@ micronaut:
     token:
       jwt:
         claims-validators:
-          issuer: ${AUTH_JWT_ISSUER:https://auth.posadskiy.com}
+          issuer: ${AUTH_JWT_ISSUER:`https://auth.posadskiy.com`}
           audience: ${AUTH_JWT_AUDIENCE:api.posadskiy.com}
           not-before: true
         generator:
@@ -137,7 +137,7 @@ logging:
 
 auth:
   jwt:
-    issuer: ${AUTH_JWT_ISSUER:https://auth.posadskiy.com}
+    issuer: ${AUTH_JWT_ISSUER:`https://auth.posadskiy.com`}
     audience: ${AUTH_JWT_AUDIENCE:api.posadskiy.com}
     access-token-ttl: ${AUTH_JWT_ACCESS_TTL:PT15M}
     hmac-secret: ${AUTH_JWT_HMAC_SECRET:${JWT_GENERATOR_SIGNATURE_SECRET}}

@@ -45,6 +45,10 @@ spec:
             secretKeyRef:
               name: microservices-secrets
               key: AUTH_DATABASE_PASSWORD
+        - name: AUTH_JWT_ISSUER
+          value: "https://auth.posadskiy.com"
+        - name: AUTH_JWT_AUDIENCE
+          value: "api.posadskiy.com"
         - name: JWT_GENERATOR_SIGNATURE_SECRET
           valueFrom:
             secretKeyRef:
