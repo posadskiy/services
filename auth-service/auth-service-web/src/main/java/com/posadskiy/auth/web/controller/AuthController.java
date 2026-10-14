@@ -48,7 +48,7 @@ public class AuthController {
         this.auditService = auditService;
     }
 
-    @Post({"/users", "/signup"})
+    @Post(uris = {"/users", "/signup"})
     @Secured(SecurityRule.IS_ANONYMOUS)
     public HttpResponse<UserResponse> register(@Body @Valid RegisterRequest request) {
         UserEntity user = userAccountService.register(request.email(), request.password(), request.username());
