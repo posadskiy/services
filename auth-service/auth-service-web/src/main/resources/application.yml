@@ -33,12 +33,6 @@ micronaut:
         access: isAnonymous()
       - pattern: /oauth2/**
         access: isAnonymous()
-      - pattern: /account/verify
-        access: isAnonymous()
-      - pattern: /account/forgot-password
-        access: isAnonymous()
-      - pattern: /account/reset-password
-        access: isAnonymous()
       - pattern: /keys
         access: isAnonymous()
       - pattern: /.well-known/**
@@ -153,14 +147,7 @@ auth:
     refresh-token-ttl: ${AUTH_REFRESH_TTL:P30D}
   rate-limit:
     login-per-minute: ${AUTH_LOGIN_RATE:20}
-  mail:
-    enabled: ${MAIL_ENABLED:false}
-    host: ${MAIL_HOST:}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    from: ${MAIL_FROM:noreply@localhost}
-    public-base-url: ${MAIL_PUBLIC_BASE_URL:}
+    window: PT1M
   oauth:
     redirect-base-url: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}
     frontend-redirect-url: ${OAUTH_FRONTEND_REDIRECT_URL:}

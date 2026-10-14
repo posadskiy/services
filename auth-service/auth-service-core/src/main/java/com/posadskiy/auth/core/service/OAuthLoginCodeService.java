@@ -28,7 +28,7 @@ public class OAuthLoginCodeService {
         entity.setUserId(user.getId());
         entity.setExternalIdentityId(identityId);
         entity.setCodeChallenge(codeChallenge);
-        entity.setExpiresAt(Instant.now().plus(properties.getOauth().getLoginCodeTtl()));
+        entity.setExpiresAt(Instant.now().plus(properties.oauth().loginCodeTtl()));
         repository.save(entity);
         return code;
     }

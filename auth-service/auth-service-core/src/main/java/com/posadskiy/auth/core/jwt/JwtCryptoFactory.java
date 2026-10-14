@@ -32,11 +32,11 @@ public class JwtCryptoFactory {
     @Singleton
     @Named("generator")
     SignatureGeneratorConfiguration signatureGenerator(AuthProperties properties) {
-        AuthProperties.Jwt jwt = properties.getJwt();
-        if (notBlank(jwt.getPrivateKeyPem()) && notBlank(jwt.getPublicKeyPem())) {
+        AuthProperties.Jwt jwt = properties.jwt();
+        if (notBlank(jwt.privateKeyPem()) && notBlank(jwt.publicKeyPem())) {
             return new ECSignatureGenerator(ecConfig(jwt));
         }
-        String secret = jwt.getHmacSecret();
+        String secret = jwt.hmacSecret();
         if (!notBlank(secret)) {
             throw new IllegalStateException("Set AUTH_JWT_HMAC_SECRET (or JWT_GENERATOR_SIGNATURE_SECRET) "
                     + "or provide AUTH_JWT_PRIVATE_KEY_PEM and AUTH_JWT_PUBLIC_KEY_PEM");
@@ -59,13 +59,13 @@ public class JwtCryptoFactory {
 
     @Singleton
     ClaimsAudienceProvider audienceProvider(AuthProperties properties) {
-        return () -> List.of(properties.getJwt().getAudience());
+        return () -> List.of(properties.jwt().audience());
     }
 
     private static JWK toJwk(AuthProperties properties, SignatureGeneratorConfiguration generator) {
-        AuthProperties.Jwt jwt = properties.getJwt();
+        AuthProperties.Jwt jwt = properties.jwt();
         if (generator instanceof ECSignatureGenerator) {
-            ECKey.Builder builder = new ECKey.Builder(Curve.P_256, publicKey(jwt.getPublicKeyPem()))
+            ECKey.Builder builder = new ECKey.Builder(Curve.P_256, publicKey(jwt.publicKeyPem()))
                     .keyID("auth-es256")
                     .algorithm(JWSAlgorithm.ES256);
             return builder.build();
@@ -74,8 +74,8 @@ public class JwtCryptoFactory {
     }
 
     private static ECSignatureGeneratorConfiguration ecConfig(AuthProperties.Jwt jwt) {
-        ECPublicKey publicKey = publicKey(jwt.getPublicKeyPem());
-        ECPrivateKey privateKey = privateKey(jwt.getPrivateKeyPem());
+        ECPublicKey publicKey = publicKey(jwt.publicKeyPem());
+        ECPrivateKey privateKey = privateKey(jwt.privateKeyPem());
         return new ECSignatureGeneratorConfiguration() {
             @Override
             public ECPublicKey getPublicKey() {

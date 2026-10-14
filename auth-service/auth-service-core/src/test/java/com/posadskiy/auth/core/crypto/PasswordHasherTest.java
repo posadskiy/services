@@ -11,8 +11,7 @@ class PasswordHasherTest {
 
     @Test
     void hashesAndVerifies() {
-        AuthProperties properties = new AuthProperties();
-        properties.getPassword().setBcryptCost(4);
+        AuthProperties properties = new AuthProperties(null, new AuthProperties.Password(4), null, null, null);
         PasswordHasher hasher = new PasswordHasher(properties);
         hasher.warmup();
         String hash = hasher.hash("correcthorse");

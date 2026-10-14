@@ -30,7 +30,7 @@ public class AuthClaimsGenerator extends JWTClaimsSetGenerator {
 
     @Override
     protected void populateIss(JWTClaimsSet.Builder builder) {
-        builder.issuer(properties.getJwt().getIssuer());
+        builder.issuer(properties.jwt().issuer());
     }
 
     @Override

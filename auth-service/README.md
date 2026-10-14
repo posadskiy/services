@@ -12,7 +12,7 @@ Micronaut 5 authentication service: email/password accounts plus Google and Appl
 - `GET|POST /oauth2/callback/{provider}` — provider callback (Apple uses `form_post`)
 - `POST /oauth2/finalize` — exchange the one-time login code (optional frontend PKCE)
 - `GET /keys` and `GET /.well-known/openid-configuration`
-- Account: email verify, password reset, deactivate
+- `GET /account/me` and `POST /account/deactivate`
 
 Access tokens last **15 minutes**. Refresh tokens are opaque, stored as SHA-256 hashes, rotated on use, and expire after 30 days. Reuse of a rotated refresh token revokes the whole family.
 
@@ -70,3 +70,5 @@ Health: `GET /health/liveness` and `GET /health/readiness`.
 - `AUTH_BCRYPT_COST` — default 10
 - `SYSTEM_CLIENT_ENABLED=true` plus client id/secret for service-to-service tokens
 - Apple: `APPLE_OAUTH_ENABLED`, team id, key id, and `.p8` PEM (`APPLE_OAUTH_PRIVATE_KEY_PEM`)
+
+Email verification and password-reset mail are **not** sent from this service. When `email-service` / `email-template-service` are back, wire them here instead of embedding SMTP.

@@ -7,7 +7,6 @@ import com.posadskiy.auth.api.dto.RevokeRequest;
 import com.posadskiy.auth.api.dto.TokenResponse;
 import com.posadskiy.auth.api.dto.UserResponse;
 import com.posadskiy.auth.core.exception.AuthException;
-import com.posadskiy.auth.core.service.ActionTokenService;
 import com.posadskiy.auth.core.service.AuditService;
 import com.posadskiy.auth.core.service.AuthMetrics;
 import com.posadskiy.auth.core.service.LoginRateLimiter;
@@ -32,7 +31,6 @@ public class AuthController {
 
     private final UserAccountService userAccountService;
     private final TokenService tokenService;
-    private final ActionTokenService actionTokenService;
     private final LoginRateLimiter rateLimiter;
     private final AuthMetrics metrics;
     private final AuditService auditService;
@@ -40,13 +38,11 @@ public class AuthController {
     public AuthController(
             UserAccountService userAccountService,
             TokenService tokenService,
-            ActionTokenService actionTokenService,
             LoginRateLimiter rateLimiter,
             AuthMetrics metrics,
             AuditService auditService) {
         this.userAccountService = userAccountService;
         this.tokenService = tokenService;
-        this.actionTokenService = actionTokenService;
         this.rateLimiter = rateLimiter;
         this.metrics = metrics;
         this.auditService = auditService;
@@ -56,7 +52,6 @@ public class AuthController {
     @Secured(SecurityRule.IS_ANONYMOUS)
     public HttpResponse<UserResponse> register(@Body @Valid RegisterRequest request) {
         UserEntity user = userAccountService.register(request.email(), request.password(), request.username());
-        actionTokenService.sendVerifyEmail(user);
         return HttpResponse.status(HttpStatus.CREATED).body(toResponse(user));
     }
 

@@ -20,7 +20,7 @@ public class DiscoveryController {
 
     @Get("/openid-configuration")
     public OpenIdConfiguration configuration() {
-        String issuer = properties.getJwt().getIssuer();
+        String issuer = properties.jwt().issuer();
         return new OpenIdConfiguration(
                 issuer,
                 issuer + "/oauth2/authorize",

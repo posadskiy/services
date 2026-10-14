@@ -76,27 +76,12 @@ public class UserAccountService {
         return user;
     }
 
-    @Transactional
-    public UserEntity changePassword(UserEntity user, String rawPassword) {
-        passwordPolicy.validate(rawPassword, user.getEmailNormalized(), user.getUsername());
-        user.setPasswordHash(passwordHasher.hash(rawPassword));
-        user.setPasswordChangedAt(Instant.now());
-        UserEntity updated = usersRepository.update(user);
-        auditService.record(user.getId(), "PASSWORD_CHANGED", null);
-        return updated;
-    }
-
     public UserEntity requireActive(Long userId) {
         UserEntity user = usersRepository.findById(userId).orElseThrow(InvalidCredentialsException::new);
         if (!Boolean.TRUE.equals(user.getActive())) {
             throw new AuthException("Account is disabled", 403);
         }
         return user;
-    }
-
-    public UserEntity markVerified(UserEntity user) {
-        user.setEmailVerified(Boolean.TRUE);
-        return usersRepository.update(user);
     }
 
     public UserEntity deactivate(UserEntity user) {

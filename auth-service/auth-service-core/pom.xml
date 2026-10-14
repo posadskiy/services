@@ -77,12 +77,6 @@
             <artifactId>micronaut-micrometer-core</artifactId>
         </dependency>
 
-        <!-- E-mail -->
-        <dependency>
-            <groupId>org.eclipse.angus</groupId>
-            <artifactId>angus-mail</artifactId>
-        </dependency>
-
         <!-- Testing -->
         <dependency>
             <groupId>io.micronaut.test</groupId>

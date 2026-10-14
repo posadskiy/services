@@ -13,12 +13,6 @@ micronaut:
         access: isAnonymous()
       - pattern: /oauth2/**
         access: isAnonymous()
-      - pattern: /account/verify
-        access: isAnonymous()
-      - pattern: /account/forgot-password
-        access: isAnonymous()
-      - pattern: /account/reset-password
-        access: isAnonymous()
       - pattern: /keys
         access: isAnonymous()
       - pattern: /.well-known/**

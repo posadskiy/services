@@ -35,7 +35,7 @@ public class DatabaseOAuthStateStore {
         entity.setNonce(nonce);
         entity.setBrowserBindingHash(SecureTokens.sha256Hex(browserBinding));
         entity.setCodeChallenge(codeChallenge);
-        entity.setExpiresAt(Instant.now().plus(properties.getOauth().getStateTtl()));
+        entity.setExpiresAt(Instant.now().plus(properties.oauth().stateTtl()));
         repository.save(entity);
         return toState(entity);
     }

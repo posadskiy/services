@@ -145,7 +145,7 @@ public class OAuthController {
             ExchangeResult exchange = tokenExchangeService.exchange(provider, code, state, binding, appleUserJson);
             ExternalProfile profile = exchange.profile();
             SocialLoginResult login = socialLoginService.handle(profile);
-            String frontend = authProperties.getOauth().getFrontendRedirectUrl();
+            String frontend = authProperties.oauth().frontendRedirectUrl();
             if (frontend != null && !frontend.isBlank()) {
                 String sessionCode =
                         loginCodeService.create(login.user(), login.identity().getId(), exchange.codeChallenge());

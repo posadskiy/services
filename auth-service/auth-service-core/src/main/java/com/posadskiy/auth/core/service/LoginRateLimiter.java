@@ -14,9 +14,9 @@ public class LoginRateLimiter {
     private final int limit;
 
     public LoginRateLimiter(AuthProperties properties) {
-        this.limit = properties.getRateLimit().getLoginPerMinute();
+        this.limit = properties.rateLimit().loginPerMinute();
         this.attempts = Caffeine.newBuilder()
-                .expireAfterWrite(properties.getRateLimit().getWindow())
+                .expireAfterWrite(properties.rateLimit().window())
                 .maximumSize(100_000)
                 .build();
     }

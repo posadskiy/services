@@ -50,7 +50,7 @@ public class TokenService {
         String access = accessToken(user, provider, externalIdentityId);
         String refresh = persistRefresh(user.getId(), provider, externalIdentityId, UUID.randomUUID());
         return new TokenResponse(
-                access, refresh, properties.getJwt().getAccessTokenTtl().toSeconds(), "Bearer", user.getId());
+                access, refresh, properties.jwt().accessTokenTtl().toSeconds(), "Bearer", user.getId());
     }
 
     @Transactional
@@ -81,7 +81,7 @@ public class TokenService {
         return new TokenResponse(
                 accessToken(user, existing.getProvider(), existing.getExternalIdentityId()),
                 next,
-                properties.getJwt().getAccessTokenTtl().toSeconds(),
+                properties.jwt().accessTokenTtl().toSeconds(),
                 "Bearer",
                 user.getId());
     }
@@ -113,7 +113,7 @@ public class TokenService {
         attributes.put("token_use", "access");
         attributes.put("client_id", clientId);
         Authentication authentication = Authentication.build(clientId, client.getRoles(), attributes);
-        int ttl = (int) properties.getJwt().getAccessTokenTtl().toSeconds();
+        int ttl = (int) properties.jwt().accessTokenTtl().toSeconds();
         String access = tokenGenerator
                 .generateToken(authentication, ttl)
                 .orElseThrow(() -> new IllegalStateException("Unable to generate access token"));
@@ -134,7 +134,7 @@ public class TokenService {
             attributes.put("external_identity_id", externalIdentityId);
         }
         Authentication authentication = Authentication.build(String.valueOf(user.getId()), user.roleList(), attributes);
-        int ttl = (int) properties.getJwt().getAccessTokenTtl().toSeconds();
+        int ttl = (int) properties.jwt().accessTokenTtl().toSeconds();
         return tokenGenerator
                 .generateToken(authentication, ttl)
                 .orElseThrow(() -> new IllegalStateException("Unable to generate access token"));
@@ -149,7 +149,7 @@ public class TokenService {
         entity.setProvider(provider);
         entity.setExternalIdentityId(externalIdentityId);
         entity.setRevoked(Boolean.FALSE);
-        entity.setExpiresAt(Instant.now().plus(properties.getToken().getRefreshTokenTtl()));
+        entity.setExpiresAt(Instant.now().plus(properties.token().refreshTokenTtl()));
         refreshTokenRepository.save(entity);
         return value;
     }

@@ -19,8 +19,6 @@ micronaut:
         access: isAnonymous()
       - pattern: /oauth2/**
         access: isAnonymous()
-      - pattern: /account/**
-        access: isAnonymous()
       - pattern: /keys
         access: isAnonymous()
       - pattern: /.well-known/**

@@ -17,7 +17,7 @@ public class PasswordHasher {
     private volatile String dummyHash;
 
     public PasswordHasher(AuthProperties properties) {
-        this.cost = properties.getPassword().getBcryptCost();
+        this.cost = properties.password().bcryptCost();
     }
 
     @PostConstruct
