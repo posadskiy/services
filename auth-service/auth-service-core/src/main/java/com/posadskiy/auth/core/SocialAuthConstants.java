@@ -7,8 +7,7 @@ public final class SocialAuthConstants {
     public static final String ATTR_EXTERNAL_IDENTITY_ID = "external_identity_id";
     public static final String CLAIM_EMAIL_VERIFIED = "email_verified";
     public static final String CLAIM_PICTURE = "picture";
+    public static final String COOKIE_BROWSER_BINDING = "oauth_browser";
 
-    private SocialAuthConstants() {
-    }
+    private SocialAuthConstants() {}
 }
-

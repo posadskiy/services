@@ -1,25 +1,49 @@
-#tag::micronaut[]
 micronaut:
   security:
     intercept-url-map:
-      - pattern: /v3/api-docs/**
+      - pattern: /login
         access: isAnonymous()
-      - pattern: /health
+      - pattern: /users
+        access: isAnonymous()
+      - pattern: /oauth/token
+        access: isAnonymous()
+      - pattern: /oauth/revoke
+        access: isAnonymous()
+      - pattern: /logout
+        access: isAnonymous()
+      - pattern: /oauth2/**
+        access: isAnonymous()
+      - pattern: /account/verify
+        access: isAnonymous()
+      - pattern: /account/forgot-password
+        access: isAnonymous()
+      - pattern: /account/reset-password
+        access: isAnonymous()
+      - pattern: /keys
+        access: isAnonymous()
+      - pattern: /.well-known/**
         access: isAnonymous()
       - pattern: /prometheus
+        access: isAnonymous()
+      - pattern: /health/liveness
+        access: isAnonymous()
+      - pattern: /health/readiness
         access: isAnonymous()
   endpoints:
     health:
       enabled: true
       sensitive: false
       details:
-        enabled: true
-      jdbc:
-        enabled: false  # avoid DB connection on every /health probe so pool can go to 0 when idle (Neon)
-#end::micronaut[]
+        enabled: false
+    openapi:
+      enabled: false
+  router:
+    static-resources:
+      swagger:
+        enabled: false
+      swagger-ui:
+        enabled: false
 
-#tag::database[]
-# Hikari properties must be under datasources.default (not .hikari) per Micronaut JDBC config
 datasources:
   default:
     maximum-pool-size: ${DB_MAX_POOL_SIZE:3}
@@ -28,23 +52,23 @@ datasources:
     idle-timeout: ${DB_IDLE_TIMEOUT:60000}
     max-lifetime: ${DB_MAX_LIFETIME:600000}
     leak-detection-threshold: 60000
+
 flyway:
   datasources:
     default:
       validate-on-migrate: true
-#end::database[]
 
-#tag::otel[]
 otel:
   traces:
     sampler:
-      arg: "1.0"
-#end::otel[]
+      arg: ${OTEL_TRACES_SAMPLER_ARG:0.1}
 
-social:
+auth:
   oauth:
     redirect-base-url: ${OAUTH_REDIRECT_BASE_URL}
-    encryption-secret: ${OAUTH_TOKEN_ENCRYPTION_SECRET}
+    frontend-redirect-url: ${OAUTH_FRONTEND_REDIRECT_URL}
     providers:
-      facebook:
-        enabled: ${FACEBOOK_OAUTH_ENABLED:false}
+      google:
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/google
+      apple:
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/apple

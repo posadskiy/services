@@ -15,4 +15,3 @@ public interface ExternalIdentityRepository extends CrudRepository<ExternalIdent
 
     List<ExternalIdentityEntity> findByUserId(Long userId);
 }
-

@@ -1,70 +1,86 @@
 package com.posadskiy.auth.core.storage.db.entity;
 
-import io.micronaut.core.annotation.NonNull;
 import io.micronaut.data.annotation.DateCreated;
 import io.micronaut.data.annotation.GeneratedValue;
 import io.micronaut.data.annotation.Id;
 import io.micronaut.data.annotation.MappedEntity;
 import io.micronaut.data.annotation.MappedProperty;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import lombok.Data;
+import java.time.Instant;
+import java.util.UUID;
 
-@Data
 @MappedEntity("refresh_token")
 public class RefreshTokenEntity {
 
     @Id
     @GeneratedValue
-    @NonNull
     private Long id;
 
-    @NonNull
-    @NotBlank
-    private String username;
+    @MappedProperty("user_id")
+    private Long userId;
 
-    @NonNull
-    @NotBlank
-    private String refreshToken;
+    @MappedProperty("token_hash")
+    private String tokenHash;
 
-    @MappedProperty("provider")
+    @MappedProperty("family_id")
+    private UUID familyId;
+
+    @MappedProperty("replaced_by_id")
+    private Long replacedById;
+
     private String provider;
 
     @MappedProperty("external_identity_id")
     private Long externalIdentityId;
 
-    @NonNull
-    @NotNull
-    private Boolean revoked;
+    private Boolean revoked = Boolean.FALSE;
+
+    @MappedProperty("expires_at")
+    private Instant expiresAt;
+
+    @MappedProperty("last_used_at")
+    private Instant lastUsedAt;
 
     @DateCreated
-    @NonNull
-    @NotNull
-    private LocalDateTime dateCreated;
+    private Instant createdAt;
 
-    public @NonNull Long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(@NonNull Long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public @NonNull @NotBlank String getUsername() {
-        return username;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUsername(@NonNull @NotBlank String username) {
-        this.username = username;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public @NonNull @NotBlank String getRefreshToken() {
-        return refreshToken;
+    public String getTokenHash() {
+        return tokenHash;
     }
 
-    public void setRefreshToken(@NonNull @NotBlank String refreshToken) {
-        this.refreshToken = refreshToken;
+    public void setTokenHash(String tokenHash) {
+        this.tokenHash = tokenHash;
+    }
+
+    public UUID getFamilyId() {
+        return familyId;
+    }
+
+    public void setFamilyId(UUID familyId) {
+        this.familyId = familyId;
+    }
+
+    public Long getReplacedById() {
+        return replacedById;
+    }
+
+    public void setReplacedById(Long replacedById) {
+        this.replacedById = replacedById;
     }
 
     public String getProvider() {
@@ -83,19 +99,35 @@ public class RefreshTokenEntity {
         this.externalIdentityId = externalIdentityId;
     }
 
-    public @NonNull @NotNull Boolean getRevoked() {
+    public Boolean getRevoked() {
         return revoked;
     }
 
-    public void setRevoked(@NonNull @NotNull Boolean revoked) {
+    public void setRevoked(Boolean revoked) {
         this.revoked = revoked;
     }
 
-    public @NonNull @NotNull LocalDateTime getDateCreated() {
-        return dateCreated;
+    public Instant getExpiresAt() {
+        return expiresAt;
     }
 
-    public void setDateCreated(@NonNull @NotNull LocalDateTime dateCreated) {
-        this.dateCreated = dateCreated;
+    public void setExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public Instant getLastUsedAt() {
+        return lastUsedAt;
+    }
+
+    public void setLastUsedAt(Instant lastUsedAt) {
+        this.lastUsedAt = lastUsedAt;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

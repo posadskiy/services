@@ -1,72 +1,51 @@
 package com.posadskiy.auth.core.service;
 
-import com.posadskiy.auth.core.property.OAuthProviderConfigurationProperties;
+import com.posadskiy.auth.core.config.OAuthProviderProperties;
+import com.posadskiy.auth.core.crypto.SecureTokens;
+import com.posadskiy.auth.core.exception.OAuthException;
+import com.posadskiy.auth.core.oauth.DatabaseOAuthStateStore;
 import com.posadskiy.auth.core.oauth.OAuthProviderRegistry;
 import com.posadskiy.auth.core.oauth.OAuthState;
-import com.posadskiy.auth.core.oauth.OAuthStateStore;
-import io.micronaut.core.util.StringUtils;
+import com.posadskiy.auth.core.oauth.Pkce;
 import io.micronaut.http.uri.UriBuilder;
 import jakarta.inject.Singleton;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
-import java.util.Base64;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Singleton
 public class OAuthAuthorizationService {
 
     private final OAuthProviderRegistry registry;
-    private final OAuthStateStore stateStore;
-    private final SecureRandom secureRandom = new SecureRandom();
+    private final DatabaseOAuthStateStore stateStore;
 
-    public OAuthAuthorizationService(OAuthProviderRegistry registry, OAuthStateStore stateStore) {
+    public OAuthAuthorizationService(OAuthProviderRegistry registry, DatabaseOAuthStateStore stateStore) {
         this.registry = registry;
         this.stateStore = stateStore;
     }
 
-    public AuthorizationRequest authorize(String providerName, String overrideRedirectUri) {
-        OAuthProviderConfigurationProperties provider = registry.require(providerName);
-        String redirectUri =
-                StringUtils.isNotEmpty(overrideRedirectUri) ? overrideRedirectUri : provider.getRedirectUri();
-
-        // Validate redirect URI
-        if (StringUtils.isEmpty(redirectUri)) {
-            throw new IllegalStateException(
-                    "Redirect URI is not configured for provider '" + providerName + "'. " +
-                    "Please ensure OAUTH_REDIRECT_BASE_URL environment variable is set (e.g., http://localhost:8100)");
+    public AuthorizationRequest authorize(String providerName, String browserBinding, String codeChallenge) {
+        OAuthProviderProperties provider = registry.require(providerName);
+        String redirectUri = provider.getRedirectUri();
+        if (redirectUri == null || (!redirectUri.startsWith("http://") && !redirectUri.startsWith("https://"))) {
+            throw new OAuthException("Redirect URI is not configured for provider " + providerName);
         }
-        
-        // Validate redirect URI format
-        if (!redirectUri.startsWith("http://") && !redirectUri.startsWith("https://")) {
-            throw new IllegalStateException(
-                    "Redirect URI must be an absolute URL starting with http:// or https://. " +
-                    "Current value: " + redirectUri + ". " +
-                    "Please check OAUTH_REDIRECT_BASE_URL environment variable.");
+        String codeVerifier = Pkce.verifier();
+        String nonce = SecureTokens.randomUrl(32);
+        OAuthState state =
+                stateStore.create(providerName, redirectUri, codeVerifier, nonce, browserBinding, codeChallenge);
+
+        var builder = UriBuilder.of(provider.getAuthorizationUri())
+                .queryParam("client_id", provider.getClientId())
+                .queryParam("response_type", "code")
+                .queryParam("scope", formatScopes(provider.getScopes()))
+                .queryParam("redirect_uri", redirectUri)
+                .queryParam("state", state.value())
+                .queryParam("nonce", nonce)
+                .queryParam("code_challenge", Pkce.challengeS256(codeVerifier))
+                .queryParam("code_challenge_method", "S256");
+        if ("apple".equalsIgnoreCase(providerName)) {
+            builder.queryParam("response_mode", "form_post");
         }
-
-        String codeVerifier = generateRandomCodeVerifier();
-        String codeChallenge = createCodeChallenge(codeVerifier);
-        String nonce = generateNonce();
-
-        OAuthState state = stateStore.create(providerName, redirectUri, codeVerifier, nonce);
-
-        URI authorizationUri =
-                UriBuilder.of(provider.getAuthorizationUri())
-                        .queryParam("client_id", provider.getClientId())
-                        .queryParam("response_type", "code")
-                        .queryParam("scope", formatScopes(provider.getScopes()))
-                        .queryParam("redirect_uri", redirectUri)
-                        .queryParam("state", state.value())
-                        .queryParam("nonce", nonce)
-                        .queryParam("access_type", "offline")
-                        .queryParam("code_challenge", codeChallenge)
-                        .queryParam("code_challenge_method", "S256")
-                        .build();
-
-        return new AuthorizationRequest(authorizationUri.toString(), state.value(), nonce);
+        return new AuthorizationRequest(builder.build().toString(), state.value(), nonce);
     }
 
     private String formatScopes(List<String> scopes) {
@@ -76,26 +55,5 @@ public class OAuthAuthorizationService {
         return String.join(" ", scopes);
     }
 
-    private String generateRandomCodeVerifier() {
-        byte[] buffer = new byte[32];
-        secureRandom.nextBytes(buffer);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(buffer);
-    }
-
-    private String createCodeChallenge(String codeVerifier) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashed = digest.digest(codeVerifier.getBytes(StandardCharsets.US_ASCII));
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(hashed);
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to create PKCE challenge", e);
-        }
-    }
-
-    private String generateNonce() {
-        return generateRandomCodeVerifier();
-    }
-
     public record AuthorizationRequest(String authorizationUri, String state, String nonce) {}
 }
-

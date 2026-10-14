@@ -8,6 +8,6 @@ public record OAuthState(
         String redirectUri,
         String codeVerifier,
         String nonce,
-        Instant expiresAt) {
-}
-
+        String browserBindingHash,
+        String codeChallenge,
+        Instant expiresAt) {}

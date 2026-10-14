@@ -8,7 +8,7 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
-class ApplicationTest {
+class ApplicationTest extends PostgresMicronautTest {
 
     @Inject
     EmbeddedApplication<?> application;

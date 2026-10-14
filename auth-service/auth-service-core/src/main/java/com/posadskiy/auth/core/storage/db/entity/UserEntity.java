@@ -1,13 +1,17 @@
 package com.posadskiy.auth.core.storage.db.entity;
 
-import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
-import io.micronaut.data.annotation.*;
-import jakarta.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
-import lombok.Data;
+import io.micronaut.data.annotation.DateCreated;
+import io.micronaut.data.annotation.DateUpdated;
+import io.micronaut.data.annotation.GeneratedValue;
+import io.micronaut.data.annotation.Id;
+import io.micronaut.data.annotation.MappedEntity;
+import io.micronaut.data.annotation.MappedProperty;
+import io.micronaut.data.annotation.Version;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 
-@Data
 @MappedEntity("users")
 public class UserEntity {
 
@@ -15,15 +19,14 @@ public class UserEntity {
     @GeneratedValue
     private Long id;
 
-    @NonNull
-    @NotBlank
     private String username;
-
-    @NonNull
-    @NotBlank
     private String email;
 
+    @MappedProperty("email_normalized")
+    private String emailNormalized;
+
     @Nullable
+    @MappedProperty("password_hash")
     private String passwordHash;
 
     @MappedProperty("email_verified")
@@ -32,14 +35,24 @@ public class UserEntity {
     @MappedProperty("picture_url")
     private String pictureUrl;
 
+    private String roles = "ROLE_USER";
+
     @MappedProperty("last_login_at")
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
+
+    @MappedProperty("password_changed_at")
+    private Instant passwordChangedAt;
+
+    private Boolean active = Boolean.TRUE;
+
+    @MappedProperty("deactivated_at")
+    private Instant deactivatedAt;
 
     @DateUpdated
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @DateCreated
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Version
     private Long version;
@@ -52,20 +65,28 @@ public class UserEntity {
         this.id = id;
     }
 
-    public @NonNull @NotBlank String getUsername() {
+    public String getUsername() {
         return username;
     }
 
-    public void setUsername(@NonNull @NotBlank String username) {
+    public void setUsername(String username) {
         this.username = username;
     }
 
-    public @NonNull @NotBlank String getEmail() {
+    public String getEmail() {
         return email;
     }
 
-    public void setEmail(@NonNull @NotBlank String email) {
+    public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getEmailNormalized() {
+        return emailNormalized;
+    }
+
+    public void setEmailNormalized(String emailNormalized) {
+        this.emailNormalized = emailNormalized;
     }
 
     public @Nullable String getPasswordHash() {
@@ -92,27 +113,69 @@ public class UserEntity {
         this.pictureUrl = pictureUrl;
     }
 
-    public LocalDateTime getLastLoginAt() {
+    public String getRoles() {
+        return roles;
+    }
+
+    public void setRoles(String roles) {
+        this.roles = roles;
+    }
+
+    public List<String> roleList() {
+        if (roles == null || roles.isBlank()) {
+            return List.of("ROLE_USER");
+        }
+        return Arrays.stream(roles.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+    }
+
+    public Instant getLastLoginAt() {
         return lastLoginAt;
     }
 
-    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+    public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public Instant getPasswordChangedAt() {
+        return passwordChangedAt;
+    }
+
+    public void setPasswordChangedAt(Instant passwordChangedAt) {
+        this.passwordChangedAt = passwordChangedAt;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Instant getDeactivatedAt() {
+        return deactivatedAt;
+    }
+
+    public void setDeactivatedAt(Instant deactivatedAt) {
+        this.deactivatedAt = deactivatedAt;
+    }
+
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 

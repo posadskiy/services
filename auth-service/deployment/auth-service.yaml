@@ -30,16 +30,6 @@ spec:
         env:
         - name: MICRONAUT_ENVIRONMENTS
           value: "prod"
-        - name: GITHUB_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              name: microservices-config
-              key: GITHUB_USERNAME
-        - name: GITHUB_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: GITHUB_TOKEN
         - name: DATASOURCE_URL
           valueFrom:
             configMapKeyRef:
@@ -65,11 +55,12 @@ spec:
             configMapKeyRef:
               name: microservices-config
               key: OAUTH_REDIRECT_BASE_URL
-        - name: OAUTH_TOKEN_ENCRYPTION_SECRET
+        - name: OAUTH_FRONTEND_REDIRECT_URL
           valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: OAUTH_TOKEN_ENCRYPTION_SECRET_PROD
+            configMapKeyRef:
+              name: microservices-config
+              key: OAUTH_FRONTEND_REDIRECT_URL
+              optional: true
         - name: GOOGLE_OAUTH_CLIENT_ID
           valueFrom:
             secretKeyRef:
@@ -80,16 +71,27 @@ spec:
             secretKeyRef:
               name: microservices-secrets
               key: GOOGLE_OAUTH_CLIENT_SECRET
-        - name: FACEBOOK_OAUTH_CLIENT_ID
+        - name: APPLE_OAUTH_ENABLED
+          value: "false"
+        - name: SYSTEM_CLIENT_ENABLED
+          value: "true"
+        - name: SYSTEM_CLIENT_ID
           valueFrom:
             secretKeyRef:
               name: microservices-secrets
-              key: FACEBOOK_OAUTH_CLIENT_ID
-        - name: FACEBOOK_OAUTH_CLIENT_SECRET
+              key: SYSTEM_CLIENT_ID
+              optional: true
+        - name: SYSTEM_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
               name: microservices-secrets
-              key: FACEBOOK_OAUTH_CLIENT_SECRET
+              key: SYSTEM_CLIENT_SECRET
+              optional: true
+        - name: AUTH_JWT_HMAC_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: JWT_GENERATOR_SIGNATURE_SECRET
         - name: OTEL_SERVICE_NAME
           value: "auth-service"
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
@@ -97,7 +99,7 @@ spec:
         - name: OTEL_TRACES_SAMPLER
           value: parentbased_traceidratio
         - name: OTEL_TRACES_SAMPLER_ARG
-          value: "1.0"
+          value: "0.1"
         - name: DB_MAX_POOL_SIZE
           value: "3"
         - name: DB_MIN_IDLE
@@ -117,17 +119,21 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "500m"
+        startupProbe:
+          httpGet:
+            path: /health/liveness
+            port: 8100
+          failureThreshold: 30
+          periodSeconds: 5
         livenessProbe:
           httpGet:
-            path: /health
+            path: /health/liveness
             port: 8100
-          initialDelaySeconds: 120
           periodSeconds: 30
         readinessProbe:
           httpGet:
-            path: /health
+            path: /health/readiness
             port: 8100
-          initialDelaySeconds: 60
           periodSeconds: 10
       restartPolicy: Always
 ---

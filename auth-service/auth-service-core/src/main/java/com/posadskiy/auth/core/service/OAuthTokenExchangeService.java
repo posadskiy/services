@@ -1,178 +1,123 @@
 package com.posadskiy.auth.core.service;
 
-import com.posadskiy.auth.core.oauth.*;
-import com.posadskiy.auth.core.property.OAuthProviderConfigurationProperties;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.posadskiy.auth.core.config.OAuthProviderProperties;
+import com.posadskiy.auth.core.crypto.SecureTokens;
+import com.posadskiy.auth.core.exception.OAuthException;
+import com.posadskiy.auth.core.oauth.AppleClientSecretService;
+import com.posadskiy.auth.core.oauth.DatabaseOAuthStateStore;
+import com.posadskiy.auth.core.oauth.ExternalProfile;
+import com.posadskiy.auth.core.oauth.IdTokenValidator;
+import com.posadskiy.auth.core.oauth.OAuthOutboundClient;
+import com.posadskiy.auth.core.oauth.OAuthProviderRegistry;
+import com.posadskiy.auth.core.oauth.OAuthState;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.ObjectMapper;
 import jakarta.inject.Singleton;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Base64;
 
 @Singleton
 public class OAuthTokenExchangeService {
 
     private final OAuthProviderRegistry registry;
-    private final OAuthStateStore stateStore;
+    private final DatabaseOAuthStateStore stateStore;
+    private final OAuthOutboundClient outboundClient;
     private final ObjectMapper objectMapper;
-    private final HttpClient httpClient;
+    private final IdTokenValidator idTokenValidator;
+    private final AppleClientSecretService appleClientSecretService;
 
     public OAuthTokenExchangeService(
-            OAuthProviderRegistry registry, OAuthStateStore stateStore, ObjectMapper objectMapper) {
+            OAuthProviderRegistry registry,
+            DatabaseOAuthStateStore stateStore,
+            OAuthOutboundClient outboundClient,
+            ObjectMapper objectMapper,
+            IdTokenValidator idTokenValidator,
+            AppleClientSecretService appleClientSecretService) {
         this.registry = registry;
         this.stateStore = stateStore;
+        this.outboundClient = outboundClient;
         this.objectMapper = objectMapper;
-        this.httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build();
+        this.idTokenValidator = idTokenValidator;
+        this.appleClientSecretService = appleClientSecretService;
     }
 
-    public ExternalProfile exchange(String code, String stateValue) {
-        OAuthState state =
-                stateStore.consume(stateValue).orElseThrow(() -> new IllegalArgumentException("Invalid state value"));
-
-        String providerName = state.provider();
-        OAuthProviderConfigurationProperties provider = registry.require(providerName);
-
-        Map<String, String> formParams = new HashMap<>();
-        formParams.put("grant_type", "authorization_code");
-        formParams.put("code", code);
-        formParams.put("redirect_uri", state.redirectUri());
-        formParams.put("client_id", provider.getClientId());
-        if (StringUtils.isNotEmpty(provider.getClientSecret())) {
-            formParams.put("client_secret", provider.getClientSecret());
+    public ExchangeResult exchange(
+            String providerPath, String code, String stateValue, String browserBinding, String appleUserJson) {
+        OAuthState state = stateStore.consume(stateValue).orElseThrow(() -> new OAuthException("Invalid state value"));
+        if (!state.provider().equalsIgnoreCase(providerPath)) {
+            throw new OAuthException("OAuth provider mismatch");
         }
-        formParams.put("code_verifier", state.codeVerifier());
-
-        String formBody = buildForm(formParams);
-        HttpRequest tokenRequest =
-                HttpRequest.newBuilder(URI.create(provider.getTokenUri()))
-                        .header("Content-Type", "application/x-www-form-urlencoded")
-                        .header("Accept", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString(formBody))
-                        .build();
-
-        TokenResponse tokenResponse = executeTokenRequest(tokenRequest);
-        Map<String, Object> profileClaims = fetchUserInfo(provider, tokenResponse.accessToken());
-        if ((profileClaims == null || profileClaims.isEmpty()) && StringUtils.isNotEmpty(tokenResponse.idToken())) {
-            profileClaims = decodeIdTokenClaims(tokenResponse.idToken());
+        if (!SecureTokens.equalsConstantTime(state.browserBindingHash(), SecureTokens.sha256Hex(browserBinding))) {
+            throw new OAuthException("OAuth browser binding mismatch");
         }
+        OAuthProviderProperties provider = registry.require(state.provider());
 
-        String subject = readAsString(profileClaims, "sub");
-        if (subject == null) {
-            subject = readAsString(profileClaims, "id");
-        }
-        String email = readAsString(profileClaims, "email");
-        boolean emailVerified =
-                Boolean.parseBoolean(String.valueOf(profileClaims.getOrDefault("email_verified", Boolean.FALSE)));
-        String name = readAsString(profileClaims, "name");
-        if (StringUtils.isEmpty(name)) {
-            name = readAsString(profileClaims, "given_name");
-        }
-        String picture = readAsString(profileClaims, "picture");
-        Instant expiresAt = tokenResponse.expiresIn() != null
-                ? Instant.now().plusSeconds(tokenResponse.expiresIn())
-                : null;
+        Map<String, String> form = new HashMap<>();
+        form.put("grant_type", "authorization_code");
+        form.put("code", code);
+        form.put("redirect_uri", state.redirectUri());
+        form.put("client_id", provider.getClientId());
+        form.put("client_secret", appleClientSecretService.clientSecret(provider));
+        form.put("code_verifier", state.codeVerifier());
 
-        return new ExternalProfile(
-                providerName,
-                subject,
-                email,
-                emailVerified,
-                name,
-                picture,
-                tokenResponse.accessToken(),
-                tokenResponse.refreshToken(),
-                tokenResponse.idToken(),
-                expiresAt,
-                tokenResponse.raw());
+        Map<String, Object> tokenJson = readJson(outboundClient.postForm(provider.getTokenUri(), form));
+        String idToken = stringValue(tokenJson, "id_token");
+        JWTClaimsSet claims = idTokenValidator.validate(provider, idToken, state.nonce());
+
+        String subject = claims.getSubject();
+        String email = claimString(claims, "email");
+        boolean emailVerified = booleanClaim(claims, "email_verified");
+        String name = claimString(claims, "name");
+        String picture = claimString(claims, "picture");
+        if (StringUtils.isEmpty(name) && appleUserJson != null) {
+            name = readAppleName(appleUserJson);
+        }
+        if (StringUtils.isEmpty(email) && appleUserJson != null) {
+            email = stringValue(readJson(appleUserJson), "email");
+        }
+        ExternalProfile profile = new ExternalProfile(state.provider(), subject, email, emailVerified, name, picture);
+        return new ExchangeResult(profile, state.codeChallenge());
     }
 
     @SuppressWarnings("unchecked")
-    private TokenResponse executeTokenRequest(HttpRequest request) {
+    private Map<String, Object> readJson(String body) {
         try {
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() >= 400) {
-                throw new IllegalStateException("Token endpoint failed: " + response.body());
-            }
-            Map<String, Object> json = objectMapper.readValue(response.body(), Map.class);
-            return new TokenResponse(
-                    readAsString(json, "access_token"),
-                    readAsString(json, "refresh_token"),
-                    readAsString(json, "id_token"),
-                    json.containsKey("expires_in") ? ((Number) json.get("expires_in")).longValue() : null,
-                    readAsString(json, "token_type"),
-                    response.body());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Unable to contact token endpoint", e);
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to contact token endpoint", e);
+            return objectMapper.readValue(body, Map.class);
+        } catch (Exception e) {
+            throw new OAuthException("Unable to parse provider response");
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> fetchUserInfo(OAuthProviderConfigurationProperties provider, String accessToken) {
-        if (StringUtils.isEmpty(provider.getUserInfoUri())) {
-            return Map.of();
+    private String readAppleName(String appleUserJson) {
+        Map<String, Object> json = readJson(appleUserJson);
+        Object name = json.get("name");
+        if (name instanceof Map<?, ?> map) {
+            Object first = map.get("firstName");
+            Object last = map.get("lastName");
+            String joined = ((first == null ? "" : first) + " " + (last == null ? "" : last)).trim();
+            return joined.isEmpty() ? null : joined;
         }
-        HttpRequest request =
-                HttpRequest.newBuilder(URI.create(provider.getUserInfoUri()))
-                        .header("Authorization", "Bearer " + accessToken)
-                        .header("Accept", "application/json")
-                        .GET()
-                        .build();
-        try {
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() >= 400) {
-                throw new IllegalStateException("User info endpoint failed: " + response.body());
-            }
-            return objectMapper.readValue(response.body(), Map.class);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Unable to fetch user info", e);
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to fetch user info", e);
-        }
+        return null;
     }
 
-    private String buildForm(Map<String, String> params) {
-        return params.entrySet().stream()
-                .map(entry -> entry.getKey() + "=" + urlEncode(entry.getValue()))
-                .reduce((a, b) -> a + "&" + b)
-                .orElse("");
-    }
-
-    private String urlEncode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
-    }
-
-    private String readAsString(Map<String, ?> map, String key) {
+    private static String stringValue(Map<String, ?> map, String key) {
         Object value = map.get(key);
         return value == null ? null : String.valueOf(value);
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> decodeIdTokenClaims(String idToken) {
-        try {
-            String[] parts = idToken.split("\\.");
-            if (parts.length < 2) {
-                return Map.of();
-            }
-            byte[] decoded = Base64.getUrlDecoder().decode(parts[1]);
-            return objectMapper.readValue(decoded, Map.class);
-        } catch (Exception e) {
-            return Map.of();
-        }
+    private static String claimString(JWTClaimsSet claims, String name) {
+        Object value = claims.getClaim(name);
+        return value == null ? null : String.valueOf(value);
     }
 
-    private record TokenResponse(
-            String accessToken, String refreshToken, String idToken, Long expiresIn, String tokenType, String raw) {}
-}
+    private static boolean booleanClaim(JWTClaimsSet claims, String name) {
+        Object value = claims.getClaim(name);
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        return Boolean.parseBoolean(String.valueOf(value == null ? "false" : value));
+    }
 
+    public record ExchangeResult(ExternalProfile profile, String codeChallenge) {}
+}

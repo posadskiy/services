@@ -14,7 +14,7 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
-class JwtAuthenticationTest {
+class JwtAuthenticationTest extends PostgresMicronautTest {
 
     @Inject
     @Client("/")

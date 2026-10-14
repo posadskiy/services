@@ -1,6 +1,7 @@
 package com.posadskiy.auth.core.oauth;
 
-import com.posadskiy.auth.core.property.OAuthProviderConfigurationProperties;
+import com.posadskiy.auth.core.config.OAuthProviderProperties;
+import com.posadskiy.auth.core.exception.OAuthException;
 import jakarta.inject.Singleton;
 import java.util.Collection;
 import java.util.Map;
@@ -10,25 +11,23 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 public class OAuthProviderRegistry {
 
-    private final Map<String, OAuthProviderConfigurationProperties> providers = new ConcurrentHashMap<>();
+    private final Map<String, OAuthProviderProperties> providers = new ConcurrentHashMap<>();
 
-    public OAuthProviderRegistry(Collection<OAuthProviderConfigurationProperties> providerConfigurations) {
+    public OAuthProviderRegistry(Collection<OAuthProviderProperties> providerConfigurations) {
         providerConfigurations.forEach(
-                provider ->
-                        providers.put(provider.getName().toLowerCase(), provider));
+                provider -> providers.put(provider.getName().toLowerCase(), provider));
     }
 
-    public Optional<OAuthProviderConfigurationProperties> find(String provider) {
+    public Optional<OAuthProviderProperties> find(String provider) {
         if (provider == null) {
             return Optional.empty();
         }
         return Optional.ofNullable(providers.get(provider.toLowerCase()));
     }
 
-    public OAuthProviderConfigurationProperties require(String provider) {
+    public OAuthProviderProperties require(String provider) {
         return find(provider)
-                .filter(OAuthProviderConfigurationProperties::isEnabled)
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported OAuth provider: " + provider));
+                .filter(OAuthProviderProperties::isEnabled)
+                .orElseThrow(() -> new OAuthException("Unsupported OAuth provider: " + provider));
     }
 }
-

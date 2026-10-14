@@ -1,23 +1,21 @@
 package com.posadskiy.auth.core.storage.db.entity;
 
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.data.annotation.*;
-import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import lombok.Data;
+import io.micronaut.data.annotation.DateCreated;
+import io.micronaut.data.annotation.DateUpdated;
+import io.micronaut.data.annotation.GeneratedValue;
+import io.micronaut.data.annotation.Id;
+import io.micronaut.data.annotation.MappedEntity;
+import io.micronaut.data.annotation.MappedProperty;
+import java.time.Instant;
 
-@Data
 @MappedEntity("user_social_identity")
 public class ExternalIdentityEntity {
 
     @Id
     @GeneratedValue
-    @NonNull
     private Long id;
 
     @MappedProperty("user_id")
-    @NonNull
-    @NotNull
     private Long userId;
 
     private String provider;
@@ -33,44 +31,30 @@ public class ExternalIdentityEntity {
     @MappedProperty("picture_url")
     private String pictureUrl;
 
-    @MappedProperty("access_token_encrypted")
-    private String accessTokenEncrypted;
-
-    @MappedProperty("refresh_token_encrypted")
-    private String refreshTokenEncrypted;
-
-    @MappedProperty("expires_at")
-    private LocalDateTime expiresAt;
-
-    private String scopes;
-
-    @MappedProperty("raw_claims")
-    private String rawClaims;
-
     @MappedProperty("last_login_at")
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
 
     @DateCreated
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @DateUpdated
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     private Boolean revoked = Boolean.FALSE;
 
-    public @NonNull Long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(@NonNull Long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public @NonNull Long getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(@NonNull Long userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
@@ -88,22 +72,6 @@ public class ExternalIdentityEntity {
 
     public void setProviderUserId(String providerUserId) {
         this.providerUserId = providerUserId;
-    }
-
-    public String getAccessTokenEncrypted() {
-        return accessTokenEncrypted;
-    }
-
-    public void setAccessTokenEncrypted(String accessTokenEncrypted) {
-        this.accessTokenEncrypted = accessTokenEncrypted;
-    }
-
-    public String getRefreshTokenEncrypted() {
-        return refreshTokenEncrypted;
-    }
-
-    public void setRefreshTokenEncrypted(String refreshTokenEncrypted) {
-        this.refreshTokenEncrypted = refreshTokenEncrypted;
     }
 
     public String getEmail() {
@@ -130,36 +98,28 @@ public class ExternalIdentityEntity {
         this.pictureUrl = pictureUrl;
     }
 
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(LocalDateTime expiresAt) {
-        this.expiresAt = expiresAt;
-    }
-
-    public String getScopes() {
-        return scopes;
-    }
-
-    public void setScopes(String scopes) {
-        this.scopes = scopes;
-    }
-
-    public String getRawClaims() {
-        return rawClaims;
-    }
-
-    public void setRawClaims(String rawClaims) {
-        this.rawClaims = rawClaims;
-    }
-
-    public LocalDateTime getLastLoginAt() {
+    public Instant getLastLoginAt() {
         return lastLoginAt;
     }
 
-    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+    public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public Boolean getRevoked() {
@@ -169,21 +129,4 @@ public class ExternalIdentityEntity {
     public void setRevoked(Boolean revoked) {
         this.revoked = revoked;
     }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }
-
