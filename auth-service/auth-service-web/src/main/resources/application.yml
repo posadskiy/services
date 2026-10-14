@@ -1,9 +1,11 @@
-#tag::micronaut[]
 micronaut:
   application:
     name: auth-service
   server:
     port: 8100
+    thread-selection: AUTO
+    cors:
+      enabled: false
   router:
     static-resources:
       swagger:
@@ -21,55 +23,49 @@ micronaut:
         access: isAnonymous()
       - pattern: /login
         access: isAnonymous()
+      - pattern: /users
+        access: isAnonymous()
+      - pattern: /oauth/token
+        access: isAnonymous()
+      - pattern: /oauth/revoke
+        access: isAnonymous()
+      - pattern: /logout
+        access: isAnonymous()
       - pattern: /oauth2/**
+        access: isAnonymous()
+      - pattern: /keys
+        access: isAnonymous()
+      - pattern: /.well-known/**
         access: isAnonymous()
       - pattern: /prometheus
         access: isAnonymous()
-    oauth2:
-      enabled: true
-      clients:
-        google:
-          client-id: ${GOOGLE_OAUTH_CLIENT_ID}
-          client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET}
-          authorization:
-            url: https://accounts.google.com/o/oauth2/v2/auth
-            scopes:
-              - openid
-              - email
-              - profile
-          token:
-            url: https://oauth2.googleapis.com/token
-          jwks:
-            url: https://www.googleapis.com/oauth2/v3/certs
-          openid:
-            issuer: https://accounts.google.com
-          redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/google
-        facebook:
-          client-id: ${FACEBOOK_OAUTH_CLIENT_ID}
-          client-secret: ${FACEBOOK_OAUTH_CLIENT_SECRET}
-          authorization:
-            url: https://www.facebook.com/v14.0/dialog/oauth
-            scopes:
-              - public_profile
-              - email
-          token:
-            url: https://graph.facebook.com/v14.0/oauth/access_token
-          openid:
-            issuer: https://www.facebook.com
-          redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/facebook
+      - pattern: /health
+        access: isAnonymous()
+      - pattern: /health/liveness
+        access: isAnonymous()
+      - pattern: /health/readiness
+        access: isAnonymous()
+    endpoints:
+      login:
+        enabled: false
+      logout:
+        enabled: false
+      oauth:
+        enabled: false
+      keys:
+        enabled: true
+        path: /keys
     token:
       jwt:
-        signatures:
-          secret:
-            generator:
-              secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
+        claims-validators:
+          issuer: ${AUTH_JWT_ISSUER:https://auth.posadskiy.com}
+          audience: ${AUTH_JWT_AUDIENCE:api.posadskiy.com}
+          not-before: true
         generator:
+          access-token:
+            expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900}
           refresh-token:
-            enabled: true
-            secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
-      generator:
-        access-token:
-          expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:360000}
+            enabled: false
   metrics:
     enabled: true
     export:
@@ -77,32 +73,6 @@ micronaut:
         enabled: true
         descriptions: true
         step: ${METRICS_STEP:1m}
-    binders:
-      database:
-        enabled: true
-        include:
-          - "hikari"
-          - "jdbc"
-    distribution:
-      percentiles-histogram:
-        hikaricp.connections: true
-        hikaricp.connections.idle: true
-        hikaricp.connections.active: true
-        hikaricp.connections.pending: true
-        hikaricp.connections.max: true
-        hikaricp.connections.min: true
-        hikaricp.connections.timeout: true
-        hikaricp.connections.creation: true
-        hikaricp.connections.acquire: true
-        hikaricp.connections.usage: true
-        jdbc.connections.active: true
-        jdbc.connections.idle: true
-        jdbc.connections.max: true
-        jdbc.connections.min: true
-        jdbc.connections.timeout: true
-        jdbc.connections.creation: true
-        jdbc.connections.acquire: true
-        jdbc.connections.usage: true
   tracing:
     opentelemetry:
       enabled: true
@@ -110,12 +80,28 @@ micronaut:
     prometheus:
       enabled: true
       sensitive: false
+    health:
+      enabled: true
+      sensitive: false
+      details:
+        enabled: false
     openapi:
       enabled: true
       sensitive: false
-#end::micronaut[]
+  http:
+    services:
+      oauth-providers:
+        read-timeout: 10s
+        connect-timeout: 5s
+        follow-redirects: false
+    client:
+      read-timeout: 10s
+      connect-timeout: 5s
+      follow-redirects: false
+  lifecycle:
+    graceful-shutdown:
+      enabled: true
 
-#tag::database[]
 datasources:
   default:
     url: ${DATASOURCE_URL}
@@ -124,14 +110,13 @@ datasources:
     driver-class-name: org.postgresql.Driver
     schema-generate: NONE
     dialect: POSTGRES
+
 flyway:
   datasources:
     default:
       enabled: true
-      baseline-on-migrate: true
-#end::database[]
+      baseline-on-migrate: false
 
-#tag::otel[]
 otel:
   exporter:
     otlp:
@@ -141,105 +126,67 @@ otel:
     exporter: otlp
     sampler:
       arg: ${OTEL_TRACES_SAMPLER_ARG:1.0}
-#end::otel[]
 
-#tag::logging[]
 logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
     com.posadskiy.auth: ${LOG_LEVEL_APP:INFO}
     io.micronaut: ${LOG_LEVEL_MICRONAUT:INFO}
-    org.hibernate.SQL: ${LOG_LEVEL_SQL:WARN}
-    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_PARAMS:WARN}
-#end::logging[]
 
-social:
+auth:
+  jwt:
+    issuer: ${AUTH_JWT_ISSUER:https://auth.posadskiy.com}
+    audience: ${AUTH_JWT_AUDIENCE:api.posadskiy.com}
+    access-token-ttl: ${AUTH_JWT_ACCESS_TTL:PT15M}
+    hmac-secret: ${AUTH_JWT_HMAC_SECRET:${JWT_GENERATOR_SIGNATURE_SECRET}}
+    private-key-pem: ${AUTH_JWT_PRIVATE_KEY_PEM:}
+    public-key-pem: ${AUTH_JWT_PUBLIC_KEY_PEM:}
+  password:
+    bcrypt-cost: ${AUTH_BCRYPT_COST:10}
+  token:
+    refresh-token-ttl: ${AUTH_REFRESH_TTL:P30D}
+  rate-limit:
+    login-per-minute: ${AUTH_LOGIN_RATE:20}
+    window: PT1M
   oauth:
     redirect-base-url: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}
-    encryption-secret: ${OAUTH_TOKEN_ENCRYPTION_SECRET}
+    frontend-redirect-url: ${OAUTH_FRONTEND_REDIRECT_URL:}
     state-ttl: PT10M
-    session-ttl: PT5M
-    frontend-redirect-url: ${OAUTH_FRONTEND_REDIRECT_URL}
-    jwt:
-      access-token-ttl: PT5M
+    login-code-ttl: PT5M
     providers:
       google:
-        enabled: true
-        client-id: ${GOOGLE_OAUTH_CLIENT_ID}
-        client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET}
+        enabled: ${GOOGLE_OAUTH_ENABLED:true}
+        client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
+        client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
         authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
         token-uri: https://oauth2.googleapis.com/token
-        user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
         jwks-uri: https://www.googleapis.com/oauth2/v3/certs
+        issuer: https://accounts.google.com
         redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/google
-        pkce-required: true
         scopes:
           - openid
           - email
           - profile
-      facebook:
-        ## disabled for now 
-        enabled: ${FACEBOOK_OAUTH_ENABLED:false}
-        client-id: ${FACEBOOK_OAUTH_CLIENT_ID:none}
-        client-secret: ${FACEBOOK_OAUTH_CLIENT_SECRET:none}
-        authorization-uri: https://www.facebook.com/v14.0/dialog/oauth
-        token-uri: https://graph.facebook.com/v14.0/oauth/access_token
-        user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
-        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/facebook
-        pkce-required: true
-        scopes:
-          - public_profile
-          - email
       apple:
         enabled: ${APPLE_OAUTH_ENABLED:false}
-        client-id: ${APPLE_OAUTH_CLIENT_ID}
-        client-secret: ${APPLE_OAUTH_CLIENT_SECRET}
+        client-id: ${APPLE_OAUTH_CLIENT_ID:}
+        client-secret: ${APPLE_OAUTH_CLIENT_SECRET:}
         authorization-uri: https://appleid.apple.com/auth/authorize
         token-uri: https://appleid.apple.com/auth/token
-        user-info-uri:
+        jwks-uri: https://appleid.apple.com/auth/keys
+        issuer: https://appleid.apple.com
         redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/apple
-        pkce-required: true
+        apple-team-id: ${APPLE_OAUTH_TEAM_ID:}
+        apple-key-id: ${APPLE_OAUTH_KEY_ID:}
+        apple-private-key-pem: ${APPLE_OAUTH_PRIVATE_KEY_PEM:}
         scopes:
           - openid
           - email
           - name
-      microsoft:
-        enabled: ${MICROSOFT_OAUTH_ENABLED:false}
-        client-id: ${MICROSOFT_OAUTH_CLIENT_ID}
-        client-secret: ${MICROSOFT_OAUTH_CLIENT_SECRET}
-        authorization-uri: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
-        token-uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
-        user-info-uri: https://graph.microsoft.com/oidc/userinfo
-        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/microsoft
-        pkce-required: true
-        scopes:
-          - openid
-          - email
-          - profile
-          - offline_access
-      github:
-        enabled: true
-        client-id: ${GITHUB_OAUTH_CLIENT_ID}
-        client-secret: ${GITHUB_OAUTH_CLIENT_SECRET}
-        authorization-uri: https://github.com/login/oauth/authorize
-        token-uri: https://github.com/login/oauth/access_token
-        user-info-uri: https://api.github.com/user
-        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/github
-        pkce-required: true
-        scopes:
-          - read:user
-          - user:email
-      discord:
-        enabled: ${DISCORD_OAUTH_ENABLED:false}
-        client-id: ${DISCORD_OAUTH_CLIENT_ID}
-        client-secret: ${DISCORD_OAUTH_CLIENT_SECRET}
-        authorization-uri: https://discord.com/api/oauth2/authorize
-        token-uri: https://discord.com/api/oauth2/token
-        user-info-uri: https://discord.com/api/users/@me
-        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/discord
-        pkce-required: true
-        scopes:
-          - identify
-          - email
-
-
+  clients:
+    system:
+      enabled: ${SYSTEM_CLIENT_ENABLED:false}
+      client-id: ${SYSTEM_CLIENT_ID:system}
+      client-secret: ${SYSTEM_CLIENT_SECRET:}
+      roles:
+        - ROLE_SERVICE

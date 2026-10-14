@@ -15,23 +15,22 @@
     <parent>
         <groupId>io.micronaut.platform</groupId>
         <artifactId>micronaut-parent</artifactId>
-        <version>4.10.11</version>
+        <version>5.2.2</version>
     </parent>
     <properties>
         <packaging>jar</packaging>
         <jdk.version>25</jdk.version>
         <release.version>25</release.version>
-        <micronaut.version>4.10.11</micronaut.version>
-        <lombok.version>1.18.42</lombok.version>
+        <micronaut.version>5.2.2</micronaut.version>
         <micronaut.aot.enabled>true</micronaut.aot.enabled>
         <micronaut.aot.packageName>com.posadskiy.auth.service.aot.generated</micronaut.aot.packageName>
         <micronaut.runtime>netty</micronaut.runtime>
         <exec.mainClass>com.posadskiy.auth.web.Application</exec.mainClass>
-        
-        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
-        <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
-        <spring-security-crypto.version>6.3.0</spring-security-crypto.version>
-        <commons-lang3.version>3.14.0</commons-lang3.version>
+
+        <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
+        <bcrypt.version>0.10.2</bcrypt.version>
+        <jacoco.version>0.8.15</jacoco.version>
+        <jacoco.minimum.line.coverage>0.0</jacoco.minimum.line.coverage>
     </properties>
 
     <repositories>
@@ -55,66 +54,37 @@
     </distributionManagement>
 
     <dependencyManagement>
-    <dependencies>
-        <dependency>
+        <dependencies>
+            <dependency>
                 <groupId>com.posadskiy.auth</groupId>
                 <artifactId>auth-service-api</artifactId>
                 <version>${project.version}</version>
-        </dependency>
-        <dependency>
+            </dependency>
+            <dependency>
                 <groupId>com.posadskiy.auth</groupId>
                 <artifactId>auth-service-core</artifactId>
                 <version>${project.version}</version>
-        </dependency>
-        <dependency>
+            </dependency>
+            <dependency>
                 <groupId>com.posadskiy.auth</groupId>
                 <artifactId>auth-service-web</artifactId>
                 <version>${project.version}</version>
-        </dependency>
-            
-        <dependency>
-            <groupId>net.logstash.logback</groupId>
-            <artifactId>logstash-logback-encoder</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
                 <version>${logstash-logback-encoder.version}</version>
-        </dependency>
-
-            <!-- Validation -->
-        <dependency>
-                <groupId>jakarta.validation</groupId>
-                <artifactId>jakarta.validation-api</artifactId>
-                <version>${jakarta.validation-api.version}</version>
-        </dependency>
-            <!-- Validation -->
-
-        <!-- Security -->
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-crypto</artifactId>
-                <version>${spring-security-crypto.version}</version>
-        </dependency>
-        <!-- Security -->
-
-        <!-- Utilities -->
-        <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons-lang3.version}</version>
-        </dependency>
-            <!-- Utilities -->
+            </dependency>
+            <dependency>
+                <groupId>at.favre.lib</groupId>
+                <artifactId>bcrypt</artifactId>
+                <version>${bcrypt.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
-            <!-- Maven Release Plugin for version management -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -129,23 +99,62 @@
                     <completionGoals>clean install</completionGoals>
                 </configuration>
             </plugin>
-            
-            <!-- Spotless Maven Plugin for code formatting -->
+
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <version>2.45.0</version>
+                <version>3.10.4</version>
                 <configuration>
                     <java>
                         <palantirJavaFormat>
-                            <version>2.71.0</version>
+                            <version>2.102.0</version>
                         </palantirJavaFormat>
+                        <removeUnusedImports/>
                     </java>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>${jacoco.minimum.line.coverage}</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
-
-
 </project>

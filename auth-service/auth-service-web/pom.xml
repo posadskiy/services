@@ -12,11 +12,10 @@
     <artifactId>auth-service-web</artifactId>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <micronaut.aot.enabled>true</micronaut.aot.enabled>
         <micronaut.runtime>netty</micronaut.runtime>
+        <jacoco.minimum.line.coverage>0.15</jacoco.minimum.line.coverage>
     </properties>
 
     <dependencies>
@@ -33,13 +32,11 @@
         <dependency>
             <groupId>io.micronaut</groupId>
             <artifactId>micronaut-http-server-netty</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.micronaut</groupId>
             <artifactId>micronaut-http-client</artifactId>
         </dependency>
-        <!-- HTTP -->
 
         <!-- Logging -->
         <dependency>
@@ -51,7 +48,6 @@
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
         </dependency>
-        <!-- Logging -->
 
         <!-- Tracing (OTel → Alloy / Tempo) -->
         <dependency>
@@ -61,9 +57,7 @@
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-exporter-otlp</artifactId>
-            <scope>compile</scope>
         </dependency>
-        <!-- Tracing -->
 
         <!-- Metrics -->
         <dependency>
@@ -74,67 +68,46 @@
             <groupId>io.micronaut.micrometer</groupId>
             <artifactId>micronaut-micrometer-registry-prometheus</artifactId>
         </dependency>
-        <!-- Metrics -->
 
         <!-- Documenting -->
         <dependency>
             <groupId>io.micronaut.openapi</groupId>
             <artifactId>micronaut-openapi-annotations</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.micronaut.openapi</groupId>
-            <artifactId>micronaut-openapi</artifactId>
-        </dependency>
-        <!-- Documenting -->
 
         <!-- Security -->
         <dependency>
             <groupId>io.micronaut.security</groupId>
             <artifactId>micronaut-security-jwt</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.micronaut.security</groupId>
-            <artifactId>micronaut-security-oauth2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micronaut.security</groupId>
-            <artifactId>micronaut-security-session</artifactId>
-        </dependency>
-        <!-- Security -->
-
-        <!-- Views -->
-        <dependency>
-            <groupId>io.micronaut.views</groupId>
-            <artifactId>micronaut-views-thymeleaf</artifactId>
-        </dependency>
-        <!-- Views -->
 
         <!-- Validation -->
         <dependency>
             <groupId>io.micronaut.validation</groupId>
             <artifactId>micronaut-validation</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
-        <!-- Validation -->
 
         <!-- Serialization -->
         <dependency>
             <groupId>io.micronaut.serde</groupId>
             <artifactId>micronaut-serde-jackson</artifactId>
         </dependency>
-        <!-- Serialization -->
 
-        <!-- JWT helpers -->
+        <!-- Management -->
         <dependency>
-            <groupId>com.nimbusds</groupId>
-            <artifactId>nimbus-jose-jwt</artifactId>
-            <version>9.40</version>
+            <groupId>io.micronaut</groupId>
+            <artifactId>micronaut-management</artifactId>
         </dependency>
-        <!-- JWT helpers -->
+
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -152,39 +125,11 @@
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- H2 Database for Testing -->
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-postgresql</artifactId>
+            <scope>test</scope>
         </dependency>
-        <!-- Testing -->
-
-        <!-- Management -->
-        <dependency>
-            <groupId>io.micronaut</groupId>
-            <artifactId>micronaut-management</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <!-- Management -->
-
-        <!-- Reactor -->
-        <dependency>
-            <groupId>io.micronaut.reactor</groupId>
-            <artifactId>micronaut-reactor</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <!-- Reactor -->
-
-        <!-- Utils -->
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- Utils -->
-
-
     </dependencies>
 
     <build>
@@ -223,11 +168,6 @@
                             </exclusions>
                         </path>
                         <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                        <path>
                             <groupId>io.micronaut.openapi</groupId>
                             <artifactId>micronaut-openapi</artifactId>
                         </path>
@@ -235,7 +175,6 @@
                             <groupId>io.micronaut.validation</groupId>
                             <artifactId>micronaut-validation-processor</artifactId>
                         </path>
-
                     </annotationProcessorPaths>
                     <compilerArgs>
                         <arg>-Amicronaut.processing.group=auth.service</arg>

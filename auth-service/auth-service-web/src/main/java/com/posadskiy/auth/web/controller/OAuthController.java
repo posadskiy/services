@@ -1,170 +1,199 @@
 package com.posadskiy.auth.web.controller;
 
+import com.posadskiy.auth.api.dto.OAuthFinalizeRequest;
+import com.posadskiy.auth.api.dto.TokenResponse;
+import com.posadskiy.auth.core.config.AuthProperties;
+import com.posadskiy.auth.core.crypto.SecureTokens;
+import com.posadskiy.auth.core.exception.OAuthException;
 import com.posadskiy.auth.core.oauth.ExternalProfile;
-import com.posadskiy.auth.core.service.JwtTokenService;
-import com.posadskiy.auth.core.service.JwtTokenService.TokenDetails;
+import com.posadskiy.auth.core.service.AuthMetrics;
 import com.posadskiy.auth.core.service.OAuthAuthorizationService;
 import com.posadskiy.auth.core.service.OAuthAuthorizationService.AuthorizationRequest;
+import com.posadskiy.auth.core.service.OAuthLoginCodeService;
 import com.posadskiy.auth.core.service.OAuthTokenExchangeService;
-import com.posadskiy.auth.core.service.RefreshTokenIssuer;
+import com.posadskiy.auth.core.service.OAuthTokenExchangeService.ExchangeResult;
 import com.posadskiy.auth.core.service.SocialLoginService;
 import com.posadskiy.auth.core.service.SocialLoginService.SocialLoginResult;
-import com.posadskiy.auth.core.property.SocialOAuthConfigurationProperties;
-import com.posadskiy.auth.web.oauth.OAuthLoginSessionStore;
-import io.micronaut.core.util.StringUtils;
+import com.posadskiy.auth.core.service.TokenService;
+import com.posadskiy.auth.core.service.UserAccountService;
+import com.posadskiy.auth.core.storage.db.ExternalIdentityRepository;
+import com.posadskiy.auth.core.storage.db.entity.OAuthLoginCodeEntity;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.MediaType;
+import io.micronaut.http.MutableHttpResponse;
+import io.micronaut.http.annotation.Body;
+import io.micronaut.http.annotation.Consumes;
 import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.CookieValue;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
+import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.http.cookie.Cookie;
+import io.micronaut.http.cookie.SameSite;
+import io.micronaut.http.uri.UriBuilder;
+import io.micronaut.scheduling.TaskExecutors;
+import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
-import io.micronaut.http.uri.UriBuilder;
+import java.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+@ExecuteOn(TaskExecutors.BLOCKING)
 @Secured(SecurityRule.IS_ANONYMOUS)
 @Controller("/oauth2")
 public class OAuthController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(OAuthController.class);
+    private static final String BROWSER_COOKIE = "oauth_browser";
+
     private final OAuthAuthorizationService authorizationService;
     private final OAuthTokenExchangeService tokenExchangeService;
     private final SocialLoginService socialLoginService;
-    private final JwtTokenService jwtTokenService;
-    private final RefreshTokenIssuer refreshTokenIssuer;
-    private final OAuthLoginSessionStore loginSessionStore;
-    private final SocialOAuthConfigurationProperties socialOAuthConfigurationProperties;
+    private final TokenService tokenService;
+    private final OAuthLoginCodeService loginCodeService;
+    private final UserAccountService userAccountService;
+    private final ExternalIdentityRepository externalIdentityRepository;
+    private final AuthProperties authProperties;
+    private final AuthMetrics metrics;
 
     public OAuthController(
             OAuthAuthorizationService authorizationService,
             OAuthTokenExchangeService tokenExchangeService,
             SocialLoginService socialLoginService,
-            JwtTokenService jwtTokenService,
-            RefreshTokenIssuer refreshTokenIssuer,
-            OAuthLoginSessionStore loginSessionStore,
-            SocialOAuthConfigurationProperties socialOAuthConfigurationProperties) {
+            TokenService tokenService,
+            OAuthLoginCodeService loginCodeService,
+            UserAccountService userAccountService,
+            ExternalIdentityRepository externalIdentityRepository,
+            AuthProperties authProperties,
+            AuthMetrics metrics) {
         this.authorizationService = authorizationService;
         this.tokenExchangeService = tokenExchangeService;
         this.socialLoginService = socialLoginService;
-        this.jwtTokenService = jwtTokenService;
-        this.refreshTokenIssuer = refreshTokenIssuer;
-        this.loginSessionStore = loginSessionStore;
-        this.socialOAuthConfigurationProperties = socialOAuthConfigurationProperties;
+        this.tokenService = tokenService;
+        this.loginCodeService = loginCodeService;
+        this.userAccountService = userAccountService;
+        this.externalIdentityRepository = externalIdentityRepository;
+        this.authProperties = authProperties;
+        this.metrics = metrics;
     }
 
     @Get("/authorize/{provider}")
     public HttpResponse<AuthorizationRedirectResponse> authorize(
-            @PathVariable @NotBlank String provider) {
-        AuthorizationRequest request = authorizationService.authorize(provider, "");
-        
-        // Log the authorization URI for debugging (contains redirect_uri parameter)
-        System.out.println("OAuth Authorization Request for provider: " + provider);
-        System.out.println("Authorization URI: " + request.authorizationUri());
-        System.out.println("State: " + request.state());
-        System.out.println("Redirect Base URL: " + socialOAuthConfigurationProperties.getRedirectBaseUrl());
-        
-        return HttpResponse.ok(new AuthorizationRedirectResponse(request.authorizationUri(), request.state(), request.nonce()));
+            @PathVariable @NotBlank String provider,
+            @QueryValue(value = "code_challenge", defaultValue = "") String codeChallenge,
+            HttpRequest<?> request) {
+        String binding = existingOrNewBinding(request);
+        AuthorizationRequest authorization =
+                authorizationService.authorize(provider, binding, blankToNull(codeChallenge));
+        MutableHttpResponse<AuthorizationRedirectResponse> response = HttpResponse.ok(
+                new AuthorizationRedirectResponse(authorization.authorizationUri(), authorization.state()));
+        response.cookie(browserCookie(binding, request.isSecure()));
+        return response;
     }
 
-    // Single callback handler; provider path segment is ignored because provider is derived from state
-    @Get("/callback/{providerPath:.+}")
-    public HttpResponse<?> callback(
-            @PathVariable("providerPath") String providerPath,
+    @Get("/callback/{provider}")
+    public HttpResponse<?> callbackGet(
+            @PathVariable String provider,
             @QueryValue("code") String code,
-            @QueryValue(value = "state", defaultValue = "") String state) {
-        
-        // Log callback details for debugging
-        System.out.println("=== OAuth Callback Received ===");
-        System.out.println("Provider Path: " + providerPath);
-        System.out.println("Code: " + (code != null ? "present" : "missing"));
-        System.out.println("State: " + (StringUtils.isNotEmpty(state) ? state : "MISSING"));
-        System.out.println("Expected redirect URI: http://localhost:8100/oauth2/callback/google");
-        System.out.println("================================");
-        
-        // Validate required parameters
-        if (StringUtils.isEmpty(code)) {
-            return HttpResponse.badRequest("Missing required parameter: code");
+            @QueryValue(value = "state", defaultValue = "") String state,
+            @CookieValue(value = BROWSER_COOKIE, defaultValue = "") String binding) {
+        return complete(provider, code, state, binding, null);
+    }
+
+    @Post("/callback/{provider}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public HttpResponse<?> callbackPost(
+            @PathVariable String provider,
+            @QueryValue(value = "code", defaultValue = "") String code,
+            @QueryValue(value = "state", defaultValue = "") String state,
+            @QueryValue(value = "user", defaultValue = "") String user,
+            @CookieValue(value = BROWSER_COOKIE, defaultValue = "") String binding,
+            @Nullable @Body CallbackForm form) {
+        String resolvedCode = (form != null && form.code() != null) ? form.code() : code;
+        String resolvedState = (form != null && form.state() != null) ? form.state() : state;
+        String resolvedUser = (form != null && form.user() != null) ? form.user() : user;
+        return complete(provider, resolvedCode, resolvedState, binding, blankToNull(resolvedUser));
+    }
+
+    @Post("/finalize")
+    public TokenResponse finalizeLogin(@Body @Valid OAuthFinalizeRequest request) {
+        OAuthLoginCodeEntity loginCode = loginCodeService.consume(request.code(), request.codeVerifier());
+        var user = userAccountService.requireActive(loginCode.userId());
+        String provider = loginCode.externalIdentityId() == null
+                ? null
+                : externalIdentityRepository
+                        .findById(loginCode.externalIdentityId())
+                        .map(identity -> identity.provider())
+                        .orElse(null);
+        metrics.loginSuccess("oauth");
+        return tokenService.issueForUser(user, provider, loginCode.externalIdentityId());
+    }
+
+    private HttpResponse<?> complete(String provider, String code, String state, String binding, String appleUserJson) {
+        if (code == null || code.isBlank() || state == null || state.isBlank()) {
+            return HttpResponse.badRequest();
         }
-        if (StringUtils.isEmpty(state)) {
-            String errorMessage = String.format(
-                    "Missing required parameter: state. " +
-                    "This means the redirect_uri sent to Google (%s) doesn't match what's configured in Google Console. " +
-                    "Google redirects to: http://localhost:8100/oauth2/callback/%s " +
-                    "Expected: http://localhost:8100/oauth2/callback/google " +
-                    "ACTION REQUIRED: In Google Cloud Console, go to APIs & Services > Credentials > Your OAuth 2.0 Client ID. " +
-                    "Under 'Authorized redirect URIs', ensure EXACTLY this URI is listed: http://localhost:8100/oauth2/callback/google " +
-                    "Remove any other redirect URIs that might be conflicting. The URI must match EXACTLY (no trailing slashes, correct port).",
-                    "http://localhost:8100/oauth2/callback/google",
-                    providerPath);
-            return HttpResponse.badRequest(errorMessage);
-        }
-        
         try {
-            ExternalProfile profile = tokenExchangeService.exchange(code, state);
-            SocialLoginResult loginResult = socialLoginService.handle(profile);
-            TokenDetails tokenDetails = jwtTokenService.generate(loginResult.user(), loginResult.identity());
-            String refreshToken =
-                    refreshTokenIssuer.issue(
-                            loginResult.user().getId(),
-                            loginResult.identity().getProvider(),
-                            loginResult.identity().getId());
-
-            OAuthTokenResponse response =
-                    new OAuthTokenResponse(
-                            tokenDetails.accessToken(),
-                            refreshToken,
-                            tokenDetails.expiresInSeconds(),
-                            "Bearer",
-                            loginResult.user().getId(),
-                            loginResult.identity().getProvider(),
-                            loginResult.identity().getProviderUserId());
-            String sessionCode = loginSessionStore.create(response);
-
-            String frontendRedirect = socialOAuthConfigurationProperties.getFrontendRedirectUrl();
-            if (StringUtils.isNotEmpty(frontendRedirect)) {
-                URI redirectUri = UriBuilder.of(frontendRedirect)
-                        .queryParam("code", sessionCode)
-                        .build();
-                return HttpResponse.redirect(redirectUri);
+            ExchangeResult exchange = tokenExchangeService.exchange(provider, code, state, binding, appleUserJson);
+            ExternalProfile profile = exchange.profile();
+            SocialLoginResult login = socialLoginService.handle(profile);
+            String frontend = authProperties.oauth().frontendRedirectUrl();
+            if (frontend != null && !frontend.isBlank()) {
+                String sessionCode =
+                        loginCodeService.create(login.user(), login.identity().id(), exchange.codeChallenge());
+                URI redirect =
+                        UriBuilder.of(frontend).queryParam("code", sessionCode).build();
+                metrics.oauth(provider, "success");
+                return HttpResponse.redirect(redirect);
             }
-
-            return HttpResponse.ok(response);
-        } catch (IllegalArgumentException e) {
-            return HttpResponse.badRequest("Invalid state or code: " + e.getMessage());
-        } catch (Exception e) {
-            return HttpResponse.serverError("OAuth callback processing failed: " + e.getMessage());
+            metrics.oauth(provider, "success");
+            TokenResponse tokens = tokenService.issueForUser(
+                    login.user(), login.identity().provider(), login.identity().id());
+            MutableHttpResponse<TokenResponse> response = HttpResponse.ok(tokens);
+            response.header("Cache-Control", "no-store");
+            return response;
+        } catch (OAuthException e) {
+            LOG.warn("OAuth callback failed provider={} status={}", provider, e.status());
+            metrics.oauth(provider, "failure");
+            throw e;
         }
     }
 
-    @Get("/finalize")
-    public HttpResponse<OAuthTokenResponse> finalizeLogin(@QueryValue("code") String code) {
-        return loginSessionStore.consume(code)
-                .map(HttpResponse::ok)
-                .orElseGet(() -> HttpResponse.badRequest());
+    private String existingOrNewBinding(HttpRequest<?> request) {
+        return request.getCookies()
+                .findCookie(BROWSER_COOKIE)
+                .map(Cookie::getValue)
+                .filter(v -> !v.isBlank())
+                .orElseGet(() -> SecureTokens.randomUrl(32));
     }
 
-    @Get("/config")
-    public HttpResponse<OAuthConfigResponse> getConfig() {
-        String redirectBaseUrl = socialOAuthConfigurationProperties.getRedirectBaseUrl();
-        String frontendRedirectUrl = socialOAuthConfigurationProperties.getFrontendRedirectUrl();
-        return HttpResponse.ok(new OAuthConfigResponse(redirectBaseUrl, frontendRedirectUrl));
+    private Cookie browserCookie(String binding, boolean secure) {
+        Cookie cookie = Cookie.of(BROWSER_COOKIE, binding)
+                .httpOnly(true)
+                .path("/oauth2")
+                .maxAge(Duration.ofMinutes(10))
+                .sameSite(SameSite.Lax);
+        if (secure) {
+            cookie.secure(true);
+        }
+        return cookie;
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 
     @Serdeable
-    public record OAuthConfigResponse(String redirectBaseUrl, String frontendRedirectUrl) {}
+    public record AuthorizationRedirectResponse(String authorizationUri, String state) {}
 
     @Serdeable
-    public record AuthorizationRedirectResponse(String authorizationUri, String state, String nonce) {}
-
-    @Serdeable
-    public record OAuthTokenResponse(
-            String accessToken,
-            String refreshToken,
-            long expiresIn,
-            String tokenType,
-            Long userId,
-            String provider,
-            String providerUserId) {}
+    public record CallbackForm(String code, String state, String user) {}
 }
-

@@ -28,4 +28,4 @@ COPY --from=build /app/auth-service-web/target/auth-service-web-*.jar app.jar
 EXPOSE 8100
 
 # Run the application
-ENTRYPOINT ["java", "-jar", "-Dmicronaut.environments=${MICRONAUT_ENVIRONMENTS}", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

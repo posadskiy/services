@@ -11,7 +11,7 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
-class SwaggerUiTest {
+class SwaggerUiTest extends PostgresMicronautTest {
 
     @Test
     void shouldServeOpenApiSpecification(@Client("/") HttpClient httpClient) {
