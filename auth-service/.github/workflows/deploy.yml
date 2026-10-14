@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v6
       with:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
@@ -41,7 +41,7 @@ jobs:
       trigger_type: ${{ steps.version.outputs.trigger_type }}
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v6
       with:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
