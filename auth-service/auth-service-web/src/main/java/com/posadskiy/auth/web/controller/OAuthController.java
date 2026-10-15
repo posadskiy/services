@@ -6,6 +6,7 @@ import com.posadskiy.auth.core.config.AuthProperties;
 import com.posadskiy.auth.core.crypto.SecureTokens;
 import com.posadskiy.auth.core.exception.OAuthException;
 import com.posadskiy.auth.core.oauth.ExternalProfile;
+import com.posadskiy.auth.core.oauth.OAuthBrowserCookie;
 import com.posadskiy.auth.core.service.AuthMetrics;
 import com.posadskiy.auth.core.service.OAuthAuthorizationService;
 import com.posadskiy.auth.core.service.OAuthAuthorizationService.AuthorizationRequest;
@@ -30,6 +31,7 @@ import io.micronaut.http.annotation.CookieValue;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.Post;
+import io.micronaut.http.annotation.Produces;
 import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.http.cookie.Cookie;
 import io.micronaut.http.cookie.SameSite;
@@ -86,17 +88,20 @@ public class OAuthController {
     }
 
     @Get("/authorize/{provider}")
-    public HttpResponse<AuthorizationRedirectResponse> authorize(
+    @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_HTML})
+    public HttpResponse<?> authorize(
             @PathVariable @NotBlank String provider,
             @QueryValue(value = "code_challenge", defaultValue = "") String codeChallenge,
             @QueryValue(value = "return_to", defaultValue = "") String returnTo,
             HttpRequest<?> request) {
         String binding = existingOrNewBinding(request);
-        AuthorizationRequest authorization = authorizationService.authorize(
-                provider, binding, blankToNull(codeChallenge), blankToNull(returnTo));
-        MutableHttpResponse<AuthorizationRedirectResponse> response = HttpResponse.ok(
-                new AuthorizationRedirectResponse(authorization.authorizationUri(), authorization.state()));
-        response.cookie(browserCookie(binding, request.isSecure()));
+        AuthorizationRequest authorization =
+                authorizationService.authorize(provider, binding, blankToNull(codeChallenge), blankToNull(returnTo));
+        MutableHttpResponse<?> response = browserNavigation(request)
+                ? HttpResponse.redirect(URI.create(authorization.authorizationUri()))
+                : HttpResponse.ok(
+                        new AuthorizationRedirectResponse(authorization.authorizationUri(), authorization.state()));
+        response.cookie(browserCookie(binding));
         return response;
     }
 
@@ -179,16 +184,27 @@ public class OAuthController {
                 .orElseGet(() -> SecureTokens.randomUrl(32));
     }
 
-    private Cookie browserCookie(String binding, boolean secure) {
+    private Cookie browserCookie(String binding) {
+        String redirectBase = authProperties.oauth().redirectBaseUrl();
         Cookie cookie = Cookie.of(BROWSER_COOKIE, binding)
                 .httpOnly(true)
-                .path("/oauth2")
+                .path(OAuthBrowserCookie.path(redirectBase))
                 .maxAge(Duration.ofMinutes(10))
-                .sameSite(SameSite.Lax);
-        if (secure) {
+                .sameSite(OAuthBrowserCookie.secure(redirectBase) ? SameSite.None : SameSite.Lax);
+        if (OAuthBrowserCookie.secure(redirectBase)) {
             cookie.secure(true);
         }
         return cookie;
+    }
+
+    /** A browser address-bar navigation stores the binding cookie. A JSON client still receives the URI. */
+    private static boolean browserNavigation(HttpRequest<?> request) {
+        for (MediaType type : request.accept()) {
+            if (MediaType.APPLICATION_JSON.equals(type.getName())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static String blankToNull(String value) {

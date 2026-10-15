@@ -14,6 +14,7 @@ import com.posadskiy.auth.api.dto.TokenResponse;
 import com.posadskiy.auth.api.dto.UserResponse;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpStatus;
+import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -152,15 +153,29 @@ class AuthFlowTest extends PostgresMicronautTest {
 
     @Test
     void oauthAuthorizeStartsPkceFlow() {
-        io.micronaut.http.HttpResponse<String> response =
-                client.toBlocking().exchange(HttpRequest.GET("/oauth2/authorize/google"), String.class);
+        io.micronaut.http.HttpResponse<String> response = client.toBlocking()
+                .exchange(HttpRequest.GET("/oauth2/authorize/google").accept(MediaType.APPLICATION_JSON), String.class);
         assertEquals(HttpStatus.OK, response.getStatus());
         String body = response.body();
         assertTrue(body.contains("accounts.google.com"));
         assertTrue(body.contains("code_challenge"));
         assertTrue(body.contains("test-google-client"));
         assertTrue(response.getHeaders().getAll("Set-Cookie").stream()
-                .anyMatch(value -> value.startsWith("oauth_browser=")));
+                .anyMatch(value -> value.startsWith("oauth_browser=") && value.contains("Path=/oauth2")));
+    }
+
+    @Test
+    void oauthAuthorizeRedirectsABrowserAndScopesTheBindingCookie() {
+        io.micronaut.http.HttpResponse<String> response = client.toBlocking()
+                .exchange(
+                        HttpRequest.GET("/oauth2/authorize/google?return_to=https://grammarbar.com/oauth/callback")
+                                .accept(MediaType.TEXT_HTML),
+                        String.class);
+        assertTrue(response.getStatus().getCode() >= 300 && response.getStatus().getCode() < 400);
+        assertTrue(response.getHeaders().get("Location").contains("accounts.google.com"));
+        assertTrue(response.getHeaders().get("Location").contains("redirect_uri="));
+        assertTrue(response.getHeaders().getAll("Set-Cookie").stream()
+                .anyMatch(value -> value.startsWith("oauth_browser=") && value.contains("Path=/oauth2")));
     }
 
     @Test
@@ -177,8 +192,8 @@ class AuthFlowTest extends PostgresMicronautTest {
     void oauthAuthorizeAcceptsAllowlistedReturnUrl() {
         io.micronaut.http.HttpResponse<String> response = client.toBlocking()
                 .exchange(
-                        HttpRequest.GET(
-                                "/oauth2/authorize/google?return_to=https://costy.posadskiy.com/oauth/callback"),
+                        HttpRequest.GET("/oauth2/authorize/google?return_to=https://costy.posadskiy.com/oauth/callback")
+                                .accept(MediaType.APPLICATION_JSON),
                         String.class);
         assertEquals(HttpStatus.OK, response.getStatus());
         assertTrue(response.body().contains("accounts.google.com"));

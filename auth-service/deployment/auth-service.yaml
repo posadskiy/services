@@ -82,7 +82,31 @@ spec:
               name: microservices-secrets
               key: GOOGLE_OAUTH_CLIENT_SECRET
         - name: APPLE_OAUTH_ENABLED
-          value: "false"
+          value: "true"
+        - name: APPLE_OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: APPLE_OAUTH_CLIENT_ID
+              optional: true
+        - name: APPLE_OAUTH_TEAM_ID
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: APPLE_OAUTH_TEAM_ID
+              optional: true
+        - name: APPLE_OAUTH_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: APPLE_OAUTH_KEY_ID
+              optional: true
+        - name: APPLE_OAUTH_PRIVATE_KEY_PEM
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: APPLE_OAUTH_PRIVATE_KEY_PEM
+              optional: true
         - name: SYSTEM_CLIENT_ENABLED
           value: "true"
         - name: SYSTEM_CLIENT_ID
