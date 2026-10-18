@@ -6,7 +6,7 @@ Micronaut 5 authentication service: email/password accounts plus Google and Appl
 
 - `POST /users` and `POST /signup` — register with email + password (BCrypt cost 10 by default)
 - `POST /login` — password login, returns access + refresh tokens
-- `POST /oauth/token` — `refresh_token`, `password`, or `client_credentials`
+- `POST /oauth/token` — `refresh_token`, `password`, or `client_credentials`. The body is `application/x-www-form-urlencoded`, as in OAuth 2.1. The same fields are also accepted as JSON.
 - `POST /oauth/revoke` / `POST /logout` — revoke a refresh token family
 - `GET /oauth2/authorize/{google|apple}?return_to=` — start OIDC. `return_to` must be an exact URL from `OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS`
 - `GET|POST /oauth2/callback/{provider}` — provider callback (Apple uses `form_post`)

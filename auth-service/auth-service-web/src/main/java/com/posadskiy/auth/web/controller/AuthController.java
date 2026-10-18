@@ -16,6 +16,7 @@ import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
+import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
@@ -24,6 +25,7 @@ import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import jakarta.validation.Valid;
+import java.util.Map;
 
 @ExecuteOn(TaskExecutors.BLOCKING)
 @Controller
@@ -70,9 +72,31 @@ public class AuthController {
         }
     }
 
-    @Post("/oauth/token")
+    @Post(uri = "/oauth/token", consumes = MediaType.APPLICATION_JSON)
     @Secured(SecurityRule.IS_ANONYMOUS)
     public TokenResponse token(@Body @Valid RefreshRequest request, HttpRequest<?> httpRequest) {
+        return grant(request, httpRequest);
+    }
+
+    /** OAuth 2.1 token requests are form-urlencoded. JSON stays accepted for clients already sending it. */
+    @Post(uri = "/oauth/token", consumes = MediaType.APPLICATION_FORM_URLENCODED)
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    public TokenResponse tokenForm(@Body Map<String, String> form, HttpRequest<?> httpRequest) {
+        return grant(
+                new RefreshRequest(
+                        form.get("grant_type"),
+                        form.get("refresh_token"),
+                        form.get("client_id"),
+                        form.get("client_secret"),
+                        form.get("username"),
+                        form.get("password")),
+                httpRequest);
+    }
+
+    private TokenResponse grant(RefreshRequest request, HttpRequest<?> httpRequest) {
+        if (request.grantType() == null) {
+            throw new AuthException("grant_type is required");
+        }
         return switch (request.grantType()) {
             case "refresh_token" -> {
                 if (request.refreshToken() == null) {

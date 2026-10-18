@@ -10,8 +10,7 @@ public final class FrontendReturnUrls {
 
     private FrontendReturnUrls() {}
 
-    public static String resolve(
-            @Nullable String requested, @Nullable String fallback, @Nullable String allowlist) {
+    public static String resolve(@Nullable String requested, @Nullable String fallback, @Nullable String allowlist) {
         Set<String> allowed = parse(allowlist);
         if (requested == null || requested.isBlank()) {
             if (fallback == null || fallback.isBlank()) {

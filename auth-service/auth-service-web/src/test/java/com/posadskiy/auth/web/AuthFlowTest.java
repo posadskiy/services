@@ -82,6 +82,28 @@ class AuthFlowTest extends PostgresMicronautTest {
     }
 
     @Test
+    void formRefreshRotatesTheToken() {
+        client.toBlocking()
+                .retrieve(
+                        HttpRequest.POST("/users", new RegisterRequest("form@example.com", "correcthorse", "formuser")),
+                        UserResponse.class);
+        TokenResponse tokens = client.toBlocking()
+                .retrieve(
+                        HttpRequest.POST("/login", new LoginRequest("form@example.com", "correcthorse")),
+                        TokenResponse.class);
+
+        TokenResponse refreshed = client.toBlocking()
+                .retrieve(
+                        HttpRequest.POST(
+                                        "/oauth/token",
+                                        "grant_type=refresh_token&refresh_token=" + tokens.refreshToken())
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED),
+                        TokenResponse.class);
+        assertNotNull(refreshed.accessToken());
+        assertNotEquals(tokens.refreshToken(), refreshed.refreshToken());
+    }
+
+    @Test
     void clientCredentialsIssuesAccessTokenWithoutRefresh() {
         TokenResponse tokens = client.toBlocking()
                 .retrieve(
