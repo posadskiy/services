@@ -138,6 +138,11 @@ public class AuthController {
 
     static UserResponse toResponse(UserEntity user) {
         return new UserResponse(
-                user.id(), user.username(), user.email(), user.emailVerified(), user.pictureUrl(), user.roleList());
+                UserResponse.idOf(user.id()),
+                user.username(),
+                user.email(),
+                user.emailVerified(),
+                user.pictureUrl(),
+                user.roleList());
     }
 }

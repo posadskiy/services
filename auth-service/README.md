@@ -14,6 +14,8 @@ Micronaut 5 authentication service: email/password accounts plus Google and Appl
 - `GET /keys` and `GET /.well-known/openid-configuration`
 - `GET /account/me` and `POST /account/deactivate`
 
+`id` on a user and `user_id` on a token are strings, the same value as the access token `sub`. `expires_in` stays a number of seconds. The database id stays a number.
+
 Access tokens last **15 minutes**. Refresh tokens are opaque, stored as SHA-256 hashes, rotated on use, and expire after 30 days. Reuse of a rotated refresh token revokes the whole family.
 
 The `system` password backdoor is gone. Machine clients use `grant_type=client_credentials` (`SYSTEM_CLIENT_ID` / `SYSTEM_CLIENT_SECRET`).

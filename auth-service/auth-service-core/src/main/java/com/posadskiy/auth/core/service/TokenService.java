@@ -1,6 +1,7 @@
 package com.posadskiy.auth.core.service;
 
 import com.posadskiy.auth.api.dto.TokenResponse;
+import com.posadskiy.auth.api.dto.UserResponse;
 import com.posadskiy.auth.core.config.AuthProperties;
 import com.posadskiy.auth.core.config.OAuthClientProperties;
 import com.posadskiy.auth.core.crypto.SecureTokens;
@@ -50,7 +51,7 @@ public class TokenService {
         String access = accessToken(user, provider, externalIdentityId);
         String refresh = persistRefresh(user.id(), provider, externalIdentityId, UUID.randomUUID());
         return new TokenResponse(
-                access, refresh, properties.jwt().accessTokenTtl().toSeconds(), "Bearer", user.id());
+                access, refresh, properties.jwt().accessTokenTtl().toSeconds(), "Bearer", UserResponse.idOf(user.id()));
     }
 
     @Transactional
@@ -80,7 +81,7 @@ public class TokenService {
                 next,
                 properties.jwt().accessTokenTtl().toSeconds(),
                 "Bearer",
-                user.id());
+                UserResponse.idOf(user.id()));
     }
 
     @Transactional

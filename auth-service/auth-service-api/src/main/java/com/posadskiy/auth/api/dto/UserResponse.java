@@ -8,9 +8,18 @@ import java.util.List;
 @Serdeable
 @Introspected
 public record UserResponse(
-        Long id,
+        String id,
         String username,
         String email,
         boolean emailVerified,
         @Nullable String pictureUrl,
-        List<String> roles) {}
+        List<String> roles) {
+
+    /** Decimal form of the database id. This is the access token `sub`. */
+    public static String idOf(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Account id is missing");
+        }
+        return Long.toString(id);
+    }
+}

@@ -14,4 +14,4 @@ public record TokenResponse(
         @JsonProperty("refresh_token") @Nullable String refreshToken,
         @JsonProperty("expires_in") long expiresIn,
         @JsonProperty("token_type") String tokenType,
-        @JsonProperty("user_id") @Nullable Long userId) {}
+        @JsonProperty("user_id") @Nullable String userId) {}

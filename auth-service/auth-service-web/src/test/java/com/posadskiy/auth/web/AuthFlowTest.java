@@ -1,6 +1,7 @@
 package com.posadskiy.auth.web;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -20,6 +21,10 @@ import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
@@ -113,6 +118,31 @@ class AuthFlowTest extends PostgresMicronautTest {
                         TokenResponse.class);
         assertNotNull(tokens.accessToken());
         assertEquals(null, tokens.refreshToken());
+        assertEquals(null, tokens.userId());
+    }
+
+    @Test
+    void accountIdIsAStringAndMatchesTheAccessTokenSubject() {
+        String createdJson = client.toBlocking()
+                .retrieve(
+                        HttpRequest.POST("/signup", new RegisterRequest("id@example.com", "correcthorse", "iduser")),
+                        String.class);
+        TokenResponse tokens = client.toBlocking()
+                .retrieve(
+                        HttpRequest.POST("/login", new LoginRequest("id@example.com", "correcthorse")),
+                        TokenResponse.class);
+        String loginJson = client.toBlocking()
+                .retrieve(HttpRequest.POST("/login", new LoginRequest("id@example.com", "correcthorse")), String.class);
+        UserResponse me = client.toBlocking()
+                .retrieve(HttpRequest.GET("/account/me").bearerAuth(tokens.accessToken()), UserResponse.class);
+
+        assertTrue(me.id().matches("\\d+"));
+        assertEquals(me.id(), tokens.userId());
+        assertEquals(me.id(), jwtSubject(tokens.accessToken()));
+        assertTrue(createdJson.contains("\"id\":\"" + me.id() + "\""));
+        assertFalse(createdJson.contains("\"id\":" + me.id()));
+        assertTrue(loginJson.contains("\"user_id\":\"" + me.id() + "\""));
+        assertFalse(loginJson.contains("\"user_id\":" + me.id()));
     }
 
     @Test
@@ -248,5 +278,13 @@ class AuthFlowTest extends PostgresMicronautTest {
                                 "/oauth/token",
                                 new RefreshRequest("client_credentials", null, "nope", "wrong", null, null))));
         assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatus());
+    }
+
+    private static String jwtSubject(String accessToken) {
+        String payload = accessToken.split("\\.")[1];
+        String json = new String(Base64.getUrlDecoder().decode(payload), StandardCharsets.UTF_8);
+        Matcher subject = Pattern.compile("\"sub\"\\s*:\\s*\"([^\"]+)\"").matcher(json);
+        assertTrue(subject.find());
+        return subject.group(1);
     }
 }
