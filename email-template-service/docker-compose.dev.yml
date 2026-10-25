@@ -1,51 +1,34 @@
+name: email-template-service
+
 services:
   web:
+    init: true
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
-        GITHUB_USERNAME: ${GITHUB_USERNAME}
-    volumes:
-      - ~/.m2:/root/.m2
-    container_name: email-template-service
-    restart: unless-stopped
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
     environment:
       MICRONAUT_ENVIRONMENTS: dev
-      GITHUB_USERNAME: ${GITHUB_USERNAME}
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
-      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
-      EMAIL_ADDRESS: ${DEV_EMAIL_ADDRESS}
-      EMAIL_TOKEN: ${DEV_EMAIL_TOKEN}
-      # Service URLs for Docker Compose (use service names)
-      USER_SERVICE_URL: http://user-service:8095
-      EMAIL_SERVICE_URL: http://email-service:8090
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET:?Set JWT_GENERATOR_SIGNATURE_SECRET}
       OTEL_SERVICE_NAME: email-template-service
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
+      USER_SERVICE_URL: http://host.docker.internal:8095
+      EMAIL_SERVICE_URL: http://host.docker.internal:8090
     ports:
-      - "8090:8090"
-      - "5007:5007"  # Debug port
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - "127.0.0.1:8091:8091"
+      - "127.0.0.1:5008:5008"
     labels:
-      - "logging=promtail"
-      - "service=email-template-service"
-    networks:
-      - user-web-network
-      - observability-stack-network
-    # Note: Services communicate using Docker Compose service names
-    # The .internal hostnames are handled by Kubernetes service aliases
-
-volumes:
-  postgres_data:
-
-networks:
-  user-web-network:
-    external: true
-  observability-stack-network:
-    external: true 
+      logging: promtail
+      service: email-template-service
