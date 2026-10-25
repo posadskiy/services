@@ -2,10 +2,13 @@ package com.posadskiy.user.web.controller;
 
 import com.posadskiy.user.api.UpdateUsernameRequest;
 import com.posadskiy.user.api.UserDto;
+import com.posadskiy.user.api.UserIds;
 import com.posadskiy.user.core.mapper.dto.UserDtoMapper;
 import com.posadskiy.user.core.service.UserService;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.*;
+import io.micronaut.http.exceptions.HttpStatusException;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
@@ -35,25 +38,19 @@ public class UserController {
      *
      * @param authentication The authenticated user's authentication object containing JWT claims
      * @return UserDto containing the current user's information
-     * @throws IllegalArgumentException if the user ID in the token is invalid
+     * @throws io.micronaut.http.exceptions.HttpStatusException if the user ID in the token is invalid
      */
     @Get("/me")
     @ContinueSpan
     public UserDto getCurrentUser(Authentication authentication) {
-        String userIdStr = authentication.getName();
-        try {
-            Long userId = Long.parseLong(userIdStr);
-            return userDtoMapper.mapToDto(userService.getUserById(userId));
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid user ID in authentication token: " + userIdStr, e);
-        }
+        return userDtoMapper.mapToDto(userService.getUserById(parseUserId(authentication.getName())));
     }
 
     @Get("{id}")
     @ContinueSpan
-    public UserDto getUserById(@Header(AUTHORIZATION) String authorization, @PathVariable Long id) {
+    public UserDto getUserById(@Header(AUTHORIZATION) String authorization, @PathVariable String id) {
         return userDtoMapper.mapToDto(
-            userService.getUserById(id)
+            userService.getUserById(parseUserId(id))
         );
     }
 
@@ -61,10 +58,10 @@ public class UserController {
     @ContinueSpan
     public UserDto updateUser(
         @Header(AUTHORIZATION) String authorization,
-        @PathVariable Long id,
+        @PathVariable String id,
         @Body UpdateUsernameRequest request) {
         return userDtoMapper.mapToDto(
-            userService.updateUser(id, request.username())
+            userService.updateUser(parseUserId(id), request.username())
         );
     }
 
@@ -84,8 +81,16 @@ public class UserController {
     @ContinueSpan
     public HttpResponse<?> deleteUser(
         @Header(AUTHORIZATION) String authorization,
-        @PathVariable Long id) {
-        userService.deleteUser(id);
+        @PathVariable String id) {
+        userService.deleteUser(parseUserId(id));
         return HttpResponse.noContent();
+    }
+
+    private static Long parseUserId(String id) {
+        try {
+            return UserIds.parse(id);
+        } catch (IllegalArgumentException e) {
+            throw new HttpStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.posadskiy.user.core.service;
 
 import com.posadskiy.user.api.LinkSocialIdentityRequest;
 import com.posadskiy.user.api.SocialIdentityDto;
+import com.posadskiy.user.api.UserIds;
 import com.posadskiy.user.core.db.ExternalIdentityRepository;
 import com.posadskiy.user.core.db.UsersRepository;
 import com.posadskiy.user.core.db.entity.ExternalIdentityEntity;
@@ -71,7 +72,7 @@ public class SocialIdentityService {
 
     private SocialIdentityDto mapToDto(ExternalIdentityEntity entity) {
         return new SocialIdentityDto(
-                entity.getId(),
+                entity.getId() == null ? null : UserIds.of(entity.getId()),
                 entity.getProvider(),
                 entity.getProviderUserId(),
                 entity.getEmail(),

@@ -71,7 +71,7 @@ CREATE TABLE users (
 - Java 21
 - Maven 3.9+
 - Docker & Docker Compose
-- PostgreSQL 15+
+- PostgreSQL 18
 
 ### Environment Variables
 
@@ -100,7 +100,7 @@ GITHUB_TOKEN=your_github_token
 
 2. **Start with Docker Compose**:
    ```bash
-   docker-compose -f docker-compose.dev.yml up
+   docker compose -f docker-compose.dev.yml up
    ```
 
 3. **Access the Service**:
@@ -111,7 +111,7 @@ GITHUB_TOKEN=your_github_token
 ### Production Setup
 
 ```bash
-docker-compose -f docker-compose.prod.yml up
+docker compose -f docker-compose.prod.yml up
 ```
 
 ## 🔧 Configuration
@@ -238,12 +238,6 @@ docker build -t user-service:dev .
 ```bash
 docker build -f Dockerfile.prod -t user-service:prod .
 ```
-
-### Docker Compose Networks
-
-The service connects to:
-- `user-web-network`: For inter-service communication
-- `observability-stack-network`: For monitoring and tracing
 
 ## 🔐 Security Features
 

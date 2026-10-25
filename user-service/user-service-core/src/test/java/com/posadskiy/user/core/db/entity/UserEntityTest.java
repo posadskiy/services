@@ -25,14 +25,15 @@ class UserEntityTest {
         
         user.setId(123L);
         user.setUsername("testuser");
-        user.setEmail("test@example.com");
+        user.setEmail(" Test@Example.com ");
         user.setPasswordHash("hashedPassword");
         user.setUpdatedAt(now);
         user.setCreatedAt(now);
         
         assertEquals(123L, user.getId());
         assertEquals("testuser", user.getUsername());
-        assertEquals("test@example.com", user.getEmail());
+        assertEquals(" Test@Example.com ", user.getEmail());
+        assertEquals("test@example.com", user.getEmailNormalized());
         assertEquals("hashedPassword", user.getPasswordHash());
         assertEquals(now, user.getUpdatedAt());
         assertEquals(now, user.getCreatedAt());

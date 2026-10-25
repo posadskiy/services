@@ -12,7 +12,7 @@ import java.util.List;
 @Serdeable
 @Introspected
 public record UserDto(
-        @Nullable Long id,
+        @Nullable String id,
         @NonNull @NotBlank String username,
         @NonNull @NotNull String email,
         @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) @Nullable String password,
@@ -22,17 +22,13 @@ public record UserDto(
         @Nullable List<String> authProviders) {
 
     public static UserDto legacy(String id, String username, String email, String password) {
-        return new UserDto(parseId(id), username, email, password, null, null, null, List.of());
+        return new UserDto(blankToNull(id), username, email, password, null, null, null, List.of());
     }
 
-    private static Long parseId(String id) {
+    private static String blankToNull(String id) {
         if (id == null || id.isBlank()) {
             return null;
         }
-        try {
-            return Long.valueOf(id);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return id;
     }
 }

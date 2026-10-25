@@ -7,7 +7,7 @@ import java.time.Instant;
 @Serdeable
 @Introspected
 public record SocialIdentityDto(
-        Long id,
+        String id,
         String provider,
         String providerUserId,
         String email,

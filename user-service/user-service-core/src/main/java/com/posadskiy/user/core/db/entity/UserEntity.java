@@ -4,6 +4,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.data.annotation.*;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import lombok.Data;
 
 @Data
@@ -21,6 +22,9 @@ public class UserEntity {
     @NonNull
     @NotBlank
     private String email;
+
+    @MappedProperty("email_normalized")
+    private String emailNormalized;
 
     private String passwordHash;
 
@@ -69,6 +73,15 @@ public class UserEntity {
 
     public void setEmail(@NonNull @NotBlank String email) {
         this.email = email;
+        this.emailNormalized = email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    public String getEmailNormalized() {
+        return emailNormalized;
+    }
+
+    public void setEmailNormalized(String emailNormalized) {
+        this.emailNormalized = emailNormalized;
     }
 
     public String getPasswordHash() {

@@ -16,7 +16,7 @@ class UserDtoTest {
     @Test
     void testConstructionAndGetters() {
         UserDto dto = UserDto.legacy("123", "username", "user@example.com", "password");
-        assertEquals(123L, dto.id());
+        assertEquals("123", dto.id());
         assertEquals("username", dto.username());
         assertEquals("user@example.com", dto.email());
         assertEquals("password", dto.password());
@@ -37,9 +37,9 @@ class UserDtoTest {
         assertNotNull(json);
         assertTrue(json.contains("user"));
         assertTrue(json.contains("email"));
-        assertTrue(json.contains("\"id\":1") || json.contains("\"id\": 1"));
+        assertTrue(json.contains("\"id\":\"1\"") || json.contains("\"id\": \"1\""));
         UserDto deserialized = objectMapper.readValue(json, UserDto.class);
-        assertEquals(1L, deserialized.id());
+        assertEquals("1", deserialized.id());
         assertEquals("user", deserialized.username());
         assertEquals("email", deserialized.email());
         // password: @JsonProperty(WRITE_ONLY) is intended to exclude from serialization;
