@@ -39,7 +39,7 @@ The email service integrates with:
 - Java 21
 - Maven 3.9+
 - Docker & Docker Compose
-- PostgreSQL 15+
+- PostgreSQL 18
 - SMTP Server (Gmail, SendGrid, etc.)
 
 ### Environment Variables
@@ -74,7 +74,7 @@ JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret_key_here
 
 2. **Start with Docker Compose**:
    ```bash
-   docker-compose -f docker-compose.dev.yml up
+   docker compose -f docker-compose.dev.yml up
    ```
 
 3. **Access the Service**:
@@ -85,7 +85,7 @@ JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret_key_here
 ### Production Setup
 
 ```bash
-docker-compose -f docker-compose.prod.yml up
+docker compose -f docker-compose.prod.yml up
 ```
 
 ## 🔧 Configuration
@@ -181,12 +181,6 @@ docker build -t email-service:dev .
 ```bash
 docker build -f Dockerfile.prod -t email-service:prod .
 ```
-
-### Docker Compose Networks
-
-The service connects to:
-- `user-web-network`: For inter-service communication
-- `observability-stack-network`: For monitoring and tracing
 
 ## 🔐 Security Features
 
