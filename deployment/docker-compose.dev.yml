@@ -1,209 +1,174 @@
-# Run from shared-services-configuration/ with .env or exported vars (see README).
-# Build contexts point to sibling service folders (../auth-service, etc.).
+# Local stack. One Compose project, one network: services reach each other by service name.
+# Traces go to an OTLP collector on the host (port 4317). No external Docker network is required.
+
+name: shared-services-configuration
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-java: &java
+  init: true
+  restart: unless-stopped
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  logging: *logging
+  deploy:
+    resources:
+      limits:
+        memory: 1G
+        cpus: "0.5"
 
 services:
   auth-db:
-    image: postgres:15
     container_name: auth-db
-    restart: always
+    image: postgres:18
+    pull_policy: missing
+    restart: unless-stopped
+    shm_size: 256mb
     environment:
-      POSTGRES_DB: ${AUTH_DATABASE_NAME}
-      POSTGRES_USER: ${AUTH_DATABASE_USER}
-      POSTGRES_PASSWORD: ${AUTH_DATABASE_PASSWORD}
+      POSTGRES_DB: ${AUTH_DATABASE_NAME:?Set AUTH_DATABASE_NAME}
+      POSTGRES_USER: ${AUTH_DATABASE_USER:?Set AUTH_DATABASE_USER}
+      POSTGRES_PASSWORD: ${AUTH_DATABASE_PASSWORD:?Set AUTH_DATABASE_PASSWORD}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
-      - user-web-network
+      default:
+        aliases:
+          - database
 
   auth-service:
+    <<: *java
+    container_name: auth-service
     build:
       context: ../auth-service
       dockerfile: Dockerfile
       args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
-        GITHUB_USERNAME: ${GITHUB_USERNAME}
-    volumes:
-      - ~/.m2:/root/.m2
-    container_name: auth-service
-    restart: unless-stopped
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
     depends_on:
-      - auth-db
+      auth-db:
+        condition: service_healthy
+        restart: true
     environment:
       MICRONAUT_ENVIRONMENTS: docker
-      GITHUB_USERNAME: ${GITHUB_USERNAME}
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
       DATASOURCE_URL: jdbc:postgresql://auth-db:5432/${AUTH_DATABASE_NAME}
       DATASOURCE_USERNAME: ${AUTH_DATABASE_USER}
       DATASOURCE_PASSWORD: ${AUTH_DATABASE_PASSWORD}
-      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
-      # Oauth
-      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID}
-      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET}
-      FACEBOOK_OAUTH_CLIENT_ID: ${FACEBOOK_OAUTH_CLIENT_ID}
-      FACEBOOK_OAUTH_CLIENT_SECRET: ${FACEBOOK_OAUTH_CLIENT_SECRET}
-      GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID}
-      GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET}
-      JAEGER_SERVICE_NAME: auth-service
-      JAEGER_ENDPOINT: http://jaeger:14268/api/traces
-      # Service URLs for Docker Compose (use service names)
+      # AUTH_JWT_HMAC_SECRET is the Micronaut name for auth.jwt.hmac-secret. Same value as the shared secret.
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET:?Set JWT_GENERATOR_SIGNATURE_SECRET}
+      AUTH_JWT_HMAC_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET:?Set JWT_GENERATOR_SIGNATURE_SECRET}
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
+      FACEBOOK_OAUTH_CLIENT_ID: ${FACEBOOK_OAUTH_CLIENT_ID:-}
+      FACEBOOK_OAUTH_CLIENT_SECRET: ${FACEBOOK_OAUTH_CLIENT_SECRET:-}
+      GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID:-}
+      GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET:-}
+      OTEL_SERVICE_NAME: auth-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       USER_SERVICE_URL: http://user-service:8095
       EMAIL_SERVICE_URL: http://email-service:8090
       EMAIL_TEMPLATE_SERVICE_URL: http://email-template-service:8091
     ports:
-      - "8100:8100"
-      - "5005:5005"  # Debug port
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - "127.0.0.1:8100:8100"
+      - "127.0.0.1:5005:5005"
     labels:
-      - "logging=promtail"
-      - "service=auth-service"
-    networks:
-      - user-web-network
-      - observability-stack-network
-    # Note: Services communicate using Docker Compose service names
-    # The -internal hostnames are handled by Kubernetes service aliases
-        
+      logging: promtail
+      service: auth-service
+
   user-service:
+    <<: *java
+    container_name: user-service
     build:
       context: ../user-service
       dockerfile: Dockerfile
       args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
-        GITHUB_USERNAME: ${GITHUB_USERNAME}
-    volumes:
-      - ~/.m2:/root/.m2
-    container_name: user-service
-    restart: unless-stopped
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
     depends_on:
-      - auth-service
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
+      auth-db:
+        condition: service_healthy
+        restart: true
     environment:
       MICRONAUT_ENVIRONMENTS: dev
-      GITHUB_USERNAME: ${GITHUB_USERNAME}
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
       DATASOURCE_URL: jdbc:postgresql://auth-db:5432/${AUTH_DATABASE_NAME}
       DATASOURCE_USERNAME: ${AUTH_DATABASE_USER}
       DATASOURCE_PASSWORD: ${AUTH_DATABASE_PASSWORD}
-      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
-      # Jaeger configuration
-      JAEGER_SERVICE_NAME: user-service
-      JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET:?Set JWT_GENERATOR_SIGNATURE_SECRET}
+      OTEL_SERVICE_NAME: user-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
     ports:
-      - "8095:8095"
-      - "5006:5006"  # Debug port
-    networks:
-      - user-web-network
-      - observability-stack-network
-    # Add -internal DNS aliases to match Kubernetes service names
-        
+      - "127.0.0.1:8095:8095"
+      - "127.0.0.1:5006:5006"
+    labels:
+      logging: promtail
+      service: user-service
+
+  # Skipped by `docker compose up`. Start with: docker compose --profile email up -d
   email-service:
+    <<: *java
+    container_name: email-service
+    profiles: [email]
     build:
       context: ../email-service
       dockerfile: Dockerfile
       args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
-        GITHUB_USERNAME: ${GITHUB_USERNAME}
-    volumes:
-      - ~/.m2:/root/.m2
-    container_name: email-service
-    restart: unless-stopped
-    depends_on:
-      - user-service
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
     environment:
       MICRONAUT_ENVIRONMENTS: dev
-      GITHUB_USERNAME: ${GITHUB_USERNAME}
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
       JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
-      EMAIL_ADDRESS: ${DEV_EMAIL_ADDRESS}
-      EMAIL_TOKEN: ${DEV_EMAIL_TOKEN}
-      JAEGER_SERVICE_NAME: email-service
-      JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      EMAIL_ADDRESS: ${DEV_EMAIL_ADDRESS:-}
+      EMAIL_TOKEN: ${DEV_EMAIL_TOKEN:-}
+      OTEL_SERVICE_NAME: email-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
       USER_SERVICE_URL: http://user-service:8095
     ports:
-      - "8090:8090"
-      - "5007:5007"  # Debug port
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - "127.0.0.1:8090:8090"
+      - "127.0.0.1:5007:5007"
     labels:
-      - "logging=promtail"
-      - "service=email-service"
-    networks:
-      - user-web-network
-      - observability-stack-network
-    # Add -internal DNS aliases to match Kubernetes service names
-        
+      logging: promtail
+      service: email-service
+
   email-template-service:
+    <<: *java
+    container_name: email-template-service
+    profiles: [email]
     build:
       context: ../email-template-service
       dockerfile: Dockerfile
       args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
-        GITHUB_USERNAME: ${GITHUB_USERNAME}
-    volumes:
-      - ~/.m2:/root/.m2
-    container_name: email-template-service
-    restart: unless-stopped
-    depends_on:
-      - email-service
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
     environment:
       MICRONAUT_ENVIRONMENTS: dev
-      GITHUB_USERNAME: ${GITHUB_USERNAME}
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
       JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
-      JAEGER_SERVICE_NAME: email-template-service
-      JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      OTEL_SERVICE_NAME: email-template-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
     ports:
-      - "8091:8091"
-      - "5008:5008"  # Debug port
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - "127.0.0.1:8091:8091"
+      - "127.0.0.1:5008:5008"
     labels:
-      - "logging=promtail"
-      - "service=email-template-service"
-    networks:
-      - user-web-network
-      - observability-stack-network
-    # Add -internal DNS aliases to match Kubernetes service names
+      logging: promtail
+      service: email-template-service
 
 volumes:
   postgres_data:
-
-networks:
-  user-web-network:
-    external: true
-  observability-stack-network:
-    external: true 
