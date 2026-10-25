@@ -11,7 +11,7 @@ abstract class PostgresMicronautTest implements TestPropertyProvider {
     private static final PostgreSQLContainer POSTGRES = start();
 
     private static PostgreSQLContainer start() {
-        PostgreSQLContainer container = new PostgreSQLContainer("postgres:16-alpine")
+        PostgreSQLContainer container = new PostgreSQLContainer("postgres:18-alpine")
                 .withDatabaseName("auth_db")
                 .withUsername("test")
                 .withPassword("test");

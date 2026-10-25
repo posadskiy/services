@@ -1,70 +1,74 @@
+# Auth service and its database. Compose's project network is enough.
+# Traces go to an OTLP collector on the host (port 4317).
+
+name: auth-service
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   database:
-    image: postgres:15
-    container_name: auth-db-local
-    restart: always
+    image: postgres:18
+    pull_policy: missing
+    restart: unless-stopped
+    shm_size: 256mb
     environment:
-      POSTGRES_DB: ${AUTH_DATABASE_NAME}
-      POSTGRES_USER: ${AUTH_DATABASE_USER}
-      POSTGRES_PASSWORD: ${AUTH_DATABASE_PASSWORD}
+      POSTGRES_DB: ${AUTH_DATABASE_NAME:?Set AUTH_DATABASE_NAME}
+      POSTGRES_USER: ${AUTH_DATABASE_USER:?Set AUTH_DATABASE_USER}
+      POSTGRES_PASSWORD: ${AUTH_DATABASE_PASSWORD:?Set AUTH_DATABASE_PASSWORD}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - user-web-network
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   web:
+    init: true
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    logging: *logging
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
-        GITHUB_USERNAME: ${GITHUB_USERNAME}
-    container_name: auth-service-local
-    restart: unless-stopped
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
     depends_on:
-      - database
+      database:
+        condition: service_healthy
+        restart: true
     environment:
       MICRONAUT_ENVIRONMENTS: docker
-      GITHUB_USERNAME: ${GITHUB_USERNAME}
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
-      DATASOURCE_URL: jdbc:postgresql://database:5432/auth_db
+      DATASOURCE_URL: jdbc:postgresql://database:5432/${AUTH_DATABASE_NAME}
       DATASOURCE_USERNAME: ${AUTH_DATABASE_USER}
       DATASOURCE_PASSWORD: ${AUTH_DATABASE_PASSWORD}
-      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET:?Set JWT_GENERATOR_SIGNATURE_SECRET}
+      AUTH_JWT_HMAC_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET:?Set JWT_GENERATOR_SIGNATURE_SECRET}
       OAUTH_REDIRECT_BASE_URL: http://localhost:8100
-      OAUTH_TOKEN_ENCRYPTION_SECRET: ${OAUTH_TOKEN_ENCRYPTION_SECRET}
+      OAUTH_TOKEN_ENCRYPTION_SECRET: ${OAUTH_TOKEN_ENCRYPTION_SECRET:-}
       GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-change-me}
       GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-change-me}
       FACEBOOK_OAUTH_CLIENT_ID: ${FACEBOOK_OAUTH_CLIENT_ID:-change-me}
       FACEBOOK_OAUTH_CLIENT_SECRET: ${FACEBOOK_OAUTH_CLIENT_SECRET:-change-me}
       OTEL_SERVICE_NAME: auth-service
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
     ports:
-      - "8100:8100"
-      - "5005:5005"  # Debug port
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - "127.0.0.1:8100:8100"
+      - "127.0.0.1:5005:5005"
     labels:
-      - "logging=promtail"
-      - "service=auth-service"
-    networks:
-      - user-web-network
-      - observability-stack-network
-    # Note: Services communicate using Docker Compose service names
-    # The .internal hostnames are handled by Kubernetes service aliases
+      logging: promtail
+      service: auth-service
 
 volumes:
   postgres_data:
-
-networks:
-  user-web-network:
-    external: true
-  observability-stack-network:
-    external: true 

@@ -67,7 +67,7 @@ Health: `GET /health/liveness` and `GET /health/readiness`.
 
 ## Configuration notes
 
-- `AUTH_JWT_HMAC_SECRET` / `JWT_GENERATOR_SIGNATURE_SECRET` — HS256 signing (existing secret still works)
+- `JWT_GENERATOR_SIGNATURE_SECRET` — HS256 signing. Every service that accepts these tokens verifies with this variable. On auth-service only, the same value is also exposed as `AUTH_JWT_HMAC_SECRET`, because that is the environment name Micronaut binds to `auth.jwt.hmac-secret`.
 - `AUTH_JWT_PRIVATE_KEY_PEM` + `AUTH_JWT_PUBLIC_KEY_PEM` — switch to ES256 and publish the public key at `/keys`
 - `AUTH_BCRYPT_COST` — default 10
 - `SYSTEM_CLIENT_ENABLED=true` plus client id/secret for service-to-service tokens

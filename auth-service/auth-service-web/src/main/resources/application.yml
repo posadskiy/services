@@ -140,7 +140,10 @@ auth:
     issuer: ${AUTH_JWT_ISSUER:`https://auth.posadskiy.com`}
     audience: ${AUTH_JWT_AUDIENCE:api.posadskiy.com}
     access-token-ttl: ${AUTH_JWT_ACCESS_TTL:PT15M}
-    hmac-secret: ${AUTH_JWT_HMAC_SECRET:${JWT_GENERATOR_SIGNATURE_SECRET}}
+    # Single placeholder only. A nested ${JWT_GENERATOR_SIGNATURE_SECRET} default is kept as literal text
+    # and every other service then rejects the token. The container also sets AUTH_JWT_HMAC_SECRET
+    # to this same value: Micronaut binds that name onto auth.jwt.hmac-secret and it overrides this entry.
+    hmac-secret: ${JWT_GENERATOR_SIGNATURE_SECRET:}
     private-key-pem: ${AUTH_JWT_PRIVATE_KEY_PEM:}
     public-key-pem: ${AUTH_JWT_PUBLIC_KEY_PEM:}
   password:

@@ -36,7 +36,7 @@ public class JwtCryptoFactory {
         }
         String secret = jwt.hmacSecret();
         if (!notBlank(secret)) {
-            throw new IllegalStateException("Set AUTH_JWT_HMAC_SECRET (or JWT_GENERATOR_SIGNATURE_SECRET) "
+            throw new IllegalStateException("Set JWT_GENERATOR_SIGNATURE_SECRET "
                     + "or provide AUTH_JWT_PRIVATE_KEY_PEM and AUTH_JWT_PUBLIC_KEY_PEM");
         }
         SecretSignatureConfiguration configuration = new SecretSignatureConfiguration("generator");
