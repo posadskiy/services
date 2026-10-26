@@ -67,26 +67,15 @@ JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret_key_here
 
 ### Development Setup
 
-1. **Clone and Navigate**:
-   ```bash
-   cd email-service
-   ```
-
-2. **Start with Docker Compose**:
-   ```bash
-   docker compose -f docker-compose.dev.yml up
-   ```
-
-3. **Access the Service**:
-   - Service: http://localhost:8090
-- Swagger UI: http://localhost:8090/swagger-ui/index.html
-- Prometheus Metrics: http://localhost:8090/prometheus
-
-### Production Setup
+From the repository root (email services use the `email` profile):
 
 ```bash
-docker compose -f docker-compose.prod.yml up
+docker compose -f docker-compose.dev.yml --profile email up -d
 ```
+
+- Service: http://localhost:8090
+- Swagger UI: http://localhost:8090/swagger-ui/index.html
+- Prometheus Metrics: http://localhost:8090/prometheus
 
 ## 🔧 Configuration
 
@@ -214,11 +203,9 @@ export SHARED_K8S="$(pwd)/../deployment"
 
 ### GitHub Actions
 
-Automated CI/CD pipeline includes:
-- Automated testing
-- Docker image building
-- GitHub Packages publishing
-- Release management
+Pull requests and `main` run `mvn install` and `spotless:check` in this directory with Maven 3.9.12.
+
+A tag `email-service/vX.Y.Z` (the same version as `pom.xml`) publishes the Maven modules, pushes the production image to Docker Hub, and creates a GitHub Release. Deploy that image with `./deployment/scripts/deploy.sh <version>`.
 
 ## 📝 Contributing
 

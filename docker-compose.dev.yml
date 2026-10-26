@@ -51,7 +51,7 @@ services:
     <<: *java
     container_name: auth-service
     build:
-      context: ../auth-service
+      context: ./auth-service
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN:-}
@@ -92,7 +92,7 @@ services:
     <<: *java
     container_name: user-service
     build:
-      context: ../user-service
+      context: ./user-service
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN:-}
@@ -124,7 +124,7 @@ services:
     container_name: email-service
     profiles: [email]
     build:
-      context: ../email-service
+      context: ./email-service
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN:-}
@@ -151,7 +151,7 @@ services:
     container_name: email-template-service
     profiles: [email]
     build:
-      context: ../email-template-service
+      context: ./email-template-service
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN:-}

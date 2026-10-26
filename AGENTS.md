@@ -6,7 +6,7 @@ This repository is a Maven multi-module **Micronaut** auth service (`auth-servic
 
 ### Toolchain
 - The build requires **JDK 25** (`maven.compiler.source/target=25` in the POMs), even though `README.md` and CI say "Java 21". JDK 25 is installed and is the default `java` (`/usr/lib/jvm/java-25-openjdk-amd64`, via `update-alternatives`). Do not downgrade to 21 — compilation fails.
-- Use the Maven wrapper `./mvnw` (Maven 3.9.x). No `settings.xml`/GitHub token is needed: all dependencies resolve from Maven Central. The `github` repository in `pom.xml` is only for publishing.
+- Use Maven 3.9.12 (`mvn`), the same version as the `maven:3.9.12-amazoncorretto-25-alpine` image. No `settings.xml`/GitHub token is needed: all dependencies resolve from Maven Central. The `github` repository in `pom.xml` is only for publishing.
 
 ### PostgreSQL (required to run the app, not for tests)
 - Postgres 16 is installed but does **not** auto-start. Start it each session: `sudo service postgresql start`.
@@ -27,15 +27,15 @@ GITHUB_OAUTH_CLIENT_ID / GITHUB_OAUTH_CLIENT_SECRET
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 ```
 - **OTEL gotcha (non-obvious):** you must export a full-URL `OTEL_EXPORTER_OTLP_ENDPOINT`. Relying on the built-in placeholder default in `application.yml` (`${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}`) causes startup to crash with `OTLP endpoint must be a valid URL: 4317` (the OpenTelemetry SDK autoconfigure receives only the bare port). A collector need not actually be listening — export failures at runtime are non-fatal.
-- The same OAuth-client env vars are also needed to run `./mvnw test`, otherwise web-module tests error with `Could not resolve placeholder ${GOOGLE_OAUTH_CLIENT_ID}`.
+- The same OAuth-client env vars are also needed to run `mvn test`, otherwise web-module tests error with `Could not resolve placeholder ${GOOGLE_OAUTH_CLIENT_ID}`.
 
 ### Run / test / lint / build
 - **Run (dev)** — the correct Micronaut goal is `mn:run` (README's `clean run` is wrong; `run` is not a lifecycle phase). Include `-am` so sibling modules build:
-  `./mvnw mn:run -pl auth-service-web -am -Dmicronaut.environments=dev`
+  `mvn mn:run -pl auth-service-web -am -Dmicronaut.environments=dev`
   Verify: `curl localhost:8100/health` → `{"status":"UP"}`; Swagger UI at `/swagger-ui/index.html`.
-- **Test:** `./mvnw test` (web tests use an in-memory H2 DB; no Postgres needed).
-- **Lint:** `./mvnw spotless:check` (Palantir Java format). Note: two files currently have pre-existing violations (`auth-service-core/.../oauth/OAuthProviderRegistry.java`, `OAuthStateStore.java`); `./mvnw spotless:apply` fixes them.
-- **Build:** `./mvnw -DskipTests install` (AOT-optimized runnable jar at `auth-service-web/target/auth-service-web-*.jar`).
+- **Test:** `mvn test` (web tests use an in-memory H2 DB; no Postgres needed).
+- **Lint:** `mvn spotless:check` (Palantir Java format). Note: two files currently have pre-existing violations (`auth-service-core/.../oauth/OAuthProviderRegistry.java`, `OAuthStateStore.java`); `mvn spotless:apply` fixes them.
+- **Build:** `mvn -DskipTests install` (AOT-optimized runnable jar at `auth-service-web/target/auth-service-web-*.jar`).
 
 ### Auth flow notes
 - There is **no HTTP user-registration endpoint** (the README's `POST /users` does not exist). `/login` is Micronaut Security's built-in bearer login: `POST /login` with `{"username":"<email>","password":"<pw>"}`. Authentication looks users up by **email**; passwords are BCrypt (strength 8). To create a test user, insert into the `users` table with a BCrypt hash.

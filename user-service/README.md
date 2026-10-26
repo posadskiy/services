@@ -93,26 +93,15 @@ GITHUB_TOKEN=your_github_token
 
 ### Development Setup
 
-1. **Clone and Navigate**:
-   ```bash
-   cd user-service
-   ```
-
-2. **Start with Docker Compose**:
-   ```bash
-   docker compose -f docker-compose.dev.yml up
-   ```
-
-3. **Access the Service**:
-   - Service: http://localhost:8095
-- Swagger UI: http://localhost:8095/swagger-ui/index.html
-- Prometheus Metrics: http://localhost:8095/prometheus
-
-### Production Setup
+From the repository root:
 
 ```bash
-docker compose -f docker-compose.prod.yml up
+docker compose -f docker-compose.dev.yml up -d
 ```
+
+- Service: http://localhost:8095
+- Swagger UI: http://localhost:8095/swagger-ui/index.html
+- Prometheus Metrics: http://localhost:8095/prometheus
 
 ## 🔧 Configuration
 
@@ -272,11 +261,9 @@ export SHARED_K8S="$(pwd)/../deployment"
 
 ### GitHub Actions
 
-Automated CI/CD pipeline includes:
-- Automated testing
-- Docker image building
-- GitHub Packages publishing
-- Release management
+Pull requests and `main` run `mvn install` and `spotless:check` in this directory with Maven 3.9.12.
+
+A tag `user-service/vX.Y.Z` (the same version as `pom.xml`) publishes the Maven modules, pushes the production image to Docker Hub, and creates a GitHub Release. Deploy that image with `./deployment/scripts/deploy.sh <version>`.
 
 ## 📝 Contributing
 

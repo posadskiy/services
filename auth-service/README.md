@@ -52,17 +52,23 @@ export JWT_GENERATOR_SIGNATURE_SECRET='at-least-32-characters-secret-key!!'
 export GOOGLE_OAUTH_CLIENT_ID=...
 export GOOGLE_OAUTH_CLIENT_SECRET=...
 export OAUTH_FRONTEND_REDIRECT_URL=http://localhost:3000/oauth/callback
-./mvnw mn:run -pl auth-service-web -am -Dmicronaut.environments=dev
+mvn mn:run -pl auth-service-web -am -Dmicronaut.environments=dev
 ```
 
 Health: `GET /health/liveness` and `GET /health/readiness`.
 
+## GitHub Actions
+
+Pull requests and `main` run `mvn install` and `spotless:check` in this directory with Maven 3.9.12.
+
+A tag `auth-service/vX.Y.Z` (the same version as `pom.xml`) publishes the Maven modules, pushes the production image to Docker Hub, and creates a GitHub Release. Deploy that image with `./deployment/scripts/deploy.sh <version>`.
+
 ## Test / build
 
 ```bash
-./mvnw test          # Testcontainers PostgreSQL (Docker required)
-./mvnw spotless:check
-./mvnw install       # needed for Micronaut AOT (nested Maven reads sibling modules from ~/.m2)
+mvn test          # Testcontainers PostgreSQL (Docker required)
+mvn spotless:check
+mvn install       # needed for Micronaut AOT (nested Maven reads sibling modules from ~/.m2)
 ```
 
 ## Configuration notes
