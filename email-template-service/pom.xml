@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.posadskiy.email</groupId>
+    <artifactId>email-template-service</artifactId>
+    <version>0.2.0</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>email-template-service-api</module>
+        <module>email-template-service-core</module>
+        <module>email-template-service-web</module>
+    </modules>
+
+    <parent>
+        <groupId>io.micronaut.platform</groupId>
+        <artifactId>micronaut-parent</artifactId>
+        <version>4.10.11</version>
+    </parent>
+    <properties>
+        <packaging>jar</packaging>
+        <jdk.version>25</jdk.version>
+        <release.version>25</release.version>
+        <micronaut.version>4.10.11</micronaut.version>
+        <lombok.version>1.18.42</lombok.version>
+        <micronaut.runtime>netty</micronaut.runtime>
+        <micronaut.aot.enabled>true</micronaut.aot.enabled>
+        <micronaut.aot.packageName>com.posadskiy.email.template.service.aot.generated</micronaut.aot.packageName>
+        <exec.mainClass>com.posadskiy.email.template.Application</exec.mainClass>
+
+        <email-service-api.version>0.2.0</email-service-api.version>
+        <user-service-api.version>0.3.2</user-service-api.version>
+
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
+        <jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
+        <micronaut-views-thymeleaf.version>5.4.0</micronaut-views-thymeleaf.version>
+        <micronaut-security.version>4.5.0</micronaut-security.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>github</id>
+            <name>GitHub posadskiy Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/posadskiy/user-service</url>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub posadskiy Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/posadskiy/email-template-service</url>
+        </repository>
+    </distributionManagement>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.posadskiy.email</groupId>
+                <artifactId>email-template-service-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.posadskiy.email</groupId>
+                <artifactId>email-template-service-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.posadskiy.email</groupId>
+                <artifactId>email-template-service-web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.posadskiy.email</groupId>
+                <artifactId>email-service-api</artifactId>
+                <version>${email-service-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.posadskiy.user</groupId>
+                <artifactId>user-service-api</artifactId>
+                <version>${user-service-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
+            </dependency>
+
+            <!-- Validation -->
+            <dependency>
+                <groupId>jakarta.validation</groupId>
+                <artifactId>jakarta.validation-api</artifactId>
+                <version>${jakarta.validation-api.version}</version>
+            </dependency>
+            <!-- Validation -->
+
+            <!-- Micronaut -->
+            <dependency>
+                <groupId>io.micronaut</groupId>
+                <artifactId>micronaut-http-client</artifactId>
+                <version>${micronaut.version}</version>
+            </dependency>
+            <!-- Micronaut -->
+
+            <!-- Email -->
+            <dependency>
+                <groupId>io.micronaut.views</groupId>
+                <artifactId>micronaut-views-thymeleaf</artifactId>
+                <version>${micronaut-views-thymeleaf.version}</version>
+            </dependency>
+            <!-- Email -->
+
+            <!-- Security -->
+            <dependency>
+                <groupId>io.micronaut.security</groupId>
+                <artifactId>micronaut-security</artifactId>
+                <version>${micronaut-security.version}</version>
+            </dependency>
+            <!-- Security -->
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Maven Release Plugin for version management -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>deploy</goals>
+                    <tagNameFormat>@{project.artifactId}-@{project.version}</tagNameFormat>
+                    <preparationGoals>clean install</preparationGoals>
+                    <completionGoals>clean install</completionGoals>
+                </configuration>
+            </plugin>
+            
+            <!-- Spotless Maven Plugin for code formatting -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.45.0</version>
+                <configuration>
+                    <java>
+                        <palantirJavaFormat>
+                            <version>2.71.0</version>
+                        </palantirJavaFormat>
+                    </java>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
