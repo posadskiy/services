@@ -259,11 +259,11 @@ docker build -f Dockerfile.prod -t user-service:prod .
 
 ### Kubernetes
 
-The service has its own **`deployment/`** folder: manifest `deployment/user-service.yaml` and scripts **`deployment/scripts/deploy.sh`**, **`deployment/scripts/build-and-push.sh`**. Shared cluster config (namespace, ConfigMap, Secrets, Traefik) lives in **`shared-services-configuration/deployment/`**.
+The service has its own **`deployment/`** folder: manifest `deployment/user-service.yaml` and scripts **`deployment/scripts/deploy.sh`**, **`deployment/scripts/build-and-push.sh`**. Shared cluster config (namespace, ConfigMap, Secrets, Traefik) lives in the repository **`deployment/`** directory.
 
 ```bash
-# Deploy this service (requires SHARED_K8S or run from repo with default path)
-export SHARED_K8S="$(pwd)/../shared-services-configuration/deployment"
+# Deploy this service
+export SHARED_K8S="$(pwd)/../deployment"
 ./deployment/scripts/deploy.sh <version>
 
 # Build and push image

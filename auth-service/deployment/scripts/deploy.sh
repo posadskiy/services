@@ -3,7 +3,7 @@ set -e
 
 # deploy.sh - Deploy auth-service to k3s cluster (service only).
 # Cluster (namespace, ConfigMap, Secrets, Traefik) must already be set up via
-# shared-services-configuration/deployment/scripts/k3s/deploy-to-k3s.sh
+# deployment/scripts/k3s/deploy-to-k3s.sh
 # Usage: ./deploy.sh <version>
 
 SERVICE_NAME="auth-service"

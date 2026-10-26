@@ -1,4 +1,4 @@
-name: Deploy to Production
+name: auth-service deploy
 
 on:
   push:
@@ -15,6 +15,10 @@ env:
   JAVA_VERSION: '25'
   IMAGE_NAME: 'auth-service'
 
+defaults:
+  run:
+    working-directory: auth-service
+
 jobs:
   quality-assurance:
     name: Quality Assurance
@@ -28,6 +32,7 @@ jobs:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
         cache: 'maven'
+        cache-dependency-path: auth-service/**/pom.xml
     - name: Test
       run: ./mvnw -B install
 
@@ -46,6 +51,7 @@ jobs:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
         cache: 'maven'
+        cache-dependency-path: auth-service/**/pom.xml
     - name: Calculate Version
       id: version
       run: |
@@ -58,7 +64,7 @@ jobs:
           if [[ -n "${{ github.event.inputs.version }}" ]]; then
             VERSION="${{ github.event.inputs.version }}"
           else
-            VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
+            VERSION=$(git describe --tags --abbrev=0 --match 'v[0-9]*' | sed 's/^v//')
           fi
           TAG="v$VERSION"
           TRIGGER_TYPE="manual"

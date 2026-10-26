@@ -1,9 +1,9 @@
-name: Deploy to Production
+name: user-service deploy
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'user-service/v*'
   workflow_dispatch:
     inputs:
       version:
@@ -15,8 +15,12 @@ env:
   JAVA_VERSION: '21'
   MAVEN_VERSION: '3.9.9'
   DOCKER_REGISTRY: 'gcr.io'
-  IMAGE_NAME: 'email-service'
+  IMAGE_NAME: 'user-service'
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+
+defaults:
+  run:
+    working-directory: user-service
 
 jobs:
   # Quality Assurance
@@ -36,12 +40,13 @@ jobs:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
         cache: 'maven'
+        cache-dependency-path: user-service/**/pom.xml
         
     - name: Cache Maven packages
       uses: actions/cache@v4
       with:
         path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        key: ${{ runner.os }}-m2-${{ hashFiles('user-service/**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
         
     # Quick Quality Checks
@@ -89,15 +94,15 @@ jobs:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
         cache: 'maven'
+        cache-dependency-path: user-service/**/pom.xml
         
     - name: Calculate Version
       id: version
       run: |
         if [[ "${{ github.event_name }}" == "push" ]]; then
           # Extract version from tag (remove 'v' prefix)
-          VERSION=${GITHUB_REF#refs/tags/}
-          VERSION=${VERSION#v}  # Remove 'v' prefix if present
-          TAG="v$VERSION"
+          VERSION=${GITHUB_REF#refs/tags/user-service/v}
+          TAG="user-service/v$VERSION"
           TRIGGER_TYPE="tag"
         else
           # Manual dispatch - use provided version or latest tag
@@ -105,9 +110,9 @@ jobs:
             VERSION="${{ github.event.inputs.version }}"
           else
             # Get latest tag
-            VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
+            VERSION=$(git describe --tags --abbrev=0 --match 'user-service/v*' | sed 's|^user-service/v||')
           fi
-          TAG="v$VERSION"
+          TAG="user-service/v$VERSION"
           TRIGGER_TYPE="manual"
         fi
         
@@ -225,7 +230,7 @@ jobs:
         
     - name: Deploy to Production Environment
       run: |
-        echo "📧 Deploying email-service to production environment..."
+        echo "👤 Deploying user-service to production environment..."
         
         # Configuration
         PROJECT_ID="${{ env.PROJECT_ID }}"
@@ -236,7 +241,7 @@ jobs:
         
         echo "📋 Production Deployment Plan:"
         echo "- Environment: Production"
-        echo "- Application: Email Service"
+        echo "- Application: User Service"
         echo "- Version: $VERSION"
         echo "- Image: $IMAGE_TAG"
         echo "- Project ID: $PROJECT_ID"
@@ -263,25 +268,25 @@ jobs:
         echo "🔐 Getting cluster credentials..."
         gcloud container clusters get-credentials $CLUSTER_NAME --zone=${{ secrets.GKE_REGION }}
         
-        # Deploy email-service with version substitution
-        echo "📧 Deploying email-service..."
+        # Deploy user-service with version substitution
+        echo "👤 Deploying user-service..."
         export IMAGE_VERSION=$VERSION
         export IMAGE_TAG=$IMAGE_TAG
         export GITHUB_USERNAME="posadskiy"
         
-        # Create temporary email-service.yaml with image substitution
-        envsubst < deployment/email-service.yaml | kubectl apply -f -
+        # Create temporary user-service.yaml with image substitution
+        envsubst < deployment/user-service.yaml | kubectl apply -f -
         
-        # Wait for email-service to be ready
-        echo "⏳ Waiting for email-service to be ready..."
-        kubectl wait --for=condition=available --timeout=300s deployment/email-service -n $NAMESPACE
+        # Wait for user-service to be ready
+        echo "⏳ Waiting for user-service to be ready..."
+        kubectl wait --for=condition=available --timeout=300s deployment/user-service -n $NAMESPACE
         
         # Verify deployment
         echo "✅ Verifying deployment..."
         kubectl get pods -n $NAMESPACE
         kubectl get services -n $NAMESPACE
         
-        echo "✅ Email-service deployment completed successfully!"
+        echo "✅ User-service deployment completed successfully!"
         
     - name: Run Production Tests
       run: |
@@ -291,25 +296,24 @@ jobs:
         
         # Get service information
         echo "📋 Service Information:"
-        kubectl get service email-service -n $NAMESPACE
+        kubectl get service user-service -n $NAMESPACE
         
         # Get pod status
         echo "📊 Pod Status:"
-        kubectl get pods -n $NAMESPACE -l app=email-service
+        kubectl get pods -n $NAMESPACE -l app=user-service
         
         # Check service endpoints
         echo "🔍 Checking service endpoints..."
-        kubectl get endpoints email-service -n $NAMESPACE
+        kubectl get endpoints user-service -n $NAMESPACE
         
         # Health check using the correct endpoint
         echo "🏥 Running health checks..."
-        echo "Testing health endpoint: https://api.posadskiy.com/email/health"
-        curl -f https://api.posadskiy.com/email/health || echo "Health check failed"
+        echo "Testing health endpoint: https://api.posadskiy.com/user/health"
+        curl -f https://api.posadskiy.com/user/health || echo "Health check failed"
    
         echo "✅ Production tests completed"
         
     - name: Create Release
-      if: github.event_name == 'push'  # Only create release on tag push
       env:
         GH_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
       run: |
@@ -331,7 +335,7 @@ jobs:
         COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
         
         # Create release body header
-        echo "## Email Service Release ${{ needs.build.outputs.version }}" > release_body.md
+        echo "## User Service Release ${{ needs.build.outputs.version }}" > release_body.md
         echo "" >> release_body.md
         echo "### 📝 Changes" >> release_body.md
         
@@ -362,7 +366,7 @@ jobs:
         echo "### 🔧 Build Instructions" >> release_body.md
         echo '```bash' >> release_body.md
         echo "mvn clean package -DskipTests" >> release_body.md
-        echo "java -jar email-service-web/target/email-service-web-*.jar" >> release_body.md
+        echo "java -jar user-service-web/target/user-service-web-*.jar" >> release_body.md
         echo '```' >> release_body.md
         echo "" >> release_body.md
         echo "### 📝 Release Trigger" >> release_body.md
@@ -374,12 +378,10 @@ jobs:
         
         # Create release using GitHub CLI
         gh release create ${{ needs.build.outputs.tag }} \
-        --title "Email Service ${{ needs.build.outputs.version }}" \
+        --title "User Service ${{ needs.build.outputs.version }}" \
         --notes-file release_body.md \
         --draft=false \
         --prerelease=false
-
-
 
   # Monitoring and Alerting
   monitor:
@@ -420,28 +422,28 @@ jobs:
         
         # Get pod status and resource usage
         echo "📊 Pod Status and Resource Usage:"
-        kubectl get pods -n $NAMESPACE -l app=email-service || echo "No email-service pods found"
-        kubectl top pods -n $NAMESPACE -l app=email-service || echo "Resource usage not available"
+        kubectl get pods -n $NAMESPACE -l app=user-service || echo "No user-service pods found"
+        kubectl top pods -n $NAMESPACE -l app=user-service || echo "Resource usage not available"
         
         # Get service status
         echo "🌐 Service Status:"
-        kubectl get services -n $NAMESPACE -l app=email-service || echo "No email-service services found"
+        kubectl get services -n $NAMESPACE -l app=user-service || echo "No user-service services found"
         
         # Get deployment status
         echo "🚀 Deployment Status:"
-        kubectl get deployments -n $NAMESPACE -l app=email-service || echo "No email-service deployments found"
+        kubectl get deployments -n $NAMESPACE -l app=user-service || echo "No user-service deployments found"
         
         # Check logs for any errors
         echo "📝 Recent Logs:"
-        kubectl logs --tail=50 -n $NAMESPACE -l app=email-service || echo "No logs available"
+        kubectl logs --tail=50 -n $NAMESPACE -l app=user-service || echo "No logs available"
         
         # External health check
         echo "🏥 External Health Check:"
-        curl -f https://api.posadskiy.com/email/health || echo "External health check failed"
+        curl -f https://api.posadskiy.com/user/health || echo "External health check failed"
         
         # Metrics collection from external endpoint
         echo "📈 Metrics Collection:"
-        curl -s https://api.posadskiy.com/email/actuator/metrics || echo "Metrics endpoint not accessible"
-        curl -s https://api.posadskiy.com/email/actuator/prometheus || echo "Prometheus endpoint not accessible"
+        curl -s https://api.posadskiy.com/user/actuator/metrics || echo "Metrics endpoint not accessible"
+        curl -s https://api.posadskiy.com/user/actuator/prometheus || echo "Prometheus endpoint not accessible"
         
         echo "✅ Monitoring completed" 

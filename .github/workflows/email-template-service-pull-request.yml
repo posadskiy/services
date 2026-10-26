@@ -1,14 +1,21 @@
-name: Pull Request Quality Gate
+name: email-template-service pull request
 
 on:
   pull_request:
     branches: [ main ]
     types: [ opened, synchronize, reopened, ready_for_review ]
+    paths:
+      - 'email-template-service/**'
+      - '.github/workflows/email-template-service-pull-request.yml'
 
 env:
   JAVA_VERSION: '21'
   MAVEN_VERSION: '3.9.9'
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+defaults:
+  run:
+    working-directory: email-template-service
 
 jobs:
   # Quality Gate - All checks must pass
@@ -28,12 +35,13 @@ jobs:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
         cache: 'maven'
+        cache-dependency-path: email-template-service/**/pom.xml
         
     - name: Cache Maven packages
       uses: actions/cache@v4
       with:
         path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        key: ${{ runner.os }}-m2-${{ hashFiles('email-template-service/**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
         
     # Unit Tests with Coverage

@@ -1,9 +1,9 @@
-name: Deploy to Production
+name: email-template-service deploy
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'email-template-service/v*'
   workflow_dispatch:
     inputs:
       version:
@@ -17,6 +17,10 @@ env:
   DOCKER_REGISTRY: 'gcr.io'
   IMAGE_NAME: 'email-template-service'
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+
+defaults:
+  run:
+    working-directory: email-template-service
 
 jobs:
   # Quality Assurance
@@ -36,12 +40,13 @@ jobs:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
         cache: 'maven'
+        cache-dependency-path: email-template-service/**/pom.xml
         
     - name: Cache Maven packages
       uses: actions/cache@v4
       with:
         path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        key: ${{ runner.os }}-m2-${{ hashFiles('email-template-service/**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
         
     # Quick Quality Checks
@@ -89,15 +94,15 @@ jobs:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
         cache: 'maven'
+        cache-dependency-path: email-template-service/**/pom.xml
         
     - name: Calculate Version
       id: version
       run: |
         if [[ "${{ github.event_name }}" == "push" ]]; then
           # Extract version from tag (remove 'v' prefix)
-          VERSION=${GITHUB_REF#refs/tags/}
-          VERSION=${VERSION#v}  # Remove 'v' prefix if present
-          TAG="v$VERSION"
+          VERSION=${GITHUB_REF#refs/tags/email-template-service/v}
+          TAG="email-template-service/v$VERSION"
           TRIGGER_TYPE="tag"
         else
           # Manual dispatch - use provided version or latest tag
@@ -105,9 +110,9 @@ jobs:
             VERSION="${{ github.event.inputs.version }}"
           else
             # Get latest tag
-            VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
+            VERSION=$(git describe --tags --abbrev=0 --match 'email-template-service/v*' | sed 's|^email-template-service/v||')
           fi
-          TAG="v$VERSION"
+          TAG="email-template-service/v$VERSION"
           TRIGGER_TYPE="manual"
         fi
         

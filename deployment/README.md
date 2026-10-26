@@ -1,13 +1,13 @@
 # Shared Services Configuration
 
-This repo holds **shared configuration** for the microservices platform: Docker Compose to run all services locally, and the **`deployment/`** folder to prepare the k3s cluster and build images. Individual services (auth, user, email, email-template) live in sibling directories and have their own READMEs.
+This directory is the shared configuration for the microservices repository: Docker Compose to run all services locally, and the manifests and scripts that prepare the k3s cluster. The services live in sibling directories (`../auth-service`, `../user-service`, `../email-service`, `../email-template-service`) and have their own READMEs.
 
 ---
 
-## What’s in this repo
+## What’s in this directory
 
-- **`docker-compose.dev.yml`** / **`docker-compose.prod.yml`** – run all services (and DB) from here
-- **`deployment/`** – scripts and manifests to prepare the cluster (namespace, ConfigMap, Secrets, Traefik) and build/push images; services are deployed from each service’s `deployment/` folder
+- **`docker-compose.dev.yml`** – run all services (and DB) from here
+- Manifests and scripts that prepare the cluster (namespace, ConfigMap, Secrets, Traefik). Each service is deployed from its own `deployment/` folder.
 
 ---
 
@@ -73,11 +73,11 @@ Jaeger UI: http://localhost:16686
 
 ---
 
-## Deployment folder (`deployment/`)
+## Cluster preparation
 
-The **`deployment/`** directory is used to **prepare** the k3s cluster and **build** images. It does **not** deploy individual services; each service is deployed from its own **`<service>/deployment/`** folder.
+This directory prepares the k3s cluster. It does **not** deploy individual services; each service is deployed from its own **`<service>/deployment/`** folder.
 
-### What’s in `deployment/`
+### What’s here
 
 | Path | Purpose |
 |------|--------|
@@ -121,11 +121,13 @@ cd deployment
 ./scripts/k3s/install-k3s.sh <server_ip> <ssh_user>
 ```
 
+Run that from the repository root.
+
 Configure `kubectl` (e.g. copy kubeconfig from the server).
 
 #### 3. Prepare the cluster (once per cluster)
 
-From **`shared-services-configuration/deployment`**:
+From this directory:
 
 ```bash
 ./scripts/k3s/deploy-to-k3s.sh

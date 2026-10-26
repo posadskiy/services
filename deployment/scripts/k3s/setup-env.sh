@@ -81,7 +81,7 @@ fi
 echo "🔍 Checking if Docker images exist..."
 SERVICES=("auth-service" "user-service" "email-service" "email-template-service")
 MISSING_IMAGES=()
-SERVICES_ROOT="$(dirname "$(dirname "$K8S_DIR")")"
+SERVICES_ROOT="$(dirname "$K8S_DIR")"
 COMMON_SCRIPTS_DIR="$K8S_DIR/scripts/common"
 if [ -f "$COMMON_SCRIPTS_DIR/get-version.sh" ]; then
   for service in "${SERVICES[@]}"; do

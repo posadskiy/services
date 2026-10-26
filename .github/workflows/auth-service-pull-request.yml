@@ -1,12 +1,19 @@
-name: Pull Request Quality Gate
+name: auth-service pull request
 
 on:
   pull_request:
     branches: [ main ]
     types: [ opened, synchronize, reopened, ready_for_review ]
+    paths:
+      - 'auth-service/**'
+      - '.github/workflows/auth-service-pull-request.yml'
 
 env:
   JAVA_VERSION: '25'
+
+defaults:
+  run:
+    working-directory: auth-service
 
 jobs:
   quality-gate:
@@ -23,6 +30,7 @@ jobs:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
         cache: 'maven'
+        cache-dependency-path: auth-service/**/pom.xml
 
     # `install` (not `verify`) is required: Micronaut AOT forks a nested Maven
     # that resolves sibling modules from the local repo, not the reactor.
