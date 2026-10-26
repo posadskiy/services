@@ -1,0 +1,174 @@
+# Local stack. One Compose project, one network: services reach each other by service name.
+# Traces go to an OTLP collector on the host (port 4317). No external Docker network is required.
+
+name: shared-services-configuration
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-java: &java
+  init: true
+  restart: unless-stopped
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  logging: *logging
+  deploy:
+    resources:
+      limits:
+        memory: 1G
+        cpus: "0.5"
+
+services:
+  auth-db:
+    container_name: auth-db
+    image: postgres:18
+    pull_policy: missing
+    restart: unless-stopped
+    shm_size: 256mb
+    environment:
+      POSTGRES_DB: ${AUTH_DATABASE_NAME:?Set AUTH_DATABASE_NAME}
+      POSTGRES_USER: ${AUTH_DATABASE_USER:?Set AUTH_DATABASE_USER}
+      POSTGRES_PASSWORD: ${AUTH_DATABASE_PASSWORD:?Set AUTH_DATABASE_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      default:
+        aliases:
+          - database
+
+  auth-service:
+    <<: *java
+    container_name: auth-service
+    build:
+      context: ../auth-service
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
+    depends_on:
+      auth-db:
+        condition: service_healthy
+        restart: true
+    environment:
+      MICRONAUT_ENVIRONMENTS: docker
+      DATASOURCE_URL: jdbc:postgresql://auth-db:5432/${AUTH_DATABASE_NAME}
+      DATASOURCE_USERNAME: ${AUTH_DATABASE_USER}
+      DATASOURCE_PASSWORD: ${AUTH_DATABASE_PASSWORD}
+      # AUTH_JWT_HMAC_SECRET is the Micronaut name for auth.jwt.hmac-secret. Same value as the shared secret.
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET:?Set JWT_GENERATOR_SIGNATURE_SECRET}
+      AUTH_JWT_HMAC_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET:?Set JWT_GENERATOR_SIGNATURE_SECRET}
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
+      FACEBOOK_OAUTH_CLIENT_ID: ${FACEBOOK_OAUTH_CLIENT_ID:-}
+      FACEBOOK_OAUTH_CLIENT_SECRET: ${FACEBOOK_OAUTH_CLIENT_SECRET:-}
+      GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID:-}
+      GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET:-}
+      OTEL_SERVICE_NAME: auth-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      USER_SERVICE_URL: http://user-service:8095
+      EMAIL_SERVICE_URL: http://email-service:8090
+      EMAIL_TEMPLATE_SERVICE_URL: http://email-template-service:8091
+    ports:
+      - "127.0.0.1:8100:8100"
+      - "127.0.0.1:5005:5005"
+    labels:
+      logging: promtail
+      service: auth-service
+
+  user-service:
+    <<: *java
+    container_name: user-service
+    build:
+      context: ../user-service
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
+    depends_on:
+      auth-db:
+        condition: service_healthy
+        restart: true
+    environment:
+      MICRONAUT_ENVIRONMENTS: dev
+      DATASOURCE_URL: jdbc:postgresql://auth-db:5432/${AUTH_DATABASE_NAME}
+      DATASOURCE_USERNAME: ${AUTH_DATABASE_USER}
+      DATASOURCE_PASSWORD: ${AUTH_DATABASE_PASSWORD}
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET:?Set JWT_GENERATOR_SIGNATURE_SECRET}
+      OTEL_SERVICE_NAME: user-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+    ports:
+      - "127.0.0.1:8095:8095"
+      - "127.0.0.1:5006:5006"
+    labels:
+      logging: promtail
+      service: user-service
+
+  # Skipped by `docker compose up`. Start with: docker compose --profile email up -d
+  email-service:
+    <<: *java
+    container_name: email-service
+    profiles: [email]
+    build:
+      context: ../email-service
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
+    environment:
+      MICRONAUT_ENVIRONMENTS: dev
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
+      EMAIL_ADDRESS: ${DEV_EMAIL_ADDRESS:-}
+      EMAIL_TOKEN: ${DEV_EMAIL_TOKEN:-}
+      OTEL_SERVICE_NAME: email-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      USER_SERVICE_URL: http://user-service:8095
+    ports:
+      - "127.0.0.1:8090:8090"
+      - "127.0.0.1:5007:5007"
+    labels:
+      logging: promtail
+      service: email-service
+
+  email-template-service:
+    <<: *java
+    container_name: email-template-service
+    profiles: [email]
+    build:
+      context: ../email-template-service
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
+    environment:
+      MICRONAUT_ENVIRONMENTS: dev
+      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
+      OTEL_SERVICE_NAME: email-template-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+    ports:
+      - "127.0.0.1:8091:8091"
+      - "127.0.0.1:5008:5008"
+    labels:
+      logging: promtail
+      service: email-template-service
+
+volumes:
+  postgres_data:
