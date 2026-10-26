@@ -1,0 +1,96 @@
+package com.posadskiy.user.web.controller;
+
+import com.posadskiy.user.api.UpdateUsernameRequest;
+import com.posadskiy.user.api.UserDto;
+import com.posadskiy.user.api.UserIds;
+import com.posadskiy.user.core.mapper.dto.UserDtoMapper;
+import com.posadskiy.user.core.service.UserService;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.http.annotation.*;
+import io.micronaut.http.exceptions.HttpStatusException;
+import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.rules.SecurityRule;
+import io.micronaut.scheduling.TaskExecutors;
+import io.micronaut.scheduling.annotation.ExecuteOn;
+import io.micronaut.tracing.annotation.ContinueSpan;
+
+import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
+
+@Secured(SecurityRule.IS_AUTHENTICATED)
+@ExecuteOn(TaskExecutors.VIRTUAL)
+@Controller("v0/user")
+public class UserController {
+    private final UserService userService;
+    private final UserDtoMapper userDtoMapper;
+
+    public UserController(UserService userService, UserDtoMapper userDtoMapper) {
+        this.userService = userService;
+        this.userDtoMapper = userDtoMapper;
+    }
+
+    /**
+     * Get current authenticated user information.
+     * Extracts user ID from JWT token subject claim and returns user details.
+     * This endpoint provides a convenient way for authenticated users to retrieve their own information
+     * without needing to know their user ID.
+     *
+     * @param authentication The authenticated user's authentication object containing JWT claims
+     * @return UserDto containing the current user's information
+     * @throws io.micronaut.http.exceptions.HttpStatusException if the user ID in the token is invalid
+     */
+    @Get("/me")
+    @ContinueSpan
+    public UserDto getCurrentUser(Authentication authentication) {
+        return userDtoMapper.mapToDto(userService.getUserById(parseUserId(authentication.getName())));
+    }
+
+    @Get("{id}")
+    @ContinueSpan
+    public UserDto getUserById(@Header(AUTHORIZATION) String authorization, @PathVariable String id) {
+        return userDtoMapper.mapToDto(
+            userService.getUserById(parseUserId(id))
+        );
+    }
+
+    @Put("{id}")
+    @ContinueSpan
+    public UserDto updateUser(
+        @Header(AUTHORIZATION) String authorization,
+        @PathVariable String id,
+        @Body UpdateUsernameRequest request) {
+        return userDtoMapper.mapToDto(
+            userService.updateUser(parseUserId(id), request.username())
+        );
+    }
+
+    /**
+     * GDPR-compliant user deletion endpoint.
+     * Permanently anonymizes user data according to GDPR Article 17
+     * (Right to Erasure / "Right to be Forgotten").
+     * <p>
+     * Default behavior: Always anonymizes user data (removes PII while preserving structure for analytics).
+     * This is GDPR-compliant and maintains data integrity.
+     * <p>
+     * For hard delete (complete removal), use POST /v0/user/{id}/hard-delete endpoint.
+     *
+     * @param id User ID to delete
+     */
+    @Delete("{id}")
+    @ContinueSpan
+    public HttpResponse<?> deleteUser(
+        @Header(AUTHORIZATION) String authorization,
+        @PathVariable String id) {
+        userService.deleteUser(parseUserId(id));
+        return HttpResponse.noContent();
+    }
+
+    private static Long parseUserId(String id) {
+        try {
+            return UserIds.parse(id);
+        } catch (IllegalArgumentException e) {
+            throw new HttpStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+}
