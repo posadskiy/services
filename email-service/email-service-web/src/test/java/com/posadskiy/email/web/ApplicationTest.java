@@ -3,8 +3,8 @@ package com.posadskiy.email.web;
 import io.micronaut.runtime.EmbeddedApplication;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 @MicronautTest
 class ApplicationTest {
@@ -28,4 +28,4 @@ class ApplicationTest {
         // but we can verify the application is running
         Assertions.assertTrue(application.isRunning());
     }
-} 
+}

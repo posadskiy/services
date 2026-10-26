@@ -8,11 +8,10 @@ import jakarta.validation.constraints.NotBlank;
 @Serdeable
 @Introspected
 public record LinkSocialIdentityRequest(
-        @NonNull @NotBlank String provider,
-        @NonNull @NotBlank String providerUserId,
-        @NonNull @NotBlank String email,
-        String displayName,
-        String pictureUrl,
-        boolean emailVerified) {
+    @NonNull @NotBlank String provider,
+    @NonNull @NotBlank String providerUserId,
+    @NonNull @NotBlank String email,
+    String displayName,
+    String pictureUrl,
+    boolean emailVerified) {
 }
-

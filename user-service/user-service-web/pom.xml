@@ -75,7 +75,7 @@
             <artifactId>micronaut-micrometer-registry-prometheus</artifactId>
         </dependency>
         <!-- Metrics -->
-        
+
         <!-- Documenting -->
         <dependency>
             <groupId>io.micronaut.openapi</groupId>
@@ -86,14 +86,14 @@
             <artifactId>micronaut-openapi</artifactId>
         </dependency>
         <!-- Documenting -->
-        
+
         <!-- Security -->
         <dependency>
             <groupId>io.micronaut.security</groupId>
             <artifactId>micronaut-security-jwt</artifactId>
         </dependency>
         <!-- Security -->
-        
+
         <!-- Validation -->
         <dependency>
             <groupId>io.micronaut.validation</groupId>
@@ -105,7 +105,7 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
         <!-- Validation -->
-        
+
         <!-- Testing -->
         <dependency>
             <groupId>io.micronaut.test</groupId>
@@ -129,7 +129,7 @@
             <scope>runtime</scope>
         </dependency>
         <!-- Testing -->
-        
+
         <!-- Utils -->
         <dependency>
             <groupId>org.yaml</groupId>
@@ -137,7 +137,7 @@
             <scope>runtime</scope>
         </dependency>
         <!-- Utils -->
-        
+
         <!-- Management -->
         <dependency>
             <groupId>io.micronaut</groupId>
@@ -145,7 +145,7 @@
             <scope>compile</scope>
         </dependency>
         <!-- Management -->
-        
+
         <!-- Reactor -->
         <dependency>
             <groupId>io.micronaut.reactor</groupId>

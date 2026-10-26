@@ -23,7 +23,7 @@ public class AccountController {
     private final SecurityService securityService;
 
     public AccountController(
-            UserAccountService userAccountService, TokenService tokenService, SecurityService securityService) {
+        UserAccountService userAccountService, TokenService tokenService, SecurityService securityService) {
         this.userAccountService = userAccountService;
         this.tokenService = tokenService;
         this.securityService = securityService;
@@ -47,7 +47,7 @@ public class AccountController {
 
     private long currentUserId() {
         return Long.parseLong(securityService
-                .username()
-                .orElseThrow(() -> new com.posadskiy.auth.core.exception.InvalidCredentialsException()));
+            .username()
+            .orElseThrow(() -> new com.posadskiy.auth.core.exception.InvalidCredentialsException()));
     }
 }

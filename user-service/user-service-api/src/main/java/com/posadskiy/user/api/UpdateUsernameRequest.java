@@ -7,6 +7,5 @@ import jakarta.validation.constraints.NotBlank;
 
 @Serdeable
 @Introspected
-public record UpdateUsernameRequest(
-        @NonNull @NotBlank String username) {
+public record UpdateUsernameRequest(@NonNull @NotBlank String username) {
 }

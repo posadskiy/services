@@ -19,11 +19,11 @@ public class AuthClaimsGenerator extends JWTClaimsSetGenerator {
     private final AuthProperties properties;
 
     public AuthClaimsGenerator(
-            TokenConfiguration tokenConfiguration,
-            @Nullable JtiGenerator jwtIdGenerator,
-            @Nullable ClaimsAudienceProvider claimsAudienceProvider,
-            ApplicationConfiguration applicationConfiguration,
-            AuthProperties properties) {
+        TokenConfiguration tokenConfiguration,
+        @Nullable JtiGenerator jwtIdGenerator,
+        @Nullable ClaimsAudienceProvider claimsAudienceProvider,
+        ApplicationConfiguration applicationConfiguration,
+        AuthProperties properties) {
         super(tokenConfiguration, jwtIdGenerator, claimsAudienceProvider, applicationConfiguration);
         this.properties = properties;
     }

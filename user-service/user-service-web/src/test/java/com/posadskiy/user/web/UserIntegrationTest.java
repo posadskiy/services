@@ -8,6 +8,7 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @MicronautTest
@@ -32,7 +33,7 @@ class UserIntegrationTest {
         // This test verifies that the user endpoint requires authentication
         // In a real scenario, you would expect a 401 Unauthorized response
         assertNotNull(client);
-        
+
         // The endpoint should require authentication
         // This is a basic test to ensure the endpoint exists
         assertThrows(HttpClientResponseException.class, () -> {
@@ -49,7 +50,7 @@ class UserIntegrationTest {
         // This test verifies that the registration endpoint allows anonymous access
         // In a real scenario, you would expect a 200 OK or 400 Bad Request response
         assertNotNull(client);
-        
+
         // The registration endpoint should be accessible without authentication
         // This is a basic test to ensure the endpoint exists
         try {
@@ -68,7 +69,7 @@ class UserIntegrationTest {
         // When & Then
         // This test verifies the registration endpoint with valid data
         assertNotNull(client);
-        
+
         try {
             client.toBlocking().retrieve(HttpRequest.POST("/signup", userDto));
         } catch (HttpClientResponseException e) {
@@ -85,7 +86,7 @@ class UserIntegrationTest {
         // When & Then
         // This test verifies the registration endpoint with invalid data
         assertNotNull(client);
-        
+
         try {
             client.toBlocking().retrieve(HttpRequest.POST("/signup", userDto));
         } catch (HttpClientResponseException e) {
@@ -93,4 +94,4 @@ class UserIntegrationTest {
             assertTrue(e.getStatus().getCode() >= 400);
         }
     }
-} 
+}

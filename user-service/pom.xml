@@ -42,7 +42,7 @@
         <repository>
             <id>github</id>
             <name>GitHub posadskiy Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/posadskiy/user-service</url>
+            <url>https://maven.pkg.github.com/posadskiy/services</url>
         </repository>
     </repositories>
 
@@ -50,7 +50,7 @@
         <repository>
             <id>github</id>
             <name>GitHub posadskiy Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/posadskiy/user-service</url>
+            <url>https://maven.pkg.github.com/posadskiy/services</url>
         </repository>
     </distributionManagement>
 

@@ -1,13 +1,15 @@
 package com.posadskiy.auth.core.oauth;
 
 import com.posadskiy.auth.core.crypto.SecureTokens;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
 
 public final class Pkce {
 
-    private Pkce() {}
+    private Pkce() {
+    }
 
     public static String verifier() {
         return SecureTokens.randomUrl(32);

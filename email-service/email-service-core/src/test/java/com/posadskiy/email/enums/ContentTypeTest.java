@@ -1,7 +1,7 @@
 package com.posadskiy.email.enums;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 class ContentTypeTest {
 
@@ -24,4 +24,4 @@ class ContentTypeTest {
         Assertions.assertEquals(0, ContentType.Text.ordinal());
         Assertions.assertEquals(1, ContentType.HTML.ordinal());
     }
-} 
+}

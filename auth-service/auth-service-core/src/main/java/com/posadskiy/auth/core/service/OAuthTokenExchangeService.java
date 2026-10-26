@@ -4,16 +4,12 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.posadskiy.auth.core.config.OAuthProviderProperties;
 import com.posadskiy.auth.core.crypto.SecureTokens;
 import com.posadskiy.auth.core.exception.OAuthException;
-import com.posadskiy.auth.core.oauth.AppleClientSecretService;
-import com.posadskiy.auth.core.oauth.DatabaseOAuthStateStore;
-import com.posadskiy.auth.core.oauth.ExternalProfile;
-import com.posadskiy.auth.core.oauth.IdTokenValidator;
-import com.posadskiy.auth.core.oauth.OAuthOutboundClient;
-import com.posadskiy.auth.core.oauth.OAuthProviderRegistry;
+import com.posadskiy.auth.core.oauth.*;
 import com.posadskiy.auth.core.storage.db.entity.OAuthStateEntity;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.ObjectMapper;
 import jakarta.inject.Singleton;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,12 +24,12 @@ public class OAuthTokenExchangeService {
     private final AppleClientSecretService appleClientSecretService;
 
     public OAuthTokenExchangeService(
-            OAuthProviderRegistry registry,
-            DatabaseOAuthStateStore stateStore,
-            OAuthOutboundClient outboundClient,
-            ObjectMapper objectMapper,
-            IdTokenValidator idTokenValidator,
-            AppleClientSecretService appleClientSecretService) {
+        OAuthProviderRegistry registry,
+        DatabaseOAuthStateStore stateStore,
+        OAuthOutboundClient outboundClient,
+        ObjectMapper objectMapper,
+        IdTokenValidator idTokenValidator,
+        AppleClientSecretService appleClientSecretService) {
         this.registry = registry;
         this.stateStore = stateStore;
         this.outboundClient = outboundClient;
@@ -42,10 +38,28 @@ public class OAuthTokenExchangeService {
         this.appleClientSecretService = appleClientSecretService;
     }
 
+    private static String stringValue(Map<String, ?> map, String key) {
+        Object value = map.get(key);
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private static String claimString(JWTClaimsSet claims, String name) {
+        Object value = claims.getClaim(name);
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private static boolean booleanClaim(JWTClaimsSet claims, String name) {
+        Object value = claims.getClaim(name);
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        return Boolean.parseBoolean(String.valueOf(value == null ? "false" : value));
+    }
+
     public ExchangeResult exchange(
-            String providerPath, String code, String stateValue, String browserBinding, String appleUserJson) {
+        String providerPath, String code, String stateValue, String browserBinding, String appleUserJson) {
         OAuthStateEntity state =
-                stateStore.consume(stateValue).orElseThrow(() -> new OAuthException("Invalid state value"));
+            stateStore.consume(stateValue).orElseThrow(() -> new OAuthException("Invalid state value"));
         if (!state.provider().equalsIgnoreCase(providerPath)) {
             throw new OAuthException("OAuth provider mismatch");
         }
@@ -102,23 +116,6 @@ public class OAuthTokenExchangeService {
         return null;
     }
 
-    private static String stringValue(Map<String, ?> map, String key) {
-        Object value = map.get(key);
-        return value == null ? null : String.valueOf(value);
+    public record ExchangeResult(ExternalProfile profile, String codeChallenge, String frontendRedirectUrl) {
     }
-
-    private static String claimString(JWTClaimsSet claims, String name) {
-        Object value = claims.getClaim(name);
-        return value == null ? null : String.valueOf(value);
-    }
-
-    private static boolean booleanClaim(JWTClaimsSet claims, String name) {
-        Object value = claims.getClaim(name);
-        if (value instanceof Boolean b) {
-            return b;
-        }
-        return Boolean.parseBoolean(String.valueOf(value == null ? "false" : value));
-    }
-
-    public record ExchangeResult(ExternalProfile profile, String codeChallenge, String frontendRedirectUrl) {}
 }

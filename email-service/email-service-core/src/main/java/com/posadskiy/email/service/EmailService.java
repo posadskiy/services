@@ -5,12 +5,11 @@ import com.posadskiy.email.client.UserClient;
 import com.posadskiy.email.enums.ContentType;
 import com.posadskiy.email.model.SendEmail;
 import jakarta.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
-
+import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.util.Properties;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Singleton
@@ -55,9 +54,7 @@ public class EmailService {
         try {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(config.getUsername()));
-            message.addRecipient(
-                Message.RecipientType.TO,
-                new InternetAddress(user.email()));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.email()));
 
             message.setSubject(sendEmail.subject());
             if (contentType == ContentType.Text) {

@@ -75,7 +75,8 @@ public class UserService {
         // Only check against active users (inactive users can reuse usernames)
         if (!username.equals(existingEntity.getUsername())) {
             Optional<UserEntity> existingByUsername = userRepository.findByUsernameAndActive(username, Boolean.TRUE);
-            if (existingByUsername.isPresent() && !existingByUsername.get().getId().equals(id)) {
+            if (existingByUsername.isPresent()
+                && !existingByUsername.get().getId().equals(id)) {
                 throw new AuthException("User with username " + username + " already exists");
             }
             existingEntity.setUsername(username);

@@ -10,6 +10,7 @@ import com.posadskiy.auth.core.storage.db.UsersRepository;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
+
 import java.time.Instant;
 
 @Singleton
@@ -21,10 +22,10 @@ public class UserAccountService {
     private final AuditService auditService;
 
     public UserAccountService(
-            UsersRepository usersRepository,
-            PasswordHasher passwordHasher,
-            PasswordPolicy passwordPolicy,
-            AuditService auditService) {
+        UsersRepository usersRepository,
+        PasswordHasher passwordHasher,
+        PasswordPolicy passwordPolicy,
+        AuditService auditService) {
         this.usersRepository = usersRepository;
         this.passwordHasher = passwordHasher;
         this.passwordPolicy = passwordPolicy;
@@ -42,13 +43,13 @@ public class UserAccountService {
             throw new AuthException("An account with that email already exists", 409);
         }
         UserEntity saved = usersRepository.save(UserEntity.newAccount(
-                uniqueUsername(username, normalized),
-                email.trim(),
-                normalized,
-                passwordHasher.hash(rawPassword),
-                false,
-                null,
-                Instant.now()));
+            uniqueUsername(username, normalized),
+            email.trim(),
+            normalized,
+            passwordHasher.hash(rawPassword),
+            false,
+            null,
+            Instant.now()));
         auditService.record(saved.id(), "USER_REGISTERED", "email");
         return saved;
     }
@@ -56,8 +57,8 @@ public class UserAccountService {
     public UserEntity authenticate(String identity, String rawPassword) {
         String lookup = identity.contains("@") ? EmailNormalizer.normalize(identity) : identity;
         UserEntity user = identity.contains("@")
-                ? usersRepository.findByEmailNormalized(lookup).orElse(null)
-                : usersRepository.findByUsername(lookup).orElse(null);
+            ? usersRepository.findByEmailNormalized(lookup).orElse(null)
+            : usersRepository.findByUsername(lookup).orElse(null);
         if (user == null) {
             passwordHasher.dummyVerify(rawPassword);
             throw new InvalidCredentialsException();
@@ -88,8 +89,8 @@ public class UserAccountService {
 
     private String uniqueUsername(String requested, String email) {
         String base = requested == null || requested.isBlank()
-                ? email.substring(0, email.indexOf('@')).replaceAll("[^a-zA-Z0-9._-]", "")
-                : requested.trim();
+            ? email.substring(0, email.indexOf('@')).replaceAll("[^a-zA-Z0-9._-]", "")
+            : requested.trim();
         if (base.isBlank()) {
             base = "user";
         }

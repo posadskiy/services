@@ -8,6 +8,7 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @MicronautTest
@@ -49,4 +50,4 @@ class UserControllerTest {
         // Test that the application starts successfully
         assertNotNull(client);
     }
-} 
+}

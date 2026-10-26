@@ -41,7 +41,9 @@ public class PasswordHasher {
         return BCrypt.verifyer().verify(rawPassword.toCharArray(), encoded).verified;
     }
 
-    /** Run a full bcrypt check even when the user does not exist, to equalise response times. */
+    /**
+     * Run a full bcrypt check even when the user does not exist, to equalise response times.
+     */
     public void dummyVerify(String rawPassword) {
         verify(rawPassword == null ? "" : rawPassword, dummyHash());
     }

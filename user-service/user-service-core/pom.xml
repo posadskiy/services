@@ -30,7 +30,7 @@
             <scope>runtime</scope>
         </dependency>
         <!-- Logging -->
-        
+
         <!-- Security -->
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -95,7 +95,7 @@
             <scope>test</scope>
         </dependency>
         <!-- Testing -->
-        
+
         <!-- Utils -->
         <dependency>
             <groupId>org.apache.commons</groupId>

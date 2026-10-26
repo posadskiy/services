@@ -15,6 +15,7 @@ import io.micronaut.security.token.jwt.signature.secret.SecretSignature;
 import io.micronaut.security.token.jwt.signature.secret.SecretSignatureConfiguration;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+
 import java.security.KeyFactory;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
@@ -27,45 +28,12 @@ import java.util.Optional;
 @Factory
 public class JwtCryptoFactory {
 
-    @Singleton
-    @Named("generator")
-    SignatureGeneratorConfiguration signatureGenerator(AuthProperties properties) {
-        AuthProperties.Jwt jwt = properties.jwt();
-        if (notBlank(jwt.privateKeyPem()) && notBlank(jwt.publicKeyPem())) {
-            return new ECSignatureGenerator(ecConfig(jwt));
-        }
-        String secret = jwt.hmacSecret();
-        if (!notBlank(secret)) {
-            throw new IllegalStateException("Set JWT_GENERATOR_SIGNATURE_SECRET "
-                    + "or provide AUTH_JWT_PRIVATE_KEY_PEM and AUTH_JWT_PUBLIC_KEY_PEM");
-        }
-        SecretSignatureConfiguration configuration = new SecretSignatureConfiguration("generator");
-        configuration.setSecret(secret);
-        configuration.setJwsAlgorithm(JWSAlgorithm.HS256);
-        return new SecretSignature(configuration);
-    }
-
-    @Singleton
-    JwkProvider jwkProvider(AuthProperties properties, SignatureGeneratorConfiguration generator) {
-        return () -> {
-            if (generator instanceof ECSignatureGenerator) {
-                return List.of(toJwk(properties, generator));
-            }
-            return List.of();
-        };
-    }
-
-    @Singleton
-    ClaimsAudienceProvider audienceProvider(AuthProperties properties) {
-        return () -> List.of(properties.jwt().audience());
-    }
-
     private static JWK toJwk(AuthProperties properties, SignatureGeneratorConfiguration generator) {
         AuthProperties.Jwt jwt = properties.jwt();
         if (generator instanceof ECSignatureGenerator) {
             ECKey.Builder builder = new ECKey.Builder(Curve.P_256, publicKey(jwt.publicKeyPem()))
-                    .keyID("auth-es256")
-                    .algorithm(JWSAlgorithm.ES256);
+                .keyID("auth-es256")
+                .algorithm(JWSAlgorithm.ES256);
             return builder.build();
         }
         throw new IllegalStateException("HMAC secrets must not be published as JWKS");
@@ -117,12 +85,45 @@ public class JwtCryptoFactory {
 
     private static byte[] decodePem(String pem, String type) {
         String normalized = pem.replace("-----BEGIN " + type + "-----", "")
-                .replace("-----END " + type + "-----", "")
-                .replaceAll("\\s", "");
+            .replace("-----END " + type + "-----", "")
+            .replaceAll("\\s", "");
         return Base64.getDecoder().decode(normalized);
     }
 
     private static boolean notBlank(String value) {
         return value != null && !value.isBlank();
+    }
+
+    @Singleton
+    @Named("generator")
+    SignatureGeneratorConfiguration signatureGenerator(AuthProperties properties) {
+        AuthProperties.Jwt jwt = properties.jwt();
+        if (notBlank(jwt.privateKeyPem()) && notBlank(jwt.publicKeyPem())) {
+            return new ECSignatureGenerator(ecConfig(jwt));
+        }
+        String secret = jwt.hmacSecret();
+        if (!notBlank(secret)) {
+            throw new IllegalStateException("Set JWT_GENERATOR_SIGNATURE_SECRET "
+                + "or provide AUTH_JWT_PRIVATE_KEY_PEM and AUTH_JWT_PUBLIC_KEY_PEM");
+        }
+        SecretSignatureConfiguration configuration = new SecretSignatureConfiguration("generator");
+        configuration.setSecret(secret);
+        configuration.setJwsAlgorithm(JWSAlgorithm.HS256);
+        return new SecretSignature(configuration);
+    }
+
+    @Singleton
+    JwkProvider jwkProvider(AuthProperties properties, SignatureGeneratorConfiguration generator) {
+        return () -> {
+            if (generator instanceof ECSignatureGenerator) {
+                return List.of(toJwk(properties, generator));
+            }
+            return List.of();
+        };
+    }
+
+    @Singleton
+    ClaimsAudienceProvider audienceProvider(AuthProperties properties) {
+        return () -> List.of(properties.jwt().audience());
     }
 }

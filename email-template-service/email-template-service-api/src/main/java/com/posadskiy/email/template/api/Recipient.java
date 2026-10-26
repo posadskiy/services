@@ -5,5 +5,4 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 @Introspected
-public record Recipient(String id) {
-}
+public record Recipient(String id) {}

@@ -16,5 +16,4 @@ class EmailTemplateServiceTest {
     void testItWorks() {
         Assertions.assertTrue(application.isRunning());
     }
-
 }

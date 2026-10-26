@@ -3,7 +3,9 @@ package com.posadskiy.user.core.mapper.entity;
 import com.posadskiy.user.core.db.entity.UserEntity;
 import com.posadskiy.user.core.model.User;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class UserEntityMapperTest {
 
@@ -17,4 +19,4 @@ class UserEntityMapperTest {
             fail("UserEntityMapper should have mapFromEntity and mapToEntity methods");
         }
     }
-} 
+}

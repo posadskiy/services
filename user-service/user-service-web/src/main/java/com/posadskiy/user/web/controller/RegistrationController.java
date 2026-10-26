@@ -28,8 +28,6 @@ public class RegistrationController {
     public UserDto registration(@Body final UserDto userDto) {
         final User user = userDtoMapper.mapFromDto(userDto);
 
-        return userDtoMapper.mapToDto(
-            registrationService.registration(user)
-        );
+        return userDtoMapper.mapToDto(registrationService.registration(user));
     }
 }

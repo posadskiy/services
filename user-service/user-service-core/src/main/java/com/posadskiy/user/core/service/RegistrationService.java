@@ -28,32 +28,26 @@ public class RegistrationService {
 
         var username = (StringUtils.isBlank(user.username())) ? user.email().split("@")[0] : user.username();
 
-        var encodedPassword =
-                StringUtils.isBlank(user.password()) ? null : PasswordEncoder.encode(user.password());
+        var encodedPassword = StringUtils.isBlank(user.password()) ? null : PasswordEncoder.encode(user.password());
 
         var createdVia = StringUtils.isBlank(user.createdVia())
-                ? (encodedPassword == null ? "oauth" : "local")
-                : user.createdVia();
+            ? (encodedPassword == null ? "oauth" : "local")
+            : user.createdVia();
 
-        var encodedPasswordUser =
-                new User(
-                        user.id(),
-                        username,
-                        user.email(),
-                        encodedPassword,
-                        Boolean.TRUE.equals(user.emailVerified()),
-                        user.pictureUrl(),
-                        createdVia,
-                        user.authProviders(),
-                        true, // active - new users are always active
-                        null); // deactivatedAt - null for new users
+        var encodedPasswordUser = new User(
+            user.id(),
+            username,
+            user.email(),
+            encodedPassword,
+            Boolean.TRUE.equals(user.emailVerified()),
+            user.pictureUrl(),
+            createdVia,
+            user.authProviders(),
+            true, // active - new users are always active
+            null); // deactivatedAt - null for new users
 
-        UserEntity savedUser = userRepository.save(
-            userEntityMapper.mapToEntity(encodedPasswordUser)
-        );
+        UserEntity savedUser = userRepository.save(userEntityMapper.mapToEntity(encodedPasswordUser));
 
-        return userEntityMapper.mapFromEntity(
-            savedUser
-        );
+        return userEntityMapper.mapFromEntity(savedUser);
     }
 }

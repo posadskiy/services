@@ -1,14 +1,14 @@
 package com.posadskiy.email;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 class ConfigTest {
 
     @Test
     void testConfigProperties() {
         Config config = new Config();
-        
+
         // Test setters and getters
         config.setUsername("test@example.com");
         config.setPassword("testpassword");
@@ -18,7 +18,7 @@ class ConfigTest {
         config.setAuth("true");
         config.setStartTlsEnable("true");
         config.setDebug("false");
-        
+
         Assertions.assertEquals("test@example.com", config.getUsername());
         Assertions.assertEquals("testpassword", config.getPassword());
         Assertions.assertEquals("smtp", config.getProtocol());
@@ -34,4 +34,4 @@ class ConfigTest {
         Config config = new Config();
         Assertions.assertNotNull(config);
     }
-} 
+}

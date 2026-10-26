@@ -8,9 +8,10 @@ import jakarta.validation.constraints.NotBlank;
 @Serdeable
 @Introspected
 public record RefreshRequest(
-        @NotBlank @JsonProperty("grant_type") String grantType,
-        @JsonProperty("refresh_token") String refreshToken,
-        @JsonProperty("client_id") String clientId,
-        @JsonProperty("client_secret") String clientSecret,
-        String username,
-        String password) {}
+    @NotBlank @JsonProperty("grant_type") String grantType,
+    @JsonProperty("refresh_token") String refreshToken,
+    @JsonProperty("client_id") String clientId,
+    @JsonProperty("client_secret") String clientSecret,
+    String username,
+    String password) {
+}

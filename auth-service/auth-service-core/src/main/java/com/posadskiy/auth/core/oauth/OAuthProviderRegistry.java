@@ -3,6 +3,7 @@ package com.posadskiy.auth.core.oauth;
 import com.posadskiy.auth.core.config.OAuthProviderProperties;
 import com.posadskiy.auth.core.exception.OAuthException;
 import jakarta.inject.Singleton;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -26,7 +27,7 @@ public class OAuthProviderRegistry {
 
     public OAuthProviderProperties require(String provider) {
         return find(provider)
-                .filter(OAuthProviderProperties::enabled)
-                .orElseThrow(() -> new OAuthException("Unsupported OAuth provider: " + provider));
+            .filter(OAuthProviderProperties::enabled)
+            .orElseThrow(() -> new OAuthException("Unsupported OAuth provider: " + provider));
     }
 }

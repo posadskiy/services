@@ -1,14 +1,16 @@
 package com.posadskiy.user.core;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ConfigTest {
 
     @Test
     void testConfigProperties() {
         Config config = new Config();
-        
+
         // Test default values
         assertNull(config.getUsername());
         assertNull(config.getPassword());
@@ -18,7 +20,7 @@ class ConfigTest {
         assertNull(config.getAuth());
         assertNull(config.getStartTlsEnable());
         assertNull(config.getDebug());
-        
+
         // Test setters
         config.setUsername("test@example.com");
         config.setPassword("password123");
@@ -28,7 +30,7 @@ class ConfigTest {
         config.setAuth("true");
         config.setStartTlsEnable("true");
         config.setDebug("false");
-        
+
         // Test getters
         assertEquals("test@example.com", config.getUsername());
         assertEquals("password123", config.getPassword());
@@ -39,4 +41,4 @@ class ConfigTest {
         assertEquals("true", config.getStartTlsEnable());
         assertEquals("false", config.getDebug());
     }
-} 
+}

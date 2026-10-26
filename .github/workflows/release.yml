@@ -79,11 +79,6 @@ jobs:
             "      <username>${MAVEN_USER}</username>" \
             "      <password>${MAVEN_TOKEN}</password>" \
             '    </server>' \
-            '    <server>' \
-            '      <id>github-email</id>' \
-            "      <username>${MAVEN_USER}</username>" \
-            "      <password>${MAVEN_TOKEN}</password>" \
-            '    </server>' \
             '  </servers>' \
             '</settings>' > "$HOME/.m2/settings.xml"
 

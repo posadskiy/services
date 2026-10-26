@@ -7,16 +7,10 @@ import com.posadskiy.auth.core.crypto.SecureTokens;
 import com.posadskiy.auth.core.exception.OAuthException;
 import com.posadskiy.auth.core.oauth.ExternalProfile;
 import com.posadskiy.auth.core.oauth.OAuthBrowserCookie;
-import com.posadskiy.auth.core.service.AuthMetrics;
-import com.posadskiy.auth.core.service.OAuthAuthorizationService;
+import com.posadskiy.auth.core.service.*;
 import com.posadskiy.auth.core.service.OAuthAuthorizationService.AuthorizationRequest;
-import com.posadskiy.auth.core.service.OAuthLoginCodeService;
-import com.posadskiy.auth.core.service.OAuthTokenExchangeService;
 import com.posadskiy.auth.core.service.OAuthTokenExchangeService.ExchangeResult;
-import com.posadskiy.auth.core.service.SocialLoginService;
 import com.posadskiy.auth.core.service.SocialLoginService.SocialLoginResult;
-import com.posadskiy.auth.core.service.TokenService;
-import com.posadskiy.auth.core.service.UserAccountService;
 import com.posadskiy.auth.core.storage.db.ExternalIdentityRepository;
 import com.posadskiy.auth.core.storage.db.entity.OAuthLoginCodeEntity;
 import io.micronaut.core.annotation.Nullable;
@@ -24,15 +18,7 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.MutableHttpResponse;
-import io.micronaut.http.annotation.Body;
-import io.micronaut.http.annotation.Consumes;
-import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.CookieValue;
-import io.micronaut.http.annotation.Get;
-import io.micronaut.http.annotation.PathVariable;
-import io.micronaut.http.annotation.Post;
-import io.micronaut.http.annotation.Produces;
-import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.http.annotation.*;
 import io.micronaut.http.cookie.Cookie;
 import io.micronaut.http.cookie.SameSite;
 import io.micronaut.http.uri.UriBuilder;
@@ -43,10 +29,11 @@ import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import java.net.URI;
-import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.time.Duration;
 
 @ExecuteOn(TaskExecutors.BLOCKING)
 @Secured(SecurityRule.IS_ANONYMOUS)
@@ -67,15 +54,15 @@ public class OAuthController {
     private final AuthMetrics metrics;
 
     public OAuthController(
-            OAuthAuthorizationService authorizationService,
-            OAuthTokenExchangeService tokenExchangeService,
-            SocialLoginService socialLoginService,
-            TokenService tokenService,
-            OAuthLoginCodeService loginCodeService,
-            UserAccountService userAccountService,
-            ExternalIdentityRepository externalIdentityRepository,
-            AuthProperties authProperties,
-            AuthMetrics metrics) {
+        OAuthAuthorizationService authorizationService,
+        OAuthTokenExchangeService tokenExchangeService,
+        SocialLoginService socialLoginService,
+        TokenService tokenService,
+        OAuthLoginCodeService loginCodeService,
+        UserAccountService userAccountService,
+        ExternalIdentityRepository externalIdentityRepository,
+        AuthProperties authProperties,
+        AuthMetrics metrics) {
         this.authorizationService = authorizationService;
         this.tokenExchangeService = tokenExchangeService;
         this.socialLoginService = socialLoginService;
@@ -87,42 +74,58 @@ public class OAuthController {
         this.metrics = metrics;
     }
 
+    /**
+     * A browser address-bar navigation stores the binding cookie. A JSON client still receives the URI.
+     */
+    private static boolean browserNavigation(HttpRequest<?> request) {
+        for (MediaType type : request.accept()) {
+            if (MediaType.APPLICATION_JSON.equals(type.getName())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
+    }
+
     @Get("/authorize/{provider}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_HTML})
     public HttpResponse<?> authorize(
-            @PathVariable @NotBlank String provider,
-            @QueryValue(value = "code_challenge", defaultValue = "") String codeChallenge,
-            @QueryValue(value = "return_to", defaultValue = "") String returnTo,
-            HttpRequest<?> request) {
+        @PathVariable @NotBlank String provider,
+        @QueryValue(value = "code_challenge", defaultValue = "") String codeChallenge,
+        @QueryValue(value = "return_to", defaultValue = "") String returnTo,
+        HttpRequest<?> request) {
         String binding = existingOrNewBinding(request);
         AuthorizationRequest authorization =
-                authorizationService.authorize(provider, binding, blankToNull(codeChallenge), blankToNull(returnTo));
+            authorizationService.authorize(provider, binding, blankToNull(codeChallenge), blankToNull(returnTo));
         MutableHttpResponse<?> response = browserNavigation(request)
-                ? HttpResponse.redirect(URI.create(authorization.authorizationUri()))
-                : HttpResponse.ok(
-                        new AuthorizationRedirectResponse(authorization.authorizationUri(), authorization.state()));
+            ? HttpResponse.redirect(URI.create(authorization.authorizationUri()))
+            : HttpResponse.ok(
+            new AuthorizationRedirectResponse(authorization.authorizationUri(), authorization.state()));
         response.cookie(browserCookie(binding));
         return response;
     }
 
     @Get("/callback/{provider}")
     public HttpResponse<?> callbackGet(
-            @PathVariable String provider,
-            @QueryValue("code") String code,
-            @QueryValue(value = "state", defaultValue = "") String state,
-            @CookieValue(value = BROWSER_COOKIE, defaultValue = "") String binding) {
+        @PathVariable String provider,
+        @QueryValue("code") String code,
+        @QueryValue(value = "state", defaultValue = "") String state,
+        @CookieValue(value = BROWSER_COOKIE, defaultValue = "") String binding) {
         return complete(provider, code, state, binding, null);
     }
 
     @Post("/callback/{provider}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public HttpResponse<?> callbackPost(
-            @PathVariable String provider,
-            @QueryValue(value = "code", defaultValue = "") String code,
-            @QueryValue(value = "state", defaultValue = "") String state,
-            @QueryValue(value = "user", defaultValue = "") String user,
-            @CookieValue(value = BROWSER_COOKIE, defaultValue = "") String binding,
-            @Nullable @Body CallbackForm form) {
+        @PathVariable String provider,
+        @QueryValue(value = "code", defaultValue = "") String code,
+        @QueryValue(value = "state", defaultValue = "") String state,
+        @QueryValue(value = "user", defaultValue = "") String user,
+        @CookieValue(value = BROWSER_COOKIE, defaultValue = "") String binding,
+        @Nullable @Body CallbackForm form) {
         String resolvedCode = (form != null && form.code() != null) ? form.code() : code;
         String resolvedState = (form != null && form.state() != null) ? form.state() : state;
         String resolvedUser = (form != null && form.user() != null) ? form.user() : user;
@@ -134,11 +137,11 @@ public class OAuthController {
         OAuthLoginCodeEntity loginCode = loginCodeService.consume(request.code(), request.codeVerifier());
         var user = userAccountService.requireActive(loginCode.userId());
         String provider = loginCode.externalIdentityId() == null
-                ? null
-                : externalIdentityRepository
-                        .findById(loginCode.externalIdentityId())
-                        .map(identity -> identity.provider())
-                        .orElse(null);
+            ? null
+            : externalIdentityRepository
+            .findById(loginCode.externalIdentityId())
+            .map(identity -> identity.provider())
+            .orElse(null);
         metrics.loginSuccess("oauth");
         return tokenService.issueForUser(user, provider, loginCode.externalIdentityId());
     }
@@ -157,15 +160,15 @@ public class OAuthController {
             }
             if (frontend != null && !frontend.isBlank()) {
                 String sessionCode =
-                        loginCodeService.create(login.user(), login.identity().id(), exchange.codeChallenge());
+                    loginCodeService.create(login.user(), login.identity().id(), exchange.codeChallenge());
                 URI redirect =
-                        UriBuilder.of(frontend).queryParam("code", sessionCode).build();
+                    UriBuilder.of(frontend).queryParam("code", sessionCode).build();
                 metrics.oauth(provider, "success");
                 return HttpResponse.redirect(redirect);
             }
             metrics.oauth(provider, "success");
             TokenResponse tokens = tokenService.issueForUser(
-                    login.user(), login.identity().provider(), login.identity().id());
+                login.user(), login.identity().provider(), login.identity().id());
             MutableHttpResponse<TokenResponse> response = HttpResponse.ok(tokens);
             response.header("Cache-Control", "no-store");
             return response;
@@ -178,42 +181,30 @@ public class OAuthController {
 
     private String existingOrNewBinding(HttpRequest<?> request) {
         return request.getCookies()
-                .findCookie(BROWSER_COOKIE)
-                .map(Cookie::getValue)
-                .filter(v -> !v.isBlank())
-                .orElseGet(() -> SecureTokens.randomUrl(32));
+            .findCookie(BROWSER_COOKIE)
+            .map(Cookie::getValue)
+            .filter(v -> !v.isBlank())
+            .orElseGet(() -> SecureTokens.randomUrl(32));
     }
 
     private Cookie browserCookie(String binding) {
         String redirectBase = authProperties.oauth().redirectBaseUrl();
         Cookie cookie = Cookie.of(BROWSER_COOKIE, binding)
-                .httpOnly(true)
-                .path(OAuthBrowserCookie.path(redirectBase))
-                .maxAge(Duration.ofMinutes(10))
-                .sameSite(OAuthBrowserCookie.secure(redirectBase) ? SameSite.None : SameSite.Lax);
+            .httpOnly(true)
+            .path(OAuthBrowserCookie.path(redirectBase))
+            .maxAge(Duration.ofMinutes(10))
+            .sameSite(OAuthBrowserCookie.secure(redirectBase) ? SameSite.None : SameSite.Lax);
         if (OAuthBrowserCookie.secure(redirectBase)) {
             cookie.secure(true);
         }
         return cookie;
     }
 
-    /** A browser address-bar navigation stores the binding cookie. A JSON client still receives the URI. */
-    private static boolean browserNavigation(HttpRequest<?> request) {
-        for (MediaType type : request.accept()) {
-            if (MediaType.APPLICATION_JSON.equals(type.getName())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value;
+    @Serdeable
+    public record AuthorizationRedirectResponse(String authorizationUri, String state) {
     }
 
     @Serdeable
-    public record AuthorizationRedirectResponse(String authorizationUri, String state) {}
-
-    @Serdeable
-    public record CallbackForm(String code, String state, String user) {}
+    public record CallbackForm(String code, String state, String user) {
+    }
 }

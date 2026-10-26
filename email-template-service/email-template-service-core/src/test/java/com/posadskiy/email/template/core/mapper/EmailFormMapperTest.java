@@ -1,11 +1,11 @@
 package com.posadskiy.email.template.core.mapper;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.posadskiy.email.template.api.*;
 import com.posadskiy.email.template.core.model.EmailForm;
 import com.posadskiy.user.api.UserDto;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class EmailFormMapperTest {
 
@@ -88,4 +88,4 @@ class EmailFormMapperTest {
         assertEquals("", result.content().button().text());
         assertEquals("", result.content().button().link());
     }
-} 
+}

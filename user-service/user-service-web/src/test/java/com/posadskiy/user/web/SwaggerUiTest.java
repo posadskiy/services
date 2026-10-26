@@ -21,7 +21,9 @@ class SwaggerUiTest {
 
     @Test
     void shouldGenerateSwaggerUiResources(ResourceLoader resourceLoader) {
-        assertTrue(resourceLoader.getResource("META-INF/swagger/views/swagger-ui/index.html").isPresent());
+        assertTrue(resourceLoader
+            .getResource("META-INF/swagger/views/swagger-ui/index.html")
+            .isPresent());
     }
 
     @Test
@@ -29,5 +31,4 @@ class SwaggerUiTest {
         BlockingHttpClient client = httpClient.toBlocking();
         assertDoesNotThrow(() -> client.exchange("/swagger-ui/index.html"));
     }
-
 }

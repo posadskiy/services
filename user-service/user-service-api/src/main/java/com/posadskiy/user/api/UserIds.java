@@ -5,7 +5,8 @@ package com.posadskiy.user.api;
  */
 public final class UserIds {
 
-    private UserIds() {}
+    private UserIds() {
+    }
 
     public static String of(Long id) {
         if (id == null) {

@@ -46,4 +46,4 @@ class UserDtoTest {
         // when excluded, deserialized.password() is null
         assertTrue(deserialized.password() == null || "pass".equals(deserialized.password()));
     }
-} 
+}

@@ -9,11 +9,11 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.*;
 import io.micronaut.http.exceptions.HttpStatusException;
+import io.micronaut.scheduling.TaskExecutors;
+import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
-import io.micronaut.scheduling.TaskExecutors;
-import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.tracing.annotation.ContinueSpan;
 
 import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
@@ -28,6 +28,14 @@ public class UserController {
     public UserController(UserService userService, UserDtoMapper userDtoMapper) {
         this.userService = userService;
         this.userDtoMapper = userDtoMapper;
+    }
+
+    private static Long parseUserId(String id) {
+        try {
+            return UserIds.parse(id);
+        } catch (IllegalArgumentException e) {
+            throw new HttpStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     /**
@@ -49,20 +57,14 @@ public class UserController {
     @Get("{id}")
     @ContinueSpan
     public UserDto getUserById(@Header(AUTHORIZATION) String authorization, @PathVariable String id) {
-        return userDtoMapper.mapToDto(
-            userService.getUserById(parseUserId(id))
-        );
+        return userDtoMapper.mapToDto(userService.getUserById(parseUserId(id)));
     }
 
     @Put("{id}")
     @ContinueSpan
     public UserDto updateUser(
-        @Header(AUTHORIZATION) String authorization,
-        @PathVariable String id,
-        @Body UpdateUsernameRequest request) {
-        return userDtoMapper.mapToDto(
-            userService.updateUser(parseUserId(id), request.username())
-        );
+        @Header(AUTHORIZATION) String authorization, @PathVariable String id, @Body UpdateUsernameRequest request) {
+        return userDtoMapper.mapToDto(userService.updateUser(parseUserId(id), request.username()));
     }
 
     /**
@@ -79,18 +81,8 @@ public class UserController {
      */
     @Delete("{id}")
     @ContinueSpan
-    public HttpResponse<?> deleteUser(
-        @Header(AUTHORIZATION) String authorization,
-        @PathVariable String id) {
+    public HttpResponse<?> deleteUser(@Header(AUTHORIZATION) String authorization, @PathVariable String id) {
         userService.deleteUser(parseUserId(id));
         return HttpResponse.noContent();
-    }
-
-    private static Long parseUserId(String id) {
-        try {
-            return UserIds.parse(id);
-        } catch (IllegalArgumentException e) {
-            throw new HttpStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
     }
 }

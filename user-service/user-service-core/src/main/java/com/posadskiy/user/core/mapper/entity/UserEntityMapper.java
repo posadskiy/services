@@ -3,6 +3,7 @@ package com.posadskiy.user.core.mapper.entity;
 import com.posadskiy.user.core.db.entity.UserEntity;
 import com.posadskiy.user.core.model.User;
 import jakarta.inject.Singleton;
+
 import java.util.List;
 
 @Singleton
@@ -13,16 +14,16 @@ public class UserEntityMapper {
             return null;
         }
         return new User(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPasswordHash(),
-                user.getEmailVerified(),
-                user.getPictureUrl(),
-                user.getPasswordHash() == null ? "oauth" : "local",
-                List.of(),
-                user.getActive() != null ? user.getActive() : Boolean.TRUE,
-                user.getDeactivatedAt());
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getPasswordHash(),
+            user.getEmailVerified(),
+            user.getPictureUrl(),
+            user.getPasswordHash() == null ? "oauth" : "local",
+            List.of(),
+            user.getActive() != null ? user.getActive() : Boolean.TRUE,
+            user.getDeactivatedAt());
     }
 
     public UserEntity mapToEntity(User user) {

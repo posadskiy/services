@@ -1,8 +1,8 @@
 package com.posadskiy.email.template.core.model;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 class EmailFormTest {
 
@@ -68,4 +68,4 @@ class EmailFormTest {
         assertNull(emailForm.content().button().text());
         assertNull(emailForm.content().button().link());
     }
-} 
+}

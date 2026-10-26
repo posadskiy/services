@@ -1,12 +1,12 @@
 package com.posadskiy.email.template.core.client;
 
+import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
+
 import com.posadskiy.user.api.UserDto;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Header;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.client.annotation.Client;
-
-import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
 
 @Client("${user.service.url:http://user-service-internal}")
 public interface UserClient {

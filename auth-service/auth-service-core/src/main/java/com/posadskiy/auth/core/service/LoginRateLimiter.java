@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.posadskiy.auth.core.config.AuthProperties;
 import com.posadskiy.auth.core.exception.RateLimitedException;
 import jakarta.inject.Singleton;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Singleton
@@ -16,9 +17,9 @@ public class LoginRateLimiter {
     public LoginRateLimiter(AuthProperties properties) {
         this.limit = properties.rateLimit().loginPerMinute();
         this.attempts = Caffeine.newBuilder()
-                .expireAfterWrite(properties.rateLimit().window())
-                .maximumSize(100_000)
-                .build();
+            .expireAfterWrite(properties.rateLimit().window())
+            .maximumSize(100_000)
+            .build();
     }
 
     public void check(String key) {

@@ -1,5 +1,7 @@
 package com.posadskiy.email.web;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.posadskiy.email.api.SendEmailForm;
 import com.posadskiy.email.service.EmailService;
 import io.micronaut.http.HttpRequest;
@@ -10,8 +12,6 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @MicronautTest
 class EmailIntegrationTest {
@@ -37,11 +37,9 @@ class EmailIntegrationTest {
 
         // When & Then - should fail due to missing authentication
         HttpClientResponseException e = assertThrows(HttpClientResponseException.class, () -> {
-            client.toBlocking().exchange(
-                HttpRequest.POST("/email/send/text", form)
-            );
+            client.toBlocking().exchange(HttpRequest.POST("/email/send/text", form));
         });
-        
+
         assertEquals(HttpStatus.UNAUTHORIZED, e.getStatus());
     }
 
@@ -52,11 +50,9 @@ class EmailIntegrationTest {
 
         // When & Then - should fail due to missing authentication
         HttpClientResponseException e = assertThrows(HttpClientResponseException.class, () -> {
-            client.toBlocking().exchange(
-                HttpRequest.POST("/email/send/html", form)
-            );
+            client.toBlocking().exchange(HttpRequest.POST("/email/send/html", form));
         });
-        
+
         assertEquals(HttpStatus.UNAUTHORIZED, e.getStatus());
     }
 
@@ -64,11 +60,11 @@ class EmailIntegrationTest {
     void testEmailServiceProperties() {
         // Test that EmailService has the required properties
         assertNotNull(emailService);
-        
+
         // Test that properties can be retrieved (this will use the test configuration)
         var properties = emailService.getProperties();
         assertNotNull(properties);
         assertNotNull(properties.getProperty("mail.smtp.host"));
         assertNotNull(properties.getProperty("mail.smtp.port"));
     }
-} 
+}

@@ -1,17 +1,8 @@
 package com.posadskiy.auth.web.controller;
 
-import com.posadskiy.auth.api.dto.LoginRequest;
-import com.posadskiy.auth.api.dto.RefreshRequest;
-import com.posadskiy.auth.api.dto.RegisterRequest;
-import com.posadskiy.auth.api.dto.RevokeRequest;
-import com.posadskiy.auth.api.dto.TokenResponse;
-import com.posadskiy.auth.api.dto.UserResponse;
+import com.posadskiy.auth.api.dto.*;
 import com.posadskiy.auth.core.exception.AuthException;
-import com.posadskiy.auth.core.service.AuditService;
-import com.posadskiy.auth.core.service.AuthMetrics;
-import com.posadskiy.auth.core.service.LoginRateLimiter;
-import com.posadskiy.auth.core.service.TokenService;
-import com.posadskiy.auth.core.service.UserAccountService;
+import com.posadskiy.auth.core.service.*;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -25,6 +16,7 @@ import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import jakarta.validation.Valid;
+
 import java.util.Map;
 
 @ExecuteOn(TaskExecutors.BLOCKING)
@@ -38,16 +30,30 @@ public class AuthController {
     private final AuditService auditService;
 
     public AuthController(
-            UserAccountService userAccountService,
-            TokenService tokenService,
-            LoginRateLimiter rateLimiter,
-            AuthMetrics metrics,
-            AuditService auditService) {
+        UserAccountService userAccountService,
+        TokenService tokenService,
+        LoginRateLimiter rateLimiter,
+        AuthMetrics metrics,
+        AuditService auditService) {
         this.userAccountService = userAccountService;
         this.tokenService = tokenService;
         this.rateLimiter = rateLimiter;
         this.metrics = metrics;
         this.auditService = auditService;
+    }
+
+    private static String clientKey(HttpRequest<?> request) {
+        return request.getRemoteAddress().getAddress().getHostAddress();
+    }
+
+    static UserResponse toResponse(UserEntity user) {
+        return new UserResponse(
+            UserResponse.idOf(user.id()),
+            user.username(),
+            user.email(),
+            user.emailVerified(),
+            user.pictureUrl(),
+            user.roleList());
     }
 
     @Post(uris = {"/users", "/signup"})
@@ -78,19 +84,21 @@ public class AuthController {
         return grant(request, httpRequest);
     }
 
-    /** OAuth 2.1 token requests are form-urlencoded. JSON stays accepted for clients already sending it. */
+    /**
+     * OAuth 2.1 token requests are form-urlencoded. JSON stays accepted for clients already sending it.
+     */
     @Post(uri = "/oauth/token", consumes = MediaType.APPLICATION_FORM_URLENCODED)
     @Secured(SecurityRule.IS_ANONYMOUS)
     public TokenResponse tokenForm(@Body Map<String, String> form, HttpRequest<?> httpRequest) {
         return grant(
-                new RefreshRequest(
-                        form.get("grant_type"),
-                        form.get("refresh_token"),
-                        form.get("client_id"),
-                        form.get("client_secret"),
-                        form.get("username"),
-                        form.get("password")),
-                httpRequest);
+            new RefreshRequest(
+                form.get("grant_type"),
+                form.get("refresh_token"),
+                form.get("client_id"),
+                form.get("client_secret"),
+                form.get("username"),
+                form.get("password")),
+            httpRequest);
     }
 
     private TokenResponse grant(RefreshRequest request, HttpRequest<?> httpRequest) {
@@ -130,19 +138,5 @@ public class AuthController {
     public HttpResponse<Void> logout(@Body @Valid RevokeRequest request) {
         tokenService.revoke(request.token());
         return HttpResponse.ok();
-    }
-
-    private static String clientKey(HttpRequest<?> request) {
-        return request.getRemoteAddress().getAddress().getHostAddress();
-    }
-
-    static UserResponse toResponse(UserEntity user) {
-        return new UserResponse(
-                UserResponse.idOf(user.id()),
-                user.username(),
-                user.email(),
-                user.emailVerified(),
-                user.pictureUrl(),
-                user.roleList());
     }
 }

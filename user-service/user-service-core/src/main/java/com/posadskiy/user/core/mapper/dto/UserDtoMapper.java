@@ -4,6 +4,7 @@ import com.posadskiy.user.api.UserDto;
 import com.posadskiy.user.api.UserIds;
 import com.posadskiy.user.core.model.User;
 import jakarta.inject.Singleton;
+
 import java.util.List;
 
 @Singleton
@@ -15,16 +16,16 @@ public class UserDtoMapper {
         }
         List<String> providers = dto.authProviders() == null ? List.of() : dto.authProviders();
         return new User(
-                dto.id() == null || dto.id().isBlank() ? null : UserIds.parse(dto.id()),
-                dto.username(),
-                dto.email(),
-                dto.password(),
-                dto.emailVerified(),
-                dto.pictureUrl(),
-                dto.createdVia(),
-                providers,
-                true, // active - default to true when creating from DTO
-                null); // deactivatedAt - null for new users
+            dto.id() == null || dto.id().isBlank() ? null : UserIds.parse(dto.id()),
+            dto.username(),
+            dto.email(),
+            dto.password(),
+            dto.emailVerified(),
+            dto.pictureUrl(),
+            dto.createdVia(),
+            providers,
+            true, // active - default to true when creating from DTO
+            null); // deactivatedAt - null for new users
     }
 
     public UserDto mapToDto(User user) {
@@ -32,13 +33,13 @@ public class UserDtoMapper {
             return null;
         }
         return new UserDto(
-                user.id() == null ? null : UserIds.of(user.id()),
-                user.username(),
-                user.email(),
-                null,
-                user.emailVerified(),
-                user.pictureUrl(),
-                user.createdVia(),
-                user.authProviders() == null ? List.of() : user.authProviders());
+            user.id() == null ? null : UserIds.of(user.id()),
+            user.username(),
+            user.email(),
+            null,
+            user.emailVerified(),
+            user.pictureUrl(),
+            user.createdVia(),
+            user.authProviders() == null ? List.of() : user.authProviders());
     }
 }

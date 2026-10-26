@@ -5,13 +5,14 @@ import com.posadskiy.user.core.db.UsersRepository;
 import com.posadskiy.user.core.db.entity.UserEntity;
 import com.posadskiy.user.core.mapper.entity.UserEntityMapper;
 import com.posadskiy.user.core.model.User;
-import java.util.Collections;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Collections;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -91,4 +92,4 @@ class UserServiceTest {
         verify(userRepository).findById(null);
         verify(userEntityMapper, never()).mapFromEntity(any());
     }
-} 
+}

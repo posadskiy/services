@@ -1,11 +1,11 @@
 package com.posadskiy.email.template.api;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @MicronautTest
 class EmailFormDtoTest {
@@ -81,4 +81,4 @@ class EmailFormDtoTest {
         EmailFormDto deserialized = objectMapper.readValue(json, EmailFormDto.class);
         assertEquals(dto, deserialized);
     }
-} 
+}

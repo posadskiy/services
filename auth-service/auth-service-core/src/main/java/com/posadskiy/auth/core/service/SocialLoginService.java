@@ -11,6 +11,7 @@ import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
+
 import java.time.Instant;
 import java.util.Optional;
 
@@ -22,9 +23,9 @@ public class SocialLoginService {
     private final AuditService auditService;
 
     public SocialLoginService(
-            UsersRepository usersRepository,
-            ExternalIdentityRepository externalIdentityRepository,
-            AuditService auditService) {
+        UsersRepository usersRepository,
+        ExternalIdentityRepository externalIdentityRepository,
+        AuditService auditService) {
         this.usersRepository = usersRepository;
         this.externalIdentityRepository = externalIdentityRepository;
         this.auditService = auditService;
@@ -36,15 +37,15 @@ public class SocialLoginService {
             throw new OAuthException("Provider user id missing");
         }
         Optional<ExternalIdentityEntity> existingIdentity = externalIdentityRepository.findByProviderAndProviderUserId(
-                profile.provider(), profile.providerUserId());
+            profile.provider(), profile.providerUserId());
         if (existingIdentity.isPresent()) {
             ExternalIdentityEntity identity = existingIdentity.get();
             if (identity.revoked()) {
                 throw new OAuthException("This social identity has been revoked", 403);
             }
             UserEntity user = usersRepository
-                    .findById(identity.userId())
-                    .orElseThrow(() -> new OAuthException("Linked user is missing"));
+                .findById(identity.userId())
+                .orElseThrow(() -> new OAuthException("Linked user is missing"));
             if (!user.active()) {
                 throw new OAuthException("Account is disabled", 403);
             }
@@ -55,7 +56,7 @@ public class SocialLoginService {
 
         UserEntity user = resolveUserForNewIdentity(profile);
         ExternalIdentityEntity identity =
-                externalIdentityRepository.save(ExternalIdentityEntity.linked(user.id(), profile, Instant.now()));
+            externalIdentityRepository.save(ExternalIdentityEntity.linked(user.id(), profile, Instant.now()));
         user = touchUser(user, profile);
         auditService.record(user.id(), "SOCIAL_LINKED", profile.provider());
         return new SocialLoginResult(user, identity);
@@ -72,7 +73,7 @@ public class SocialLoginService {
         }
         if (!profile.emailVerified()) {
             throw new OAuthException(
-                    "This email already has an account. Sign in and link this provider after verifying ownership.");
+                "This email already has an account. Sign in and link this provider after verifying ownership.");
         }
         UserEntity user = existing.get();
         if (!user.active()) {
@@ -84,13 +85,13 @@ public class SocialLoginService {
     private UserEntity createUserFromProfile(ExternalProfile profile, String email) {
         String normalized = EmailNormalizer.normalize(email);
         UserEntity saved = usersRepository.save(UserEntity.newAccount(
-                buildUsername(profile, normalized),
-                email,
-                normalized,
-                null,
-                profile.emailVerified(),
-                profile.pictureUrl(),
-                null));
+            buildUsername(profile, normalized),
+            email,
+            normalized,
+            null,
+            profile.emailVerified(),
+            profile.pictureUrl(),
+            null));
         auditService.record(saved.id(), "USER_REGISTERED", profile.provider());
         return saved;
     }
@@ -124,5 +125,6 @@ public class SocialLoginService {
         return profile.provider() + "+" + profile.providerUserId() + "@users.noreply.local";
     }
 
-    public record SocialLoginResult(UserEntity user, ExternalIdentityEntity identity) {}
+    public record SocialLoginResult(UserEntity user, ExternalIdentityEntity identity) {
+    }
 }

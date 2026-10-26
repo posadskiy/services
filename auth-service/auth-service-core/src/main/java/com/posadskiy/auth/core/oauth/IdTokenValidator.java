@@ -10,6 +10,7 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.posadskiy.auth.core.config.OAuthProviderProperties;
 import com.posadskiy.auth.core.exception.OAuthException;
 import jakarta.inject.Singleton;
+
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -54,11 +55,11 @@ public class IdTokenValidator {
             try {
                 ConfigurableJWTProcessor<SecurityContext> processor = new DefaultJWTProcessor<>();
                 var source = JWKSourceBuilder.create(
-                                URI.create(provider.jwksUri()).toURL())
-                        .retrying(true)
-                        .build();
+                        URI.create(provider.jwksUri()).toURL())
+                    .retrying(true)
+                    .build();
                 processor.setJWSKeySelector(
-                        new JWSVerificationKeySelector<>(Set.of(JWSAlgorithm.RS256, JWSAlgorithm.ES256), source));
+                    new JWSVerificationKeySelector<>(Set.of(JWSAlgorithm.RS256, JWSAlgorithm.ES256), source));
                 return processor;
             } catch (Exception e) {
                 throw new IllegalStateException("Unable to initialise JWKS client for " + name, e);

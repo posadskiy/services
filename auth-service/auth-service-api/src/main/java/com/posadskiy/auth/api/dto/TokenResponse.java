@@ -10,8 +10,9 @@ import io.micronaut.serde.annotation.Serdeable;
 @Introspected
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record TokenResponse(
-        @JsonProperty("access_token") String accessToken,
-        @JsonProperty("refresh_token") @Nullable String refreshToken,
-        @JsonProperty("expires_in") long expiresIn,
-        @JsonProperty("token_type") String tokenType,
-        @JsonProperty("user_id") @Nullable String userId) {}
+    @JsonProperty("access_token") String accessToken,
+    @JsonProperty("refresh_token") @Nullable String refreshToken,
+    @JsonProperty("expires_in") long expiresIn,
+    @JsonProperty("token_type") String tokenType,
+    @JsonProperty("user_id") @Nullable String userId) {
+}

@@ -1,12 +1,13 @@
 package com.posadskiy.user.core.db;
 
-import static io.micronaut.data.model.query.builder.sql.Dialect.POSTGRES;
-
 import com.posadskiy.user.core.db.entity.ExternalIdentityEntity;
 import io.micronaut.data.jdbc.annotation.JdbcRepository;
 import io.micronaut.data.repository.CrudRepository;
+
 import java.util.List;
 import java.util.Optional;
+
+import static io.micronaut.data.model.query.builder.sql.Dialect.POSTGRES;
 
 @JdbcRepository(dialect = POSTGRES)
 public interface ExternalIdentityRepository extends CrudRepository<ExternalIdentityEntity, Long> {
@@ -15,4 +16,3 @@ public interface ExternalIdentityRepository extends CrudRepository<ExternalIdent
 
     List<ExternalIdentityEntity> findByUserId(Long userId);
 }
-

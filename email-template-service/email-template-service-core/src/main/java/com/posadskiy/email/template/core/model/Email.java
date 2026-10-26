@@ -5,5 +5,4 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 @Introspected
-public record Email(String subject) {
-}
+public record Email(String subject) {}

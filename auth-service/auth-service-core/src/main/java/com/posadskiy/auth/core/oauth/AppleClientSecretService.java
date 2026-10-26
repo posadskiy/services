@@ -9,6 +9,7 @@ import com.nimbusds.jwt.SignedJWT;
 import com.posadskiy.auth.core.config.OAuthProviderProperties;
 import com.posadskiy.auth.core.jwt.JwtCryptoFactory;
 import jakarta.inject.Singleton;
+
 import java.time.Instant;
 import java.util.Date;
 
@@ -25,16 +26,16 @@ public class AppleClientSecretService {
         try {
             Instant now = Instant.now();
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                    .issuer(provider.appleTeamId())
-                    .subject(provider.clientId())
-                    .audience("https://appleid.apple.com")
-                    .issueTime(Date.from(now))
-                    .expirationTime(Date.from(now.plusSeconds(86400 * 180L)))
-                    .build();
+                .issuer(provider.appleTeamId())
+                .subject(provider.clientId())
+                .audience("https://appleid.apple.com")
+                .issueTime(Date.from(now))
+                .expirationTime(Date.from(now.plusSeconds(86400 * 180L)))
+                .build();
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
-                    .keyID(provider.appleKeyId())
-                    .type(JOSEObjectType.JWT)
-                    .build();
+                .keyID(provider.appleKeyId())
+                .type(JOSEObjectType.JWT)
+                .build();
             SignedJWT jwt = new SignedJWT(header, claims);
             jwt.sign(new ECDSASigner(JwtCryptoFactory.privateKey(provider.applePrivateKeyPem())));
             return jwt.serialize();

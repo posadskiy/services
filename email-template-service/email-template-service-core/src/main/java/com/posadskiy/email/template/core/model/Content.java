@@ -5,5 +5,4 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 @Introspected
-public record Content(String name, String header, String text, Button button) {
-}
+public record Content(String name, String header, String text, Button button) {}

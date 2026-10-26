@@ -8,6 +8,7 @@ import com.posadskiy.auth.core.storage.db.OAuthLoginCodeRepository;
 import com.posadskiy.auth.core.storage.db.entity.OAuthLoginCodeEntity;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import jakarta.inject.Singleton;
+
 import java.time.Instant;
 
 @Singleton
@@ -24,19 +25,19 @@ public class OAuthLoginCodeService {
     public String create(UserEntity user, Long identityId, String codeChallenge) {
         String code = SecureTokens.randomUrl(32);
         repository.save(new OAuthLoginCodeEntity(
-                SecureTokens.sha256Hex(code),
-                user.id(),
-                identityId,
-                codeChallenge,
-                Instant.now().plus(properties.oauth().loginCodeTtl()),
-                null));
+            SecureTokens.sha256Hex(code),
+            user.id(),
+            identityId,
+            codeChallenge,
+            Instant.now().plus(properties.oauth().loginCodeTtl()),
+            null));
         return code;
     }
 
     public OAuthLoginCodeEntity consume(String code, String codeVerifier) {
         OAuthLoginCodeEntity entity = repository
-                .findById(SecureTokens.sha256Hex(code))
-                .orElseThrow(() -> new OAuthException("Invalid login code"));
+            .findById(SecureTokens.sha256Hex(code))
+            .orElseThrow(() -> new OAuthException("Invalid login code"));
         repository.deleteById(entity.codeHash());
         if (Instant.now().isAfter(entity.expiresAt())) {
             throw new OAuthException("Login code expired");

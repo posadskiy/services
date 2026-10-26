@@ -13,6 +13,7 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.token.generator.TokenGenerator;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
+
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -31,13 +32,13 @@ public class TokenService {
     private final AuthMetrics metrics;
 
     public TokenService(
-            TokenGenerator tokenGenerator,
-            RefreshTokenRepository refreshTokenRepository,
-            UserAccountService userAccountService,
-            AuthProperties properties,
-            List<OAuthClientProperties> clients,
-            AuditService auditService,
-            AuthMetrics metrics) {
+        TokenGenerator tokenGenerator,
+        RefreshTokenRepository refreshTokenRepository,
+        UserAccountService userAccountService,
+        AuthProperties properties,
+        List<OAuthClientProperties> clients,
+        AuditService auditService,
+        AuthMetrics metrics) {
         this.tokenGenerator = tokenGenerator;
         this.refreshTokenRepository = refreshTokenRepository;
         this.userAccountService = userAccountService;
@@ -51,17 +52,17 @@ public class TokenService {
         String access = accessToken(user, provider, externalIdentityId);
         String refresh = persistRefresh(user.id(), provider, externalIdentityId, UUID.randomUUID());
         return new TokenResponse(
-                access, refresh, properties.jwt().accessTokenTtl().toSeconds(), "Bearer", UserResponse.idOf(user.id()));
+            access, refresh, properties.jwt().accessTokenTtl().toSeconds(), "Bearer", UserResponse.idOf(user.id()));
     }
 
     @Transactional
     public TokenResponse refresh(String refreshToken) {
         RefreshTokenEntity existing = refreshTokenRepository
-                .findByTokenHash(SecureTokens.sha256Hex(refreshToken))
-                .orElseThrow(() -> {
-                    metrics.refresh("unknown");
-                    return new InvalidCredentialsException();
-                });
+            .findByTokenHash(SecureTokens.sha256Hex(refreshToken))
+            .orElseThrow(() -> {
+                metrics.refresh("unknown");
+                return new InvalidCredentialsException();
+            });
         if (existing.revoked() || Instant.now().isAfter(existing.expiresAt())) {
             refreshTokenRepository.revokeFamily(existing.familyId());
             metrics.refresh("revoked");
@@ -70,25 +71,25 @@ public class TokenService {
         }
         UserEntity user = userAccountService.requireActive(existing.userId());
         String next =
-                persistRefresh(user.id(), existing.provider(), existing.externalIdentityId(), existing.familyId());
+            persistRefresh(user.id(), existing.provider(), existing.externalIdentityId(), existing.familyId());
         RefreshTokenEntity replacement = refreshTokenRepository
-                .findByTokenHash(SecureTokens.sha256Hex(next))
-                .orElseThrow();
+            .findByTokenHash(SecureTokens.sha256Hex(next))
+            .orElseThrow();
         refreshTokenRepository.update(existing.consumed(Instant.now(), replacement.id()));
         metrics.refresh("success");
         return new TokenResponse(
-                accessToken(user, existing.provider(), existing.externalIdentityId()),
-                next,
-                properties.jwt().accessTokenTtl().toSeconds(),
-                "Bearer",
-                UserResponse.idOf(user.id()));
+            accessToken(user, existing.provider(), existing.externalIdentityId()),
+            next,
+            properties.jwt().accessTokenTtl().toSeconds(),
+            "Bearer",
+            UserResponse.idOf(user.id()));
     }
 
     @Transactional
     public void revoke(String refreshToken) {
         refreshTokenRepository
-                .findByTokenHash(SecureTokens.sha256Hex(refreshToken))
-                .ifPresent(token -> refreshTokenRepository.revokeFamily(token.familyId()));
+            .findByTokenHash(SecureTokens.sha256Hex(refreshToken))
+            .ifPresent(token -> refreshTokenRepository.revokeFamily(token.familyId()));
     }
 
     @Transactional
@@ -99,10 +100,10 @@ public class TokenService {
 
     public TokenResponse clientCredentials(String clientId, String clientSecret) {
         OAuthClientProperties client = clients.stream()
-                .filter(OAuthClientProperties::enabled)
-                .filter(c -> c.clientId().equals(clientId))
-                .findFirst()
-                .orElseThrow(InvalidCredentialsException::new);
+            .filter(OAuthClientProperties::enabled)
+            .filter(c -> c.clientId().equals(clientId))
+            .findFirst()
+            .orElseThrow(InvalidCredentialsException::new);
         if (client.clientSecret() == null || !SecureTokens.equalsConstantTime(client.clientSecret(), clientSecret)) {
             throw new InvalidCredentialsException();
         }
@@ -112,8 +113,8 @@ public class TokenService {
         Authentication authentication = Authentication.build(clientId, client.roles(), attributes);
         int ttl = (int) properties.jwt().accessTokenTtl().toSeconds();
         String access = tokenGenerator
-                .generateToken(authentication, ttl)
-                .orElseThrow(() -> new IllegalStateException("Unable to generate access token"));
+            .generateToken(authentication, ttl)
+            .orElseThrow(() -> new IllegalStateException("Unable to generate access token"));
         return new TokenResponse(access, null, ttl, "Bearer", null);
     }
 
@@ -133,24 +134,24 @@ public class TokenService {
         Authentication authentication = Authentication.build(String.valueOf(user.id()), user.roleList(), attributes);
         int ttl = (int) properties.jwt().accessTokenTtl().toSeconds();
         return tokenGenerator
-                .generateToken(authentication, ttl)
-                .orElseThrow(() -> new IllegalStateException("Unable to generate access token"));
+            .generateToken(authentication, ttl)
+            .orElseThrow(() -> new IllegalStateException("Unable to generate access token"));
     }
 
     private String persistRefresh(Long userId, String provider, Long externalIdentityId, UUID familyId) {
         String value = SecureTokens.randomUrl(64);
         refreshTokenRepository.save(new RefreshTokenEntity(
-                null,
-                userId,
-                SecureTokens.sha256Hex(value),
-                familyId,
-                null,
-                provider,
-                externalIdentityId,
-                false,
-                Instant.now().plus(properties.token().refreshTokenTtl()),
-                null,
-                null));
+            null,
+            userId,
+            SecureTokens.sha256Hex(value),
+            familyId,
+            null,
+            provider,
+            externalIdentityId,
+            false,
+            Instant.now().plus(properties.token().refreshTokenTtl()),
+            null,
+            null));
         return value;
     }
 }

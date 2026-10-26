@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 @Serdeable
 @Introspected
 public record RegisterRequest(
-        @NotBlank @Email @Size(max = 255) String email,
-        @NotBlank @Size(min = 10, max = 72) String password,
-        @Nullable @Size(max = 255) String username) {}
+    @NotBlank @Email @Size(max = 255) String email,
+    @NotBlank @Size(min = 10, max = 72) String password,
+    @Nullable @Size(max = 255) String username) {
+}

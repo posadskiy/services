@@ -1,41 +1,56 @@
 # AGENTS.md
 
-## Cursor Cloud specific instructions
+This repository holds sibling Micronaut services, a root Compose file, and shared cluster config. Each service is its own Maven project. Run Maven from that service's directory.
 
-This repository is a Maven multi-module **Micronaut** auth service (`auth-service-api`, `auth-service-core`, `auth-service-web`). The web module is the runnable application (port **8100**). Standard commands live in `README.md`; only the non-obvious cloud caveats are captured here.
+## Scope
 
-### Toolchain
-- The build requires **JDK 25** (`maven.compiler.source/target=25` in the POMs), even though `README.md` and CI say "Java 21". JDK 25 is installed and is the default `java` (`/usr/lib/jvm/java-25-openjdk-amd64`, via `update-alternatives`). Do not downgrade to 21 — compilation fails.
-- Use Maven 3.9.12 (`mvn`), the same version as the `maven:3.9.12-amazoncorretto-25-alpine` image. No `settings.xml`/GitHub token is needed: all dependencies resolve from Maven Central. The `github` repository in `pom.xml` is only for publishing.
+Work in `auth-service/` and `user-service/`.
 
-### PostgreSQL (required to run the app, not for tests)
-- Postgres 16 is installed but does **not** auto-start. Start it each session: `sudo service postgresql start`.
-- A local dev database is provisioned and persists in the VM: database `auth_db`, role `auth_user` / password `auth_password`. Flyway applies migrations automatically on app startup.
+Ignore `email-service/` and `email-template-service/`. Do not read them for context, edit them, test them, build them, or start them. Leave their manifests, scripts, and the Compose `email` profile alone unless the user explicitly asks for those services.
 
-### Required environment variables (dev run)
-The `dev` profile has unresolved placeholders that make the app fail to boot unless these are set. OAuth values can be dummies (real OAuth flows are not exercised locally):
+## Layout
+
+| Path | What it is |
+| --- | --- |
+| `auth-service/` | Authentication. Modules `auth-service-api`, `auth-service-core`, `auth-service-web`. Port **8100**. |
+| `user-service/` | Users. Modules `user-service-api`, `user-service-core`, `user-service-web`. Port **8095**. |
+| `docker-compose.dev.yml` | Local stack for the services above, plus Postgres on **5432**. |
+| `deployment/` | Cluster prep only: namespace, ConfigMap, secrets, Traefik, scripts. It does not deploy a service. |
+| `<service>/deployment/` | That service's Kubernetes manifest and `scripts/deploy.sh` / `scripts/build-and-push.sh`. |
+
+Service commands and the auth HTTP API are in each service's `README.md`. Root `README.md` covers Compose, tags, and cluster prep.
+
+## Toolchain
+
+- **JDK 25.** Compilation fails on 21.
+- **Maven 3.9.12** (`mvn` on `PATH`). This is the Maven in `maven:3.9.12-amazoncorretto-25-alpine`. There is no Maven wrapper.
+- From a service directory: `mvn test`, `mvn spotless:check`, `mvn install`. Micronaut AOT's nested Maven resolves sibling modules from the local repo, so `install` (with `-am` when running one module) is the build that makes `mn:run` work.
+- Run a service with `mvn mn:run -pl <service>-web -am -Dmicronaut.environments=dev`. `run` is not a Maven lifecycle phase.
+- Auth and user resolve dependencies from Maven Central. A GitHub token is for publishing, not for compiling these two.
+- Releases are tags `auth-service/v*` and `user-service/v*`. The tag version must match that service's `pom.xml`.
+
+## auth-service
+
+Postgres is required to run the app. Tests use Testcontainers PostgreSQL, so Docker must be running; they do not use the local Postgres service.
+
+The `dev` profile fails to boot unless these are set. OAuth values can be dummies:
+
 ```
 DATASOURCE_URL=jdbc:postgresql://localhost:5432/auth_db
 DATASOURCE_USERNAME=auth_user
 DATASOURCE_PASSWORD=auth_password
-JWT_GENERATOR_SIGNATURE_SECRET=<>=32-char secret>
-OAUTH_TOKEN_ENCRYPTION_SECRET=<32-char secret>
+JWT_GENERATOR_SIGNATURE_SECRET=<at-least-32-characters>
 OAUTH_FRONTEND_REDIRECT_URL=http://localhost:3000/oauth/callback
 GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET
 FACEBOOK_OAUTH_CLIENT_ID / FACEBOOK_OAUTH_CLIENT_SECRET
 GITHUB_OAUTH_CLIENT_ID / GITHUB_OAUTH_CLIENT_SECRET
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 ```
-- **OTEL gotcha (non-obvious):** you must export a full-URL `OTEL_EXPORTER_OTLP_ENDPOINT`. Relying on the built-in placeholder default in `application.yml` (`${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}`) causes startup to crash with `OTLP endpoint must be a valid URL: 4317` (the OpenTelemetry SDK autoconfigure receives only the bare port). A collector need not actually be listening — export failures at runtime are non-fatal.
-- The same OAuth-client env vars are also needed to run `mvn test`, otherwise web-module tests error with `Could not resolve placeholder ${GOOGLE_OAUTH_CLIENT_ID}`.
 
-### Run / test / lint / build
-- **Run (dev)** — the correct Micronaut goal is `mn:run` (README's `clean run` is wrong; `run` is not a lifecycle phase). Include `-am` so sibling modules build:
-  `mvn mn:run -pl auth-service-web -am -Dmicronaut.environments=dev`
-  Verify: `curl localhost:8100/health` → `{"status":"UP"}`; Swagger UI at `/swagger-ui/index.html`.
-- **Test:** `mvn test` (web tests use an in-memory H2 DB; no Postgres needed).
-- **Lint:** `mvn spotless:check` (Palantir Java format). Note: two files currently have pre-existing violations (`auth-service-core/.../oauth/OAuthProviderRegistry.java`, `OAuthStateStore.java`); `mvn spotless:apply` fixes them.
-- **Build:** `mvn -DskipTests install` (AOT-optimized runnable jar at `auth-service-web/target/auth-service-web-*.jar`).
+`OTEL_EXPORTER_OTLP_ENDPOINT` must be a full URL. A bare port makes startup fail with `OTLP endpoint must be a valid URL`. A collector does not have to be listening.
 
-### Auth flow notes
-- There is **no HTTP user-registration endpoint** (the README's `POST /users` does not exist). `/login` is Micronaut Security's built-in bearer login: `POST /login` with `{"username":"<email>","password":"<pw>"}`. Authentication looks users up by **email**; passwords are BCrypt (strength 8). To create a test user, insert into the `users` table with a BCrypt hash.
+Health checks are `GET /health/liveness` and `GET /health/readiness`. On auth-service, `JWT_GENERATOR_SIGNATURE_SECRET` is also exposed as `AUTH_JWT_HMAC_SECRET` because that is the name Micronaut binds to `auth.jwt.hmac-secret`. Keep `AUTH_BCRYPT_COST` at 10.
+
+## user-service
+
+Same JDK, Maven, and `mn:run` shape as auth, with `-pl user-service-web`. It shares the Compose Postgres instance. Default API port is **8095**.

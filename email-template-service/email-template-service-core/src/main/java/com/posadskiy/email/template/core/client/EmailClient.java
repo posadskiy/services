@@ -1,5 +1,7 @@
 package com.posadskiy.email.template.core.client;
 
+import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
+
 import com.posadskiy.email.api.SendEmailForm;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
@@ -9,12 +11,11 @@ import io.micronaut.http.annotation.Header;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.client.annotation.Client;
 
-import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
-
 @Client("${email.service.url:http://email-service-internal}")
 public interface EmailClient extends EmailOperations {
 
     @Consumes(MediaType.APPLICATION_JSON)
     @Post("email/send/html")
-    HttpResponse<Void> sendHtmlBasedEmail(@Header(AUTHORIZATION) String authorization, @Body SendEmailForm sendEmailForm);
+    HttpResponse<Void> sendHtmlBasedEmail(
+            @Header(AUTHORIZATION) String authorization, @Body SendEmailForm sendEmailForm);
 }

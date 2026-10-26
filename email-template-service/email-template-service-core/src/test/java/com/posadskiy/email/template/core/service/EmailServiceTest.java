@@ -1,5 +1,11 @@
 package com.posadskiy.email.template.core.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.posadskiy.email.api.SendEmailForm;
 import com.posadskiy.email.template.api.*;
 import com.posadskiy.email.template.core.client.EmailOperations;
@@ -8,29 +14,24 @@ import com.posadskiy.email.template.core.mapper.EmailFormMapper;
 import com.posadskiy.user.api.UserDto;
 import io.micronaut.core.io.Writable;
 import io.micronaut.views.ViewsRenderer;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Writer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class EmailServiceTest {
 
     // Use a real instance for EmailFormMapper
     private final EmailFormMapper emailFormMapper = new EmailFormMapper();
+
     @Mock
     private UserClient userClient;
+
     @Mock
     private EmailOperations emailOperations;
 
@@ -69,7 +70,8 @@ class EmailServiceTest {
 
         // When
         when(userClient.getUserById(authorization, "user123")).thenReturn(userDto);
-        when(viewsRenderer.render(eq(EmailService.EMAIL_TEMPLATE_PATH), any(), eq(null))).thenReturn(writable);
+        when(viewsRenderer.render(eq(EmailService.EMAIL_TEMPLATE_PATH), any(), eq(null)))
+                .thenReturn(writable);
 
         // Then
         assertDoesNotThrow(() -> emailService.sendTemplatedEmail(authorization, emailFormDto));
@@ -104,11 +106,12 @@ class EmailServiceTest {
 
         // When
         when(userClient.getUserById(authorization, "user123")).thenReturn(userDto);
-        when(viewsRenderer.render(eq(EmailService.EMAIL_TEMPLATE_PATH), any(), eq(null))).thenReturn(writable);
+        when(viewsRenderer.render(eq(EmailService.EMAIL_TEMPLATE_PATH), any(), eq(null)))
+                .thenReturn(writable);
 
         // Then
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> emailService.sendTemplatedEmail(authorization, emailFormDto));
+        RuntimeException exception = assertThrows(
+                RuntimeException.class, () -> emailService.sendTemplatedEmail(authorization, emailFormDto));
         assertTrue(exception.getCause() instanceof IOException);
         assertEquals("Test exception", exception.getCause().getMessage());
     }
@@ -138,7 +141,8 @@ class EmailServiceTest {
 
         // When
         when(userClient.getUserById(authorization, null)).thenReturn(userDto);
-        when(viewsRenderer.render(eq(EmailService.EMAIL_TEMPLATE_PATH), any(), eq(null))).thenReturn(writable);
+        when(viewsRenderer.render(eq(EmailService.EMAIL_TEMPLATE_PATH), any(), eq(null)))
+                .thenReturn(writable);
 
         // Then
         assertDoesNotThrow(() -> emailService.sendTemplatedEmail(authorization, emailFormDto));
@@ -147,4 +151,4 @@ class EmailServiceTest {
         verify(viewsRenderer).render(eq(EmailService.EMAIL_TEMPLATE_PATH), any(), eq(null));
         verify(emailOperations).sendHtmlBasedEmail(eq(authorization), any(SendEmailForm.class));
     }
-} 
+}

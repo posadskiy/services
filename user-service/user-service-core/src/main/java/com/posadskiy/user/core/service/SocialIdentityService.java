@@ -8,6 +8,7 @@ import com.posadskiy.user.core.db.UsersRepository;
 import com.posadskiy.user.core.db.entity.ExternalIdentityEntity;
 import com.posadskiy.user.core.db.entity.UserEntity;
 import jakarta.inject.Singleton;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -20,26 +21,25 @@ public class SocialIdentityService {
     private final UsersRepository usersRepository;
 
     public SocialIdentityService(
-            ExternalIdentityRepository externalIdentityRepository, UsersRepository usersRepository) {
+        ExternalIdentityRepository externalIdentityRepository, UsersRepository usersRepository) {
         this.externalIdentityRepository = externalIdentityRepository;
         this.usersRepository = usersRepository;
     }
 
     public List<SocialIdentityDto> listIdentities(Long userId) {
         return externalIdentityRepository.findByUserId(userId).stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+            .map(this::mapToDto)
+            .collect(Collectors.toList());
     }
 
     public SocialIdentityDto linkIdentity(Long userId, LinkSocialIdentityRequest request) {
         UserEntity user = usersRepository
-                .findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+            .findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-        ExternalIdentityEntity entity =
-                externalIdentityRepository
-                        .findByProviderAndProviderUserId(request.provider(), request.providerUserId())
-                        .orElseGet(ExternalIdentityEntity::new);
+        ExternalIdentityEntity entity = externalIdentityRepository
+            .findByProviderAndProviderUserId(request.provider(), request.providerUserId())
+            .orElseGet(ExternalIdentityEntity::new);
 
         entity.setUser(user);
         entity.setProvider(request.provider());
@@ -62,26 +62,24 @@ public class SocialIdentityService {
     public void unlinkIdentity(Long userId, String provider) {
         List<ExternalIdentityEntity> identities = externalIdentityRepository.findByUserId(userId);
         identities.stream()
-                .filter(identity -> identity.getProvider().equalsIgnoreCase(provider))
-                .forEach(
-                        identity -> {
-                            identity.setRevoked(Boolean.TRUE);
-                            externalIdentityRepository.save(identity);
-                        });
+            .filter(identity -> identity.getProvider().equalsIgnoreCase(provider))
+            .forEach(identity -> {
+                identity.setRevoked(Boolean.TRUE);
+                externalIdentityRepository.save(identity);
+            });
     }
 
     private SocialIdentityDto mapToDto(ExternalIdentityEntity entity) {
         return new SocialIdentityDto(
-                entity.getId() == null ? null : UserIds.of(entity.getId()),
-                entity.getProvider(),
-                entity.getProviderUserId(),
-                entity.getEmail(),
-                entity.getDisplayName(),
-                entity.getPictureUrl(),
-                entity.getLastLoginAt() != null
-                        ? entity.getLastLoginAt().atZone(ZoneOffset.UTC).toInstant()
-                        : null,
-                Boolean.TRUE.equals(entity.getRevoked()));
+            entity.getId() == null ? null : UserIds.of(entity.getId()),
+            entity.getProvider(),
+            entity.getProviderUserId(),
+            entity.getEmail(),
+            entity.getDisplayName(),
+            entity.getPictureUrl(),
+            entity.getLastLoginAt() != null
+                ? entity.getLastLoginAt().atZone(ZoneOffset.UTC).toInstant()
+                : null,
+            Boolean.TRUE.equals(entity.getRevoked()));
     }
 }
-

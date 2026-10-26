@@ -8,4 +8,5 @@ import jakarta.validation.constraints.NotBlank;
 @Serdeable
 @Introspected
 public record OAuthFinalizeRequest(
-        @NotBlank String code, @Nullable String codeVerifier) {}
+    @NotBlank String code, @Nullable String codeVerifier) {
+}

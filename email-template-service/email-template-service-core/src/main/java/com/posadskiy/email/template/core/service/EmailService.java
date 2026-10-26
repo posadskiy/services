@@ -7,11 +7,10 @@ import com.posadskiy.email.template.core.client.UserClient;
 import com.posadskiy.email.template.core.mapper.EmailFormMapper;
 import io.micronaut.views.ViewsRenderer;
 import jakarta.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Singleton
@@ -36,14 +35,12 @@ public class EmailService {
     }
 
     public void sendTemplatedEmail(String authorization, EmailFormDto emailFormDto) {
-        var user = userClient.getUserById(authorization, emailFormDto.recipient().id());
+        var user =
+                userClient.getUserById(authorization, emailFormDto.recipient().id());
 
         var emailForm = emailFormMapper.toModel(emailFormDto, user);
 
-        var body = viewsRenderer.render(
-            EMAIL_TEMPLATE_PATH,
-            Collections.singletonMap(FORM_NAME, emailForm),
-            null);
+        var body = viewsRenderer.render(EMAIL_TEMPLATE_PATH, Collections.singletonMap(FORM_NAME, emailForm), null);
 
         String out;
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -54,6 +51,7 @@ public class EmailService {
         }
 
         emailOperations.sendHtmlBasedEmail(
-                authorization, new SendEmailForm(String.valueOf(user.id()), emailForm.email().subject(), out));
+                authorization,
+                new SendEmailForm(String.valueOf(user.id()), emailForm.email().subject(), out));
     }
 }

@@ -1,5 +1,7 @@
 package com.posadskiy.email.web.controller.impl;
 
+import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
+
 import com.posadskiy.email.api.SendEmailForm;
 import com.posadskiy.email.service.EmailService;
 import com.posadskiy.email.web.controller.EmailController;
@@ -19,8 +21,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
-import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
-
 @Controller("email")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @ExecuteOn(TaskExecutors.BLOCKING)
@@ -39,45 +39,32 @@ public class JavaMailEmailController implements EmailController {
     @Status(HttpStatus.NO_CONTENT)
     @ContinueSpan
     @Operation(
-        summary = "Send text-based email",
-        tags = "email",
-        description = "Sending text-based email's body with subject to provided email address",
-        responses = {
-            @ApiResponse(responseCode = "204", description = "Email has been sent successfully")
-        }
-    )
-    public HttpResponse<Void> sendText(@Header(AUTHORIZATION) String authorization,
-        @RequestBody(description = "Email-related details", required = true)
-        @Body
-        @Valid
-        SendEmailForm form) {
-        emailService.sendText(authorization, 
-            emailMapper.toModel(form)
-        );
+            summary = "Send text-based email",
+            tags = "email",
+            description = "Sending text-based email's body with subject to provided email address",
+            responses = {@ApiResponse(responseCode = "204", description = "Email has been sent successfully")})
+    public HttpResponse<Void> sendText(
+            @Header(AUTHORIZATION) String authorization,
+            @RequestBody(description = "Email-related details", required = true) @Body @Valid SendEmailForm form) {
+        emailService.sendText(authorization, emailMapper.toModel(form));
 
         return HttpResponse.noContent();
     }
 
     @Post("send/html")
     @Consumes(MediaType.APPLICATION_JSON)
-    //@Status(HttpStatus.NO_CONTENT)
+    // @Status(HttpStatus.NO_CONTENT)
     @ContinueSpan
     @Operation(
-        summary = "Send HTML-based email",
-        tags = "email",
-        description = "Sending HTML-based email's body with subject to provided email address",
-        responses = {
-            @ApiResponse(responseCode = "204", description = "Email has been sent successfully")
-        }
-    )
-    public HttpResponse<Void> sendHtml(@Header(AUTHORIZATION) String authorization,
-        @RequestBody(description = "Email-related details", required = true)
-        @Body
-        @NotNull
-        @Valid SendEmailForm form) {
-        emailService.sendHtml(authorization,
-            emailMapper.toModel(form)
-        );
+            summary = "Send HTML-based email",
+            tags = "email",
+            description = "Sending HTML-based email's body with subject to provided email address",
+            responses = {@ApiResponse(responseCode = "204", description = "Email has been sent successfully")})
+    public HttpResponse<Void> sendHtml(
+            @Header(AUTHORIZATION) String authorization,
+            @RequestBody(description = "Email-related details", required = true) @Body @NotNull @Valid
+                    SendEmailForm form) {
+        emailService.sendHtml(authorization, emailMapper.toModel(form));
 
         return HttpResponse.noContent();
     }

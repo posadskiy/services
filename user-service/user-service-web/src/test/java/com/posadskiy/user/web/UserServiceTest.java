@@ -16,5 +16,4 @@ class UserServiceTest {
     void testItWorks() {
         Assertions.assertTrue(application.isRunning());
     }
-
-} 
+}

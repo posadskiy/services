@@ -22,7 +22,7 @@ public class AuthExceptionHandler implements ExceptionHandler<AuthException, Htt
         HttpStatus status = HttpStatus.valueOf(exception.status());
         LOG.debug("auth error status={} path={}", exception.status(), request.getPath());
         ProblemDetail body = new ProblemDetail(
-                "about:blank", status.getReason(), status.getCode(), exception.getMessage(), request.getPath());
+            "about:blank", status.getReason(), status.getCode(), exception.getMessage(), request.getPath());
         return HttpResponse.status(status).body(body);
     }
 }

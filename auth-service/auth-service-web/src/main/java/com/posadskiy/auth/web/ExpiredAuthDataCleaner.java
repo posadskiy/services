@@ -4,6 +4,7 @@ import com.posadskiy.auth.core.storage.db.OAuthLoginCodeRepository;
 import com.posadskiy.auth.core.storage.db.OAuthStateRepository;
 import io.micronaut.scheduling.annotation.Scheduled;
 import jakarta.inject.Singleton;
+
 import java.time.Instant;
 
 @Singleton

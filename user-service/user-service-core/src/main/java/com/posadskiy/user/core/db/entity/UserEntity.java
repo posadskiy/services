@@ -3,9 +3,10 @@ package com.posadskiy.user.core.db.entity;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.data.annotation.*;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 import java.util.Locale;
-import lombok.Data;
 
 @Data
 @MappedEntity("users")

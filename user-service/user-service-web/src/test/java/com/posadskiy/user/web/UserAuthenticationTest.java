@@ -28,4 +28,4 @@ class UserAuthenticationTest {
 
         assertEquals(UNAUTHORIZED, e.getStatus());
     }
-} 
+}

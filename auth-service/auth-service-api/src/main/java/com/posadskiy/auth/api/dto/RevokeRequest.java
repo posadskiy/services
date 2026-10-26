@@ -7,4 +7,5 @@ import jakarta.validation.constraints.NotBlank;
 
 @Serdeable
 @Introspected
-public record RevokeRequest(@NotBlank @JsonProperty("token") String token) {}
+public record RevokeRequest(@NotBlank @JsonProperty("token") String token) {
+}
