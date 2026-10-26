@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-service
+  namespace: microservices
+  labels:
+    app: email-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-service
+  template:
+    metadata:
+      labels:
+        app: email-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/prometheus"
+        prometheus.io/port: "8090"
+    spec:
+      imagePullSecrets:
+      - name: dockerhub-registry-secret
+      containers:
+      - name: email-service
+        image: ${DOCKERHUB_USERNAME}/email-service:${IMAGE_VERSION}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8090
+        env:
+        - name: MICRONAUT_ENVIRONMENTS
+          value: "prod"
+        - name: GITHUB_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: microservices-config
+              key: GITHUB_USERNAME
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: GITHUB_TOKEN
+        - name: JWT_GENERATOR_SIGNATURE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: JWT_GENERATOR_SIGNATURE_SECRET
+        - name: EMAIL_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: DEV_EMAIL_ADDRESS
+        - name: EMAIL_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: DEV_EMAIL_TOKEN
+        - name: OTEL_SERVICE_NAME
+          value: "email-service"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://grafana-alloy.observability.svc.cluster.local:4317"
+        - name: OTEL_TRACES_SAMPLER
+          value: parentbased_traceidratio
+        - name: OTEL_TRACES_SAMPLER_ARG
+          value: "1.0"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8090
+          initialDelaySeconds: 120
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8090
+          initialDelaySeconds: 60
+          periodSeconds: 10
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: email-service
+  namespace: microservices
+  labels:
+    app: email-service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8090
+    targetPort: 8090
+    protocol: TCP
+  selector:
+    app: email-service 

@@ -1,0 +1,26 @@
+#tag::micronaut[]
+micronaut:
+  security:
+    intercept-url-map:
+      - pattern: /health
+        access: isAnonymous()
+  endpoints:
+    health:
+      enabled: true
+      sensitive: false
+      details:
+        enabled: true
+#end::micronaut[]
+
+#tag::otel[]
+otel:
+  traces:
+    sampler:
+      arg: ${OTEL_TRACES_SAMPLER_ARG:1.0}
+#end::otel[]
+
+#tag::email[]
+email:
+  debug: ${EMAIL_DEBUG:false}
+#end::email[]
+

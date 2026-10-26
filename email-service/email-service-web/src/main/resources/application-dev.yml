@@ -1,0 +1,45 @@
+#tag::micronaut[]
+micronaut:
+  server:
+    cors:
+      enabled: true
+      configurations:
+        ui:
+          allowed-origins:
+            - http://localhost:3000
+          allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+          allowed-headers: "*"
+          allow-credentials: true
+  security:
+    intercept-url-map:
+      - pattern: /v3/api-docs/**
+        access: isAnonymous()
+      - pattern: /health
+        access: isAnonymous()
+  endpoints:
+    health:
+      enabled: true
+      sensitive: false
+      details:
+        enabled: true
+#end::micronaut[]
+
+#tag::otel[]
+otel:
+  traces:
+    sampler:
+      arg: ${OTEL_TRACES_SAMPLER_ARG:1.0}
+#end::otel[]
+
+#tag::email[]
+email:
+  debug: ${EMAIL_DEBUG:true}
+#end::email[]
+
+#tag::logging[]
+logging:
+  level:
+    com.posadskiy.email: ${LOG_LEVEL_APP:DEBUG}
+    io.micronaut: ${LOG_LEVEL_MICRONAUT:INFO}
+    org.springframework.mail: ${LOG_LEVEL_MAIL:DEBUG}
+#end::logging[]

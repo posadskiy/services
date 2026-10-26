@@ -1,0 +1,31 @@
+#tag::micronaut[]
+micronaut:
+  security:
+    intercept-url-map:
+      - pattern: /v3/api-docs/**
+        access: isAnonymous()
+      - pattern: /health
+        access: isAnonymous()
+      - pattern: /prometheus
+        access: isAnonymous()
+  endpoints:
+    health:
+      enabled: true
+      sensitive: false
+      details:
+        enabled: true
+      jdbc:
+        enabled: false  # avoid DB connection on every /health probe so pool can go to 0 when idle (Neon)
+#end::micronaut[]
+
+#tag::otel[]
+otel:
+  traces:
+    sampler:
+      arg: "1.0"
+#end::otel[]
+
+#tag::email[]
+email:
+  debug: ${EMAIL_DEBUG:false}
+#end::email[]
