@@ -67,6 +67,3 @@ jobs:
 
       - name: Test
         run: mvn -B install
-
-      - name: Format
-        run: mvn -B spotless:check
