@@ -114,13 +114,11 @@ spec:
             secretKeyRef:
               name: microservices-secrets
               key: SYSTEM_CLIENT_ID
-              optional: true
         - name: SYSTEM_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
               name: microservices-secrets
               key: SYSTEM_CLIENT_SECRET
-              optional: true
         - name: AUTH_JWT_HMAC_SECRET
           valueFrom:
             secretKeyRef:

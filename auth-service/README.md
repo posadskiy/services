@@ -59,7 +59,7 @@ Health: `GET /health/liveness` and `GET /health/readiness`.
 
 ## GitHub Actions
 
-Pull requests and `main` run `mvn install` and `spotless:check` in this directory with Maven 3.9.12.
+Pull requests and `main` run `mvn install` in this directory with Maven 3.9.12.
 
 A tag `auth-service/vX.Y.Z` (the same version as `pom.xml`) publishes the Maven modules, pushes the production image to Docker Hub, and creates a GitHub Release. Deploy that image with `./deployment/scripts/deploy.sh <version>`.
 

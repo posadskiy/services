@@ -15,7 +15,7 @@ Auth, user, email, and email-template services in one repository. Run them local
 
 ## GitHub Actions
 
-[CI](.github/workflows/ci.yml) installs Maven 3.9.12, the same version as the Docker build image, and runs `mvn install` and `spotless:check` for every service on pull requests and on `main`.
+[CI](.github/workflows/ci.yml) installs Maven 3.9.12, the same version as the Docker build image, and runs `mvn install` for every service on pull requests and on `main`.
 
 [Release](.github/workflows/release.yml) runs when a tag is pushed. The tag version must match that service's `pom.xml`. It publishes the Maven modules to GitHub Packages, pushes the `Dockerfile.prod` image to Docker Hub (`linux/arm64`, version and `latest`), and opens a GitHub Release. Roll that image out with `./deployment/scripts/deploy.sh <version>` from the service directory.
 
