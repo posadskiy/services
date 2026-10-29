@@ -6,7 +6,6 @@ on:
       - "auth-service/v*"
       - "user-service/v*"
       - "email-service/v*"
-      - "email-template-service/v*"
 
 permissions:
   contents: write
@@ -26,10 +25,6 @@ jobs:
         run: |
           ref="${GITHUB_REF#refs/tags/}"
           case "$ref" in
-            email-template-service/v*)
-              service=email-template-service
-              version="${ref#email-template-service/v}"
-              ;;
             email-service/v*)
               service=email-service
               version="${ref#email-service/v}"
@@ -126,9 +121,6 @@ jobs:
           build_args=()
           if [ "$(basename "$PWD")" = "email-service" ]; then
             context=".."
-          fi
-          if [ "$(basename "$PWD")" = "email-template-service" ]; then
-            build_args+=(--build-arg "GITHUB_TOKEN=$GITHUB_TOKEN" --build-arg "GITHUB_USERNAME=$GITHUB_USERNAME")
           fi
           docker buildx build --platform linux/arm64 \
             "${build_args[@]}" \

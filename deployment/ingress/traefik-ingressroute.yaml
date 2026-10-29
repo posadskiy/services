@@ -42,19 +42,7 @@ spec:
         - name: strip-prefix-email
         - name: rate-limit-middleware
       priority: 10
-    
-    # Email Template Service
-    - match: Host(`api.posadskiy.com`) && PathPrefix(`/email-template`)
-      kind: Rule
-      services:
-        - name: email-template-service
-          port: 8091
-      middlewares:
-        - name: cors-middleware
-        - name: strip-prefix-email-template
-        - name: rate-limit-middleware
-      priority: 10
-    
+
     # Health check endpoint
     - match: Host(`api.posadskiy.com`) && Path(`/health`)
       kind: Rule

@@ -9,7 +9,6 @@ Auth, user, email, and email-template services in one repository. Run them local
 | [`auth-service/`](auth-service) | Authentication |
 | [`user-service/`](user-service) | Users |
 | [`email-service/`](email-service) | Email delivery |
-| [`email-template-service/`](email-template-service) | Email templates |
 | [`docker-compose.dev.yml`](docker-compose.dev.yml) | Local stack |
 | [`deployment/`](deployment) | Namespace, ConfigMap, secrets, Traefik, cluster scripts |
 
@@ -24,7 +23,6 @@ Auth, user, email, and email-template services in one repository. Run them local
 | `auth-service/v*` | auth-service |
 | `user-service/v*` | user-service |
 | `email-service/v*` | email-service |
-| `email-template-service/v*` | email-template-service |
 
 Secrets: `DEPLOYMENT_GITHUB_TOKEN` (read and publish GitHub Packages), `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
 

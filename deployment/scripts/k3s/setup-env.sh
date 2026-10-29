@@ -79,7 +79,7 @@ fi
 
 # Check if images exist (extract versions from pom.xml)
 echo "🔍 Checking if Docker images exist..."
-SERVICES=("auth-service" "user-service" "email-service" "email-template-service")
+SERVICES=("auth-service" "user-service" "email-service")
 MISSING_IMAGES=()
 SERVICES_ROOT="$(dirname "$K8S_DIR")"
 COMMON_SCRIPTS_DIR="$K8S_DIR/scripts/common"

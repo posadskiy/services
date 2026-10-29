@@ -77,7 +77,6 @@ services:
       OTEL_TRACES_SAMPLER_ARG: "1.0"
       USER_SERVICE_URL: http://user-service:8095
       EMAIL_SERVICE_URL: http://email-service:8090
-      EMAIL_TEMPLATE_SERVICE_URL: http://email-template-service:8091
       AUTH_EMAIL_FROM_GRAMMARBAR: ${AUTH_EMAIL_FROM_GRAMMARBAR:?Set AUTH_EMAIL_FROM_GRAMMARBAR}
       AUTH_EMAIL_FROM_POSADSKIY: ${AUTH_EMAIL_FROM_POSADSKIY:?Set AUTH_EMAIL_FROM_POSADSKIY}
     ports:
@@ -138,30 +137,6 @@ services:
     labels:
       logging: promtail
       service: email-service
-
-  email-template-service:
-    <<: *java
-    container_name: email-template-service
-    profiles: [email]
-    build:
-      context: ./email-template-service
-      dockerfile: Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
-    environment:
-      MICRONAUT_ENVIRONMENTS: dev
-      JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
-      OTEL_SERVICE_NAME: email-template-service
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
-      OTEL_TRACES_SAMPLER: parentbased_traceidratio
-      OTEL_TRACES_SAMPLER_ARG: "1.0"
-    ports:
-      - "127.0.0.1:8091:8091"
-      - "127.0.0.1:5008:5008"
-    labels:
-      logging: promtail
-      service: email-template-service
 
 volumes:
   postgres_data:

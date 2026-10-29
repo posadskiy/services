@@ -2,12 +2,6 @@
 
 This repository holds sibling Micronaut services, a root Compose file, and shared cluster config. Each service is its own Maven project. Run Maven from that service's directory.
 
-## Scope
-
-Work in `auth-service/` and `user-service/`.
-
-Ignore `email-service/` and `email-template-service/`. Do not read them for context, edit them, test them, build them, or start them. Leave their manifests, scripts, and the Compose `email` profile alone unless the user explicitly asks for those services.
-
 ## Layout
 
 | Path | What it is |

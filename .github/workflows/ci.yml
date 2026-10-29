@@ -26,7 +26,6 @@ jobs:
           - auth-service
           - user-service
           - email-service
-          - email-template-service
     defaults:
       run:
         working-directory: ${{ matrix.service }}
