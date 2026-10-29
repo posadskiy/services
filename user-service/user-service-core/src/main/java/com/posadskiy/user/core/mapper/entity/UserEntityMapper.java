@@ -15,7 +15,6 @@ public class UserEntityMapper {
         }
         return new User(
             user.getId(),
-            user.getUsername(),
             user.getEmail(),
             user.getPasswordHash(),
             user.getEmailVerified(),
@@ -32,7 +31,6 @@ public class UserEntityMapper {
         }
         UserEntity entity = new UserEntity();
         entity.setId(user.id());
-        entity.setUsername(user.username());
         entity.setEmail(user.email());
         entity.setPasswordHash(user.password());
         entity.setEmailVerified(user.emailVerified() != null ? user.emailVerified() : Boolean.FALSE);

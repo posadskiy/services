@@ -35,70 +35,13 @@ class RegistrationServiceTest {
     @Test
     void testRegistration_Success() {
         // Given
-        User inputUser = new User(null, "testuser", "test@example.com", "password123");
+        User inputUser = new User(null, "test@example.com", "password123");
         UserEntity userEntity = new UserEntity();
         userEntity.setId(123L);
-        userEntity.setUsername("testuser");
         userEntity.setEmail("test@example.com");
         userEntity.setPasswordHash("hashedPassword");
 
-        User expectedUser = new User(1L, "testuser", "test@example.com", "hashedPassword");
-
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
-        when(userEntityMapper.mapToEntity(any())).thenReturn(userEntity);
-        when(userRepository.save(any())).thenReturn(userEntity);
-        when(userEntityMapper.mapFromEntity(userEntity)).thenReturn(expectedUser);
-
-        // When
-        User result = registrationService.registration(inputUser);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(expectedUser, result);
-        verify(userRepository).findByEmail("test@example.com");
-        verify(userRepository).save(userEntity);
-        verify(userEntityMapper).mapFromEntity(userEntity);
-    }
-
-    @Test
-    void testRegistration_WithBlankUsername() {
-        // Given
-        User inputUser = new User(null, "", "test@example.com", "password123");
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(123L);
-        userEntity.setUsername("test");
-        userEntity.setEmail("test@example.com");
-        userEntity.setPasswordHash("hashedPassword");
-
-        User expectedUser = new User(1L, "test", "test@example.com", "hashedPassword");
-
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
-        when(userEntityMapper.mapToEntity(any())).thenReturn(userEntity);
-        when(userRepository.save(any())).thenReturn(userEntity);
-        when(userEntityMapper.mapFromEntity(userEntity)).thenReturn(expectedUser);
-
-        // When
-        User result = registrationService.registration(inputUser);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(expectedUser, result);
-        verify(userRepository).findByEmail("test@example.com");
-        verify(userRepository).save(userEntity);
-        verify(userEntityMapper).mapFromEntity(userEntity);
-    }
-
-    @Test
-    void testRegistration_WithNullUsername() {
-        // Given
-        User inputUser = new User(null, null, "test@example.com", "password123");
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(123L);
-        userEntity.setUsername("test");
-        userEntity.setEmail("test@example.com");
-        userEntity.setPasswordHash("hashedPassword");
-
-        User expectedUser = new User(1L, "test", "test@example.com", "hashedPassword");
+        User expectedUser = new User(1L, "test@example.com", "hashedPassword");
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
         when(userEntityMapper.mapToEntity(any())).thenReturn(userEntity);
@@ -119,10 +62,9 @@ class RegistrationServiceTest {
     @Test
     void testRegistration_UserAlreadyExists() {
         // Given
-        User inputUser = new User(null, "testuser", "test@example.com", "password123");
+        User inputUser = new User(null, "test@example.com", "password123");
         UserEntity existingUser = new UserEntity();
         existingUser.setId(456L);
-        existingUser.setUsername("existinguser");
         existingUser.setEmail("test@example.com");
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));

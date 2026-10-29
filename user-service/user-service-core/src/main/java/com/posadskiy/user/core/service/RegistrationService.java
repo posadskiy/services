@@ -26,8 +26,6 @@ public class RegistrationService {
         final Optional<UserEntity> byEmail = userRepository.findByEmail(user.email());
         if (byEmail.isPresent()) throw new AuthException("User already exists");
 
-        var username = (StringUtils.isBlank(user.username())) ? user.email().split("@")[0] : user.username();
-
         var encodedPassword = StringUtils.isBlank(user.password()) ? null : PasswordEncoder.encode(user.password());
 
         var createdVia = StringUtils.isBlank(user.createdVia())
@@ -36,7 +34,6 @@ public class RegistrationService {
 
         var encodedPasswordUser = new User(
             user.id(),
-            username,
             user.email(),
             encodedPassword,
             Boolean.TRUE.equals(user.emailVerified()),

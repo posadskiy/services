@@ -18,10 +18,6 @@ public class UserEntity {
 
     @NonNull
     @NotBlank
-    private String username;
-
-    @NonNull
-    @NotBlank
     private String email;
 
     @MappedProperty("email_normalized")
@@ -58,14 +54,6 @@ public class UserEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public @NonNull @NotBlank String getUsername() {
-        return username;
-    }
-
-    public void setUsername(@NonNull @NotBlank String username) {
-        this.username = username;
     }
 
     public @NonNull @NotBlank String getEmail() {

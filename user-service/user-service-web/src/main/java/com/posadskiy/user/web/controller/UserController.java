@@ -1,6 +1,5 @@
 package com.posadskiy.user.web.controller;
 
-import com.posadskiy.user.api.UpdateUsernameRequest;
 import com.posadskiy.user.api.UserDto;
 import com.posadskiy.user.api.UserIds;
 import com.posadskiy.user.core.mapper.dto.UserDtoMapper;
@@ -58,13 +57,6 @@ public class UserController {
     @ContinueSpan
     public UserDto getUserById(@Header(AUTHORIZATION) String authorization, @PathVariable String id) {
         return userDtoMapper.mapToDto(userService.getUserById(parseUserId(id)));
-    }
-
-    @Put("{id}")
-    @ContinueSpan
-    public UserDto updateUser(
-        @Header(AUTHORIZATION) String authorization, @PathVariable String id, @Body UpdateUsernameRequest request) {
-        return userDtoMapper.mapToDto(userService.updateUser(parseUserId(id), request.username()));
     }
 
     /**

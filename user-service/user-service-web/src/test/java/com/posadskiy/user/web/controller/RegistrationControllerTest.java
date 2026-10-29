@@ -19,31 +19,11 @@ class RegistrationControllerTest {
     @Test
     void testRegistration_Success() {
         // Given
-        UserDto userDto = UserDto.legacy("1", "testuser", "test@example.com", "password123");
+        UserDto userDto = UserDto.legacy("1", "test@example.com", "password123");
         assertNotNull(userDto);
 
         // Then
         // This test verifies the endpoint exists and returns a response
-        assertNotNull(client);
-    }
-
-    @Test
-    void testRegistration_WithEmptyUsername() {
-        // Given
-        UserDto userDto = UserDto.legacy("1", "", "test@example.com", "password123");
-        assertNotNull(userDto);
-
-        // Then
-        assertNotNull(client);
-    }
-
-    @Test
-    void testRegistration_WithNullUsername() {
-        // Given
-        UserDto userDto = UserDto.legacy("1", null, "test@example.com", "password123");
-        assertNotNull(userDto);
-
-        // Then
         assertNotNull(client);
     }
 

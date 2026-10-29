@@ -44,7 +44,7 @@ class UserIntegrationTest {
     @Test
     void testRegistrationEndpoint_AnonymousAccess() {
         // Given
-        UserDto userDto = UserDto.legacy(null, "testuser", "test@example.com", "password123");
+        UserDto userDto = UserDto.legacy(null, "test@example.com", "password123");
 
         // When & Then
         // This test verifies that the registration endpoint allows anonymous access
@@ -64,7 +64,7 @@ class UserIntegrationTest {
     @Test
     void testRegistrationEndpoint_WithValidData() {
         // Given
-        UserDto userDto = UserDto.legacy(null, "newuser", "newuser@example.com", "password123");
+        UserDto userDto = UserDto.legacy(null, "newuser@example.com", "password123");
 
         // When & Then
         // This test verifies the registration endpoint with valid data
@@ -81,7 +81,7 @@ class UserIntegrationTest {
     @Test
     void testRegistrationEndpoint_WithInvalidData() {
         // Given
-        UserDto userDto = UserDto.legacy(null, "", "invalid-email", "");
+        UserDto userDto = UserDto.legacy(null, "invalid-email", "");
 
         // When & Then
         // This test verifies the registration endpoint with invalid data

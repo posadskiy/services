@@ -32,7 +32,6 @@ A Micronaut-based user management service with comprehensive user registration, 
 ```sql
 CREATE TABLE users (
     id            BIGSERIAL PRIMARY KEY,
-    username      VARCHAR(255) NOT NULL UNIQUE,
     email         VARCHAR(255) NOT NULL UNIQUE,
     password_hash TEXT         NOT NULL,
     active        BOOLEAN      NOT NULL DEFAULT TRUE,
@@ -48,7 +47,6 @@ CREATE TABLE users (
 - GDPR-compliant deletion that always anonymizes user data (GDPR Article 17 - Right to Erasure)
 - **Always anonymizes by default** (no configuration needed):
   - Replaces email with `deleted_user_{id}@deleted.local`
-  - Replaces username with `deleted_user_{id}`
   - Removes password hash, picture URL, and other PII
   - Deletes all external identity data (OAuth providers)
   - Sets `active = FALSE` and `deactivated_at` timestamp
@@ -85,10 +83,6 @@ USER_DATABASE_PASSWORD=your_secure_password
 
 # JWT Configuration
 JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret_key_here
-
-# GitHub Packages (for Maven dependencies)
-GITHUB_USERNAME=your_github_username
-GITHUB_TOKEN=your_github_token
 ```
 
 ### Development Setup
@@ -125,7 +119,6 @@ docker compose -f docker-compose.dev.yml up -d
 
 - `POST /signup` - User registration
 - `GET /v0/user/{id}` - Get user by ID (returns 404 if user is deactivated)
-- `PUT /v0/user/{id}` - Update user username (only active users can be updated)
 - `DELETE /v0/user/{id}` - GDPR-compliant user deletion (always anonymizes data by default)
   - Always anonymizes user data (removes PII, preserves structure for analytics)
   - GDPR-compliant default behavior

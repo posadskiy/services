@@ -8,7 +8,6 @@ import java.util.List;
 @Introspected
 public record User(
     Long id,
-    String username,
     String email,
     String password,
     Boolean emailVerified,
@@ -18,7 +17,7 @@ public record User(
     Boolean active,
     LocalDateTime deactivatedAt) {
 
-    public User(Long id, String username, String email, String password) {
-        this(id, username, email, password, null, null, "local", List.of(), true, null);
+    public User(Long id, String email, String password) {
+        this(id, email, password, null, null, "local", List.of(), true, null);
     }
 }

@@ -42,11 +42,10 @@ class UserServiceTest {
         Long userId = 123L;
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
-        userEntity.setUsername("testuser");
         userEntity.setEmail("test@example.com");
         userEntity.setPasswordHash("hashedPassword");
 
-        User expectedUser = new User(1L, "testuser", "test@example.com", "hashedPassword");
+        User expectedUser = new User(1L, "test@example.com", "hashedPassword");
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userEntityMapper.mapFromEntity(userEntity)).thenReturn(expectedUser);

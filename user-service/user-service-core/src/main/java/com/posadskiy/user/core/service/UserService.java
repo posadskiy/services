@@ -10,7 +10,6 @@ import jakarta.inject.Singleton;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Singleton
@@ -45,52 +44,6 @@ public class UserService {
             .collect(Collectors.toList());
         return new User(
             baseUser.id(),
-            baseUser.username(),
-            baseUser.email(),
-            baseUser.password(),
-            baseUser.emailVerified(),
-            baseUser.pictureUrl(),
-            baseUser.createdVia(),
-            providers,
-            baseUser.active(),
-            baseUser.deactivatedAt());
-    }
-
-    public User updateUser(Long id, String username) {
-        UserEntity existingEntity = userRepository
-            .findById(id)
-            .orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
-
-        // Check if user is active
-        if (Boolean.FALSE.equals(existingEntity.getActive())) {
-            throw new AuthException("Cannot update deactivated user account");
-        }
-
-        // Only username can be updated
-        if (username == null || username.isBlank()) {
-            throw new AuthException("Username is required and cannot be blank");
-        }
-
-        // Validate username uniqueness if username is being changed
-        // Only check against active users (inactive users can reuse usernames)
-        if (!username.equals(existingEntity.getUsername())) {
-            Optional<UserEntity> existingByUsername = userRepository.findByUsernameAndActive(username, Boolean.TRUE);
-            if (existingByUsername.isPresent()
-                && !existingByUsername.get().getId().equals(id)) {
-                throw new AuthException("User with username " + username + " already exists");
-            }
-            existingEntity.setUsername(username);
-        }
-
-        UserEntity savedEntity = userRepository.update(existingEntity);
-        User baseUser = userEntityMapper.mapFromEntity(savedEntity);
-        List<String> providers = externalIdentityRepository.findByUserId(id).stream()
-            .map(identity -> identity.getProvider().toLowerCase())
-            .distinct()
-            .collect(Collectors.toList());
-        return new User(
-            baseUser.id(),
-            baseUser.username(),
             baseUser.email(),
             baseUser.password(),
             baseUser.emailVerified(),
@@ -114,7 +67,6 @@ public class UserService {
 
         // Anonymize user data (GDPR-compliant while preserving for analytics)
         existingEntity.setEmail("deleted_user_" + id + "@deleted.local");
-        existingEntity.setUsername("deleted_user_" + id);
         existingEntity.setPasswordHash(null);
         existingEntity.setPictureUrl(null);
         existingEntity.setEmailVerified(Boolean.FALSE);

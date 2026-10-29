@@ -13,7 +13,6 @@ class UserEntityTest {
         UserEntity user = new UserEntity();
 
         assertNull(user.getId());
-        assertNull(user.getUsername());
         assertNull(user.getEmail());
         assertNull(user.getPasswordHash());
         assertNull(user.getUpdatedAt());
@@ -26,14 +25,12 @@ class UserEntityTest {
         LocalDateTime now = LocalDateTime.now();
 
         user.setId(123L);
-        user.setUsername("testuser");
         user.setEmail(" Test@Example.com ");
         user.setPasswordHash("hashedPassword");
         user.setUpdatedAt(now);
         user.setCreatedAt(now);
 
         assertEquals(123L, user.getId());
-        assertEquals("testuser", user.getUsername());
         assertEquals(" Test@Example.com ", user.getEmail());
         assertEquals("test@example.com", user.getEmailNormalized());
         assertEquals("hashedPassword", user.getPasswordHash());
@@ -46,14 +43,12 @@ class UserEntityTest {
         UserEntity user = new UserEntity();
 
         user.setId(null);
-        user.setUsername(null);
         user.setEmail(null);
         user.setPasswordHash(null);
         user.setUpdatedAt(null);
         user.setCreatedAt(null);
 
         assertNull(user.getId());
-        assertNull(user.getUsername());
         assertNull(user.getEmail());
         assertNull(user.getPasswordHash());
         assertNull(user.getUpdatedAt());
@@ -64,19 +59,16 @@ class UserEntityTest {
     void testUserEntityEquality() {
         UserEntity user1 = new UserEntity();
         user1.setId(123L);
-        user1.setUsername("testuser");
         user1.setEmail("test@example.com");
         user1.setPasswordHash("hashedPassword");
 
         UserEntity user2 = new UserEntity();
         user2.setId(123L);
-        user2.setUsername("testuser");
         user2.setEmail("test@example.com");
         user2.setPasswordHash("hashedPassword");
 
         UserEntity user3 = new UserEntity();
         user3.setId(456L);
-        user3.setUsername("testuser");
         user3.setEmail("test@example.com");
         user3.setPasswordHash("hashedPassword");
 

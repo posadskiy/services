@@ -17,7 +17,6 @@ public class UserDtoMapper {
         List<String> providers = dto.authProviders() == null ? List.of() : dto.authProviders();
         return new User(
             dto.id() == null || dto.id().isBlank() ? null : UserIds.parse(dto.id()),
-            dto.username(),
             dto.email(),
             dto.password(),
             dto.emailVerified(),
@@ -34,7 +33,6 @@ public class UserDtoMapper {
         }
         return new UserDto(
             user.id() == null ? null : UserIds.of(user.id()),
-            user.username(),
             user.email(),
             null,
             user.emailVerified(),

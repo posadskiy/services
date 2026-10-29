@@ -5,7 +5,6 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.List;
 @Introspected
 public record UserDto(
     @Nullable String id,
-    @NonNull @NotBlank String username,
     @NonNull @NotNull String email,
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) @Nullable String password,
     @Nullable Boolean emailVerified,
@@ -22,8 +20,8 @@ public record UserDto(
     @Nullable String createdVia,
     @Nullable List<String> authProviders) {
 
-    public static UserDto legacy(String id, String username, String email, String password) {
-        return new UserDto(blankToNull(id), username, email, password, null, null, null, List.of());
+    public static UserDto legacy(String id, String email, String password) {
+        return new UserDto(blankToNull(id), email, password, null, null, null, List.of());
     }
 
     private static String blankToNull(String id) {

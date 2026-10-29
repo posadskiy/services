@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.user</groupId>
     <artifactId>user-service</artifactId>
-    <version>0.3.2</version>
+    <version>0.4.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>user-service-api</module>
@@ -38,11 +38,6 @@
         <repository>
             <id>central</id>
             <url>https://repo.maven.apache.org/maven2</url>
-        </repository>
-        <repository>
-            <id>github</id>
-            <name>GitHub posadskiy Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/posadskiy/services</url>
         </repository>
     </repositories>
 
