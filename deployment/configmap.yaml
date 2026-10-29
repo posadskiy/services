@@ -16,6 +16,7 @@ data:
   EMAIL_AUTH: "true"
   EMAIL_STARTTLS_ENABLE: "true"
   EMAIL_DEBUG: "true"
-  OAUTH_REDIRECT_BASE_URL: "https://api.posadskiy.com/api"
+  # Traefik publishes auth at /auth and strips that prefix. Google must be sent this exact base.
+  OAUTH_REDIRECT_BASE_URL: "https://api.posadskiy.com/auth"
   # Exact return URLs for OAuth. The iOS app origin is capacitor://localhost.
   OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS: "https://repeaty.posadskiy.com/oauth/callback,https://costy.posadskiy.com/oauth/callback,https://grammarbar.com/oauth/callback,capacitor://localhost/oauth/callback,costy://oauth/callback"
