@@ -1,10 +1,10 @@
 package com.posadskiy.auth.core.config;
 
-import java.util.List;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class EnabledClientSecretCheckTest {
 

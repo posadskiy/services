@@ -1,17 +1,22 @@
 package com.posadskiy.auth.core.service;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.posadskiy.auth.core.config.OAuthClientProperties;
 import com.posadskiy.auth.core.exception.InvalidCredentialsException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 class TokenServiceTest {
+
+    private static TokenService service(OAuthClientProperties client) {
+        return new TokenService(null, null, null, null, List.of(client), null, null);
+    }
 
     @Test
     void blankConfiguredSecretIsRejected() {
-        TokenService service = service(new OAuthClientProperties("system", true, "system", "", List.of("ROLE_SERVICE")));
+        TokenService service =
+                service(new OAuthClientProperties("system", true, "system", "", List.of("ROLE_SERVICE")));
 
         assertThrows(InvalidCredentialsException.class, () -> service.clientCredentials("system", ""));
         assertThrows(InvalidCredentialsException.class, () -> service.clientCredentials("system", "system-secret"));
@@ -24,9 +29,5 @@ class TokenServiceTest {
 
         assertThrows(InvalidCredentialsException.class, () -> service.clientCredentials("system", ""));
         assertThrows(InvalidCredentialsException.class, () -> service.clientCredentials("system", "   "));
-    }
-
-    private static TokenService service(OAuthClientProperties client) {
-        return new TokenService(null, null, null, null, List.of(client), null, null);
     }
 }

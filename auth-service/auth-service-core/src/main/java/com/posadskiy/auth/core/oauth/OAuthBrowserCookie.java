@@ -8,8 +8,7 @@ import java.net.URI;
  */
 public final class OAuthBrowserCookie {
 
-    private OAuthBrowserCookie() {
-    }
+    private OAuthBrowserCookie() {}
 
     public static String path(String redirectBaseUrl) {
         String prefix = pathPrefix(redirectBaseUrl);

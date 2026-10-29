@@ -1,5 +1,8 @@
 package com.posadskiy.auth.core.oauth;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
@@ -11,17 +14,13 @@ import com.nimbusds.jwt.SignedJWT;
 import com.posadskiy.auth.core.config.OAuthProviderProperties;
 import com.posadskiy.auth.core.exception.OAuthException;
 import com.sun.net.httpserver.HttpServer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class IdTokenValidatorTest {
 
@@ -45,19 +44,19 @@ class IdTokenValidatorTest {
         server.start();
 
         provider = new OAuthProviderProperties(
-            "google",
-            true,
-            "test-google-client",
-            null,
-            null,
-            null,
-            "http://127.0.0.1:" + server.getAddress().getPort() + "/jwks",
-            "https://accounts.google.com",
-            null,
-            null,
-            null,
-            null,
-            null);
+                "google",
+                true,
+                "test-google-client",
+                null,
+                null,
+                null,
+                "http://127.0.0.1:" + server.getAddress().getPort() + "/jwks",
+                "https://accounts.google.com",
+                null,
+                null,
+                null,
+                null,
+                null);
         validator = new IdTokenValidator();
     }
 
@@ -98,18 +97,18 @@ class IdTokenValidatorTest {
 
     private String signedToken(String nonce, String audience, String issuer) throws Exception {
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-            .issuer(issuer)
-            .audience(audience)
-            .subject("google-user-1")
-            .claim("nonce", nonce)
-            .issueTime(Date.from(Instant.now()))
-            .expirationTime(Date.from(Instant.now().plusSeconds(120)))
-            .build();
+                .issuer(issuer)
+                .audience(audience)
+                .subject("google-user-1")
+                .claim("nonce", nonce)
+                .issueTime(Date.from(Instant.now()))
+                .expirationTime(Date.from(Instant.now().plusSeconds(120)))
+                .build();
         SignedJWT jwt = new SignedJWT(
-            new JWSHeader.Builder(JWSAlgorithm.RS256)
-                .keyID(rsaKey.getKeyID())
-                .build(),
-            claims);
+                new JWSHeader.Builder(JWSAlgorithm.RS256)
+                        .keyID(rsaKey.getKeyID())
+                        .build(),
+                claims);
         jwt.sign(new RSASSASigner(rsaKey.toPrivateKey()));
         return jwt.serialize();
     }

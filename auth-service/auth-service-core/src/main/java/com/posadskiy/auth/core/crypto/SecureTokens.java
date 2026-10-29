@@ -10,8 +10,7 @@ public final class SecureTokens {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private SecureTokens() {
-    }
+    private SecureTokens() {}
 
     public static String randomUrl(int byteLength) {
         byte[] bytes = new byte[byteLength];

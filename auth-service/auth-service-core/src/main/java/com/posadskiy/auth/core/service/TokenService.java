@@ -48,6 +48,10 @@ public class TokenService {
         this.metrics = metrics;
     }
 
+    private static boolean secretConfigured(String clientSecret) {
+        return clientSecret != null && !clientSecret.isBlank();
+    }
+
     public TokenResponse issueForUser(UserEntity user, String provider, Long externalIdentityId) {
         String access = accessToken(user, provider, externalIdentityId);
         String refresh = persistRefresh(user.id(), provider, externalIdentityId, UUID.randomUUID());
@@ -105,9 +109,9 @@ public class TokenService {
             .findFirst()
             .orElseThrow(InvalidCredentialsException::new);
         if (!secretConfigured(client.clientSecret())
-                || clientSecret == null
-                || clientSecret.isBlank()
-                || !SecureTokens.equalsConstantTime(client.clientSecret(), clientSecret)) {
+            || clientSecret == null
+            || clientSecret.isBlank()
+            || !SecureTokens.equalsConstantTime(client.clientSecret(), clientSecret)) {
             throw new InvalidCredentialsException();
         }
         Map<String, Object> attributes = new HashMap<>();
@@ -139,10 +143,6 @@ public class TokenService {
         return tokenGenerator
             .generateToken(authentication, ttl)
             .orElseThrow(() -> new IllegalStateException("Unable to generate access token"));
-    }
-
-    private static boolean secretConfigured(String clientSecret) {
-        return clientSecret != null && !clientSecret.isBlank();
     }
 
     private String persistRefresh(Long userId, String provider, Long externalIdentityId, UUID familyId) {
