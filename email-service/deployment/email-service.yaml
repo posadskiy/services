@@ -55,6 +55,23 @@ spec:
             secretKeyRef:
               name: microservices-secrets
               key: DEV_EMAIL_TOKEN
+        - name: RESEND_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: RESEND_API_KEY
+              optional: true
+        - name: RESEND_WEBHOOK_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: RESEND_WEBHOOK_SECRET
+              optional: true
+        - name: RESEND_ALLOWED_FROM
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: RESEND_ALLOWED_FROM
         - name: OTEL_SERVICE_NAME
           value: "email-service"
         - name: OTEL_EXPORTER_OTLP_ENDPOINT

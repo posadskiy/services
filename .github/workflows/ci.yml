@@ -65,5 +65,10 @@ jobs:
             '  </servers>' \
             '</settings>' > "$HOME/.m2/settings.xml"
 
+      - name: Install local user-service-api
+        if: matrix.service == 'email-service'
+        working-directory: user-service
+        run: mvn -B install -pl user-service-api -am -DskipTests
+
       - name: Test
         run: mvn -B install

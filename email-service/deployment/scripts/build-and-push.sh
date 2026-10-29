@@ -7,6 +7,7 @@ set -e
 SERVICE_NAME="email-service"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SERVICE_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+REPO_ROOT="$(dirname "$SERVICE_ROOT")"
 
 if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
   echo "Error: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN environment variables are required" >&2
@@ -19,12 +20,10 @@ fi
 VERSION=$1
 
 echo "🚀 Building and pushing $SERVICE_NAME to Docker Hub (version: $VERSION)..."
-docker buildx build --platform linux/amd64 \
-  --build-arg GITHUB_TOKEN=$GITHUB_TOKEN \
-  --build-arg GITHUB_USERNAME=$GITHUB_USERNAME \
+docker buildx build --platform linux/arm64 \
   -f "$SERVICE_ROOT/Dockerfile.prod" \
   -t $DOCKERHUB_USERNAME/$SERVICE_NAME:$VERSION \
   -t $DOCKERHUB_USERNAME/$SERVICE_NAME:latest \
-  "$SERVICE_ROOT/" --push
+  "$REPO_ROOT/" --push
 
 echo "✅ $SERVICE_NAME image built and pushed to Docker Hub successfully!"

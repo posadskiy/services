@@ -91,6 +91,11 @@ jobs:
             exit 1
           fi
 
+      - name: Install local user-service-api
+        if: steps.release.outputs.service == 'email-service'
+        working-directory: user-service
+        run: mvn -B install -pl user-service-api -am -DskipTests
+
       - name: Test
         working-directory: ${{ steps.release.outputs.service }}
         run: mvn -B install
@@ -111,19 +116,26 @@ jobs:
       - name: Push image
         working-directory: ${{ steps.release.outputs.service }}
         env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
-          GITHUB_USERNAME: ${{ github.repository_owner }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           VERSION: ${{ steps.release.outputs.version }}
+          GITHUB_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ github.repository_owner }}
         run: |
           image="$DOCKERHUB_USERNAME/$(basename "$PWD")"
+          context="."
+          build_args=()
+          if [ "$(basename "$PWD")" = "email-service" ]; then
+            context=".."
+          fi
+          if [ "$(basename "$PWD")" = "email-template-service" ]; then
+            build_args+=(--build-arg "GITHUB_TOKEN=$GITHUB_TOKEN" --build-arg "GITHUB_USERNAME=$GITHUB_USERNAME")
+          fi
           docker buildx build --platform linux/arm64 \
-            --build-arg GITHUB_TOKEN \
-            --build-arg GITHUB_USERNAME \
+            "${build_args[@]}" \
             -f Dockerfile.prod \
             -t "$image:$VERSION" \
             -t "$image:latest" \
-            . --push
+            "$context" --push
 
       - name: GitHub Release
         env:

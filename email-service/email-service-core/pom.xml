@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.posadskiy.email</groupId>
         <artifactId>email-service</artifactId>
-        <version>0.2.0</version>
+        <version>0.3.1</version>
     </parent>
 
     <artifactId>email-service-core</artifactId>
@@ -39,7 +39,7 @@
             <version>7.4</version>
         </dependency>
         <!-- Logging -->
-        
+
         <!-- Java Mail -->
         <dependency>
             <groupId>com.sun.mail</groupId>
@@ -53,6 +53,11 @@
             <artifactId>micronaut-http-client</artifactId>
         </dependency>
         <!-- Micronaut HTTP Client -->
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -81,7 +86,7 @@
             <scope>test</scope>
         </dependency>
         <!-- Testing -->
-        
+
 
     </dependencies>
 

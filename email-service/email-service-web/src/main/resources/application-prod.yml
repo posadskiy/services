@@ -8,6 +8,8 @@ micronaut:
         access: isAnonymous()
       - pattern: /prometheus
         access: isAnonymous()
+      - pattern: /email/webhooks/resend
+        access: isAnonymous()
   endpoints:
     health:
       enabled: true

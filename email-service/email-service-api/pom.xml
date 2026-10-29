@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.posadskiy.email</groupId>
         <artifactId>email-service</artifactId>
-        <version>0.2.0</version>
+        <version>0.3.1</version>
     </parent>
 
     <artifactId>email-service-api</artifactId>
@@ -16,7 +16,7 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
     <dependencies>
         <!-- Validation -->
         <dependency>
@@ -29,7 +29,7 @@
             <artifactId>jakarta.validation-api</artifactId>
         </dependency>
         <!-- Validation -->
-        
+
         <!-- Json -->
         <dependency>
             <groupId>io.micronaut.serde</groupId>
@@ -45,7 +45,7 @@
             <scope>provided</scope>
         </dependency>
         <!-- Documenting -->
-        
+
         <!-- Testing -->
         <dependency>
             <groupId>io.micronaut.test</groupId>

@@ -21,6 +21,8 @@ micronaut:
         access: isAnonymous()
       - pattern: /prometheus
         access: isAnonymous()
+      - pattern: /email/webhooks/resend
+        access: isAnonymous()
     token:
       jwt:
         signatures:
@@ -79,6 +81,12 @@ email:
   timeout: ${EMAIL_TIMEOUT:60000}
   write-timeout: ${EMAIL_WRITE_TIMEOUT:60000}
 #end::email[]
+
+resend:
+  api-key: ${RESEND_API_KEY:}
+  allowed-from: ${RESEND_ALLOWED_FROM}
+  api-url: ${RESEND_API_URL:`https://api.resend.com`}
+  webhook-secret: ${RESEND_WEBHOOK_SECRET:}
 
 #tag::logging[]
 logging:

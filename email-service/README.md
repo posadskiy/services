@@ -70,7 +70,7 @@ JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret_key_here
 From the repository root (email services use the `email` profile):
 
 ```bash
-docker compose -f docker-compose.dev.yml --profile email up -d
+docker compose -f docker-compose.dev.yml up -d
 ```
 
 - Service: http://localhost:8090
@@ -95,10 +95,19 @@ docker compose -f docker-compose.dev.yml --profile email up -d
 
 ## 📡 API Endpoints
 
-### Email Endpoints
+### Transactional mail
 
-- `POST /email/send` - Send email
-- `POST /email/send-template` - Send templated email
+`POST /email/transactional` accepts a service JWT (`ROLE_SERVICE`). `verify-email` and `password-reset` are rendered from HTML in this service, then sent through Resend. Auth-service calls this for verification and password reset.
+
+```bash
+RESEND_API_KEY=re_...
+RESEND_ALLOWED_FROM=noreply@mail.grammarbar.com,noreply@mail.posadskiy.com
+RESEND_WEBHOOK_SECRET=whsec_...
+```
+
+`RESEND_API_KEY` and `RESEND_ALLOWED_FROM` are required. `RESEND_ALLOWED_FROM` is the comma-separated list of mailbox addresses the caller may use. Auth-service sends the full From header, and this service rejects any address that is not on the list. The HTML files are `verify-email` (`VERIFY_URL`) and `password-reset` (`RESET_URL`). `POST /email/webhooks/resend` checks the Svix signature and records bounces and complaints.
+
+The existing `POST /email/send/text` and `POST /email/send/html` routes stay on SMTP.
 
 ### Documentation
 

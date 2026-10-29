@@ -3,7 +3,7 @@ micronaut:
   application:
     name: email-service
   server:
-    port: 8200
+    port: -1
   router:
     static-resources:
       swagger:
@@ -21,17 +21,19 @@ micronaut:
         access: isAnonymous()
       - pattern: /prometheus
         access: isAnonymous()
+      - pattern: /email/webhooks/resend
+        access: isAnonymous()
 
     token:
       jwt:
         signatures:
           secret:
             generator:
-              secret: "test-secret-key-for-jwt-signing"
+              secret: "test-secret-key-for-jwt-signing!"
         generator:
           refresh-token:
             enabled: true
-            secret: "test-secret-key-for-jwt-signing"
+            secret: "test-secret-key-for-jwt-signing!"
       generator:
         access-token:
           expiration: 360000
@@ -85,4 +87,10 @@ email:
   auth: true
   starttls:
     enable: true
-  debug: false 
+  debug: false
+
+resend:
+  api-key: re_test
+  allowed-from: alpha@example.com,beta@example.com
+  api-url: https://api.resend.com
+  webhook-secret: whsec_dGVzdC1zZWNyZXQ= 
