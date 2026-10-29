@@ -28,18 +28,21 @@ public class AuthController {
     private final LoginRateLimiter rateLimiter;
     private final AuthMetrics metrics;
     private final AuditService auditService;
+    private final AccountMailService accountMailService;
 
     public AuthController(
         UserAccountService userAccountService,
         TokenService tokenService,
         LoginRateLimiter rateLimiter,
         AuthMetrics metrics,
-        AuditService auditService) {
+        AuditService auditService,
+        AccountMailService accountMailService) {
         this.userAccountService = userAccountService;
         this.tokenService = tokenService;
         this.rateLimiter = rateLimiter;
         this.metrics = metrics;
         this.auditService = auditService;
+        this.accountMailService = accountMailService;
     }
 
     private static String clientKey(HttpRequest<?> request) {
@@ -49,7 +52,6 @@ public class AuthController {
     static UserResponse toResponse(UserEntity user) {
         return new UserResponse(
             UserResponse.idOf(user.id()),
-            user.username(),
             user.email(),
             user.emailVerified(),
             user.pictureUrl(),
@@ -59,16 +61,18 @@ public class AuthController {
     @Post(uris = {"/users", "/signup"})
     @Secured(SecurityRule.IS_ANONYMOUS)
     public HttpResponse<UserResponse> register(@Body @Valid RegisterRequest request) {
-        UserEntity user = userAccountService.register(request.email(), request.password(), request.username());
+        accountMailService.checkOrigin(request.linkOrigin());
+        UserEntity user = userAccountService.register(request.email(), request.password());
+        accountMailService.sendVerification(user, request.linkOrigin());
         return HttpResponse.status(HttpStatus.CREATED).body(toResponse(user));
     }
 
     @Post("/login")
     @Secured(SecurityRule.IS_ANONYMOUS)
     public TokenResponse login(@Body @Valid LoginRequest request, HttpRequest<?> httpRequest) {
-        rateLimiter.check(clientKey(httpRequest) + "|login|" + request.username());
+        rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
         try {
-            UserEntity user = userAccountService.authenticate(request.username(), request.password());
+            UserEntity user = userAccountService.authenticate(request.email(), request.password());
             metrics.loginSuccess("password");
             auditService.record(user.id(), "LOGIN_SUCCESS", "password");
             return tokenService.issueForUser(user, "password", null);
@@ -96,7 +100,7 @@ public class AuthController {
                 form.get("refresh_token"),
                 form.get("client_id"),
                 form.get("client_secret"),
-                form.get("username"),
+                form.get("email"),
                 form.get("password")),
             httpRequest);
     }
@@ -117,8 +121,8 @@ public class AuthController {
                 yield tokenService.clientCredentials(request.clientId(), request.clientSecret());
             }
             case "password" -> {
-                rateLimiter.check(clientKey(httpRequest) + "|login|" + request.username());
-                UserEntity user = userAccountService.authenticate(request.username(), request.password());
+                rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
+                UserEntity user = userAccountService.authenticate(request.email(), request.password());
                 metrics.loginSuccess("password");
                 yield tokenService.issueForUser(user, "password", null);
             }

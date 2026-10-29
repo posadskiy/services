@@ -71,6 +71,20 @@ spec:
               name: microservices-config
               key: OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS
               optional: true
+        - name: EMAIL_SERVICE_URL
+          value: "http://email-service:8090"
+        - name: AUTH_EMAIL_LINK_ORIGINS
+          value: "https://grammarbar.com,https://costy.posadskiy.com,https://repeaty.posadskiy.com"
+        - name: AUTH_EMAIL_FROM_GRAMMARBAR
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: AUTH_EMAIL_FROM_GRAMMARBAR
+        - name: AUTH_EMAIL_FROM_POSADSKIY
+          valueFrom:
+            secretKeyRef:
+              name: microservices-secrets
+              key: AUTH_EMAIL_FROM_POSADSKIY
         - name: GOOGLE_OAUTH_CLIENT_ID
           valueFrom:
             secretKeyRef:

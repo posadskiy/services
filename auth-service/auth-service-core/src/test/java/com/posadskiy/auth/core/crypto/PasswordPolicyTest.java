@@ -1,10 +1,10 @@
 package com.posadskiy.auth.core.crypto;
 
-import com.posadskiy.auth.core.exception.AuthException;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import com.posadskiy.auth.core.exception.AuthException;
+import org.junit.jupiter.api.Test;
 
 class PasswordPolicyTest {
 
@@ -12,16 +12,16 @@ class PasswordPolicyTest {
 
     @Test
     void rejectsShortPasswords() {
-        assertThrows(AuthException.class, () -> policy.validate("short", "a@b.c", "user"));
+        assertThrows(AuthException.class, () -> policy.validate("short", "a@b.c"));
     }
 
     @Test
     void rejectsPasswordEqualToEmail() {
-        assertThrows(AuthException.class, () -> policy.validate("person@x.com", "person@x.com", "user"));
+        assertThrows(AuthException.class, () -> policy.validate("person@x.com", "person@x.com"));
     }
 
     @Test
     void acceptsLongEnoughPassword() {
-        assertDoesNotThrow(() -> policy.validate("correcthorse", "a@b.c", "user"));
+        assertDoesNotThrow(() -> policy.validate("correcthorse", "a@b.c"));
     }
 }

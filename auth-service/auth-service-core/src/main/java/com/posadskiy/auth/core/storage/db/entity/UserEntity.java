@@ -10,7 +10,6 @@ import java.util.List;
 @MappedEntity("users")
 public record UserEntity(
     @Id @GeneratedValue @Nullable Long id,
-    String username,
     String email,
     @MappedProperty("email_normalized") String emailNormalized,
     @Nullable @MappedProperty("password_hash") String passwordHash,
@@ -32,7 +31,6 @@ public record UserEntity(
     }
 
     public static UserEntity newAccount(
-        String username,
         String email,
         String emailNormalized,
         String passwordHash,
@@ -41,7 +39,6 @@ public record UserEntity(
         Instant passwordChangedAt) {
         return new UserEntity(
             null,
-            username,
             email,
             emailNormalized,
             passwordHash,
@@ -67,7 +64,6 @@ public record UserEntity(
     public UserEntity loggedInAt(Instant at) {
         return new UserEntity(
             id,
-            username,
             email,
             emailNormalized,
             passwordHash,
@@ -87,7 +83,6 @@ public record UserEntity(
         String nextPicture = picture == null || picture.isBlank() ? pictureUrl : picture;
         return new UserEntity(
             id,
-            username,
             email,
             emailNormalized,
             passwordHash,
@@ -103,10 +98,63 @@ public record UserEntity(
             version);
     }
 
+    public UserEntity withEmailVerified(boolean verified) {
+        return new UserEntity(
+            id,
+            email,
+            emailNormalized,
+            passwordHash,
+            verified,
+            pictureUrl,
+            roles,
+            lastLoginAt,
+            passwordChangedAt,
+            active,
+            deactivatedAt,
+            updatedAt,
+            createdAt,
+            version);
+    }
+
+    public UserEntity claimedByVerifiedProvider(Instant at) {
+        return new UserEntity(
+            id,
+            email,
+            emailNormalized,
+            null,
+            true,
+            pictureUrl,
+            roles,
+            lastLoginAt,
+            at,
+            active,
+            deactivatedAt,
+            updatedAt,
+            createdAt,
+            version);
+    }
+
+    public UserEntity withPassword(String hash, Instant changedAt) {
+        return new UserEntity(
+            id,
+            email,
+            emailNormalized,
+            hash,
+            emailVerified,
+            pictureUrl,
+            roles,
+            lastLoginAt,
+            changedAt,
+            active,
+            deactivatedAt,
+            updatedAt,
+            createdAt,
+            version);
+    }
+
     public UserEntity deactivatedAt(Instant at) {
         return new UserEntity(
             id,
-            username,
             email,
             emailNormalized,
             passwordHash,

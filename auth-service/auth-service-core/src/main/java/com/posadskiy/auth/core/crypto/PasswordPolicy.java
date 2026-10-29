@@ -6,7 +6,7 @@ import jakarta.inject.Singleton;
 @Singleton
 public class PasswordPolicy {
 
-    public void validate(String password, String email, String username) {
+    public void validate(String password, String email) {
         if (password == null || password.length() < 10) {
             throw new AuthException("Password must be at least 10 characters");
         }
@@ -15,9 +15,6 @@ public class PasswordPolicy {
         }
         if (email != null && password.equalsIgnoreCase(email)) {
             throw new AuthException("Password must not match the email address");
-        }
-        if (username != null && password.equalsIgnoreCase(username)) {
-            throw new AuthException("Password must not match the username");
         }
     }
 }

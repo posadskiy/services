@@ -10,7 +10,6 @@ import java.util.List;
 @Introspected
 public record UserResponse(
     String id,
-    String username,
     String email,
     boolean emailVerified,
     @Nullable String pictureUrl,

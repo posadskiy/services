@@ -5,8 +5,8 @@ Micronaut 5 authentication service: email/password accounts plus Google and Appl
 ## What it does
 
 - `POST /users` and `POST /signup` — register with email + password (BCrypt cost 10 by default)
-- `POST /login` — password login, returns access + refresh tokens
-- `POST /oauth/token` — `refresh_token`, `password`, or `client_credentials`. The body is `application/x-www-form-urlencoded`, as in OAuth 2.1. The same fields are also accepted as JSON.
+- `POST /login` — password login with `email` and `password`, returns access + refresh tokens
+- `POST /oauth/token` — `refresh_token`, `password`, or `client_credentials`. The body is `application/x-www-form-urlencoded`, as in OAuth 2.1. The same fields are also accepted as JSON. The password grant identifies the account by `email`.
 - `POST /oauth/revoke` / `POST /logout` — revoke a refresh token family
 - `GET /oauth2/authorize/{google|apple}?return_to=` — start OIDC. `return_to` must be an exact URL from `OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS`
 - `GET|POST /oauth2/callback/{provider}` — provider callback (Apple uses `form_post`)
@@ -38,7 +38,7 @@ This service implements OIDC itself. It does **not** use Micronaut Security OAut
 
 OAuth `state` and one-time login codes live in **Postgres** so multiple replicas work without Redis. Redis can replace those tables later.
 
-Social accounts are auto-linked to an existing email only when the provider asserts `email_verified=true`. Provider access/refresh tokens are not stored.
+Social accounts are auto-linked to an existing email only when the provider asserts `email_verified=true` and this service has already confirmed that address. A verified Google or Apple login for an address that was only pre-registered removes that password, revokes its refresh tokens, and takes the account. Provider access/refresh tokens are not stored.
 
 ## Run
 
@@ -79,4 +79,14 @@ mvn install       # needed for Micronaut AOT (nested Maven reads sibling modules
 - `SYSTEM_CLIENT_ENABLED=true` plus client id/secret for service-to-service tokens
 - Apple: `APPLE_OAUTH_ENABLED`, team id, key id, and `.p8` PEM (`APPLE_OAUTH_PRIVATE_KEY_PEM`)
 
-Email verification and password-reset mail are **not** sent from this service. When `email-service` / `email-template-service` are back, wire them here instead of embedding SMTP.
+Email verification and password-reset mail are sent through email-service, which delivers them with Resend. Password login works before the address is confirmed. The access token keeps `email_verified: false` until `POST /account/verify`.
+
+- `POST /users` and `POST /signup` require `linkOrigin` (`https://grammarbar.com`, `https://costy.posadskiy.com`, `https://repeaty.posadskiy.com`, or `http://localhost:3000`). The verification link is `{origin}/verify-email?token=`. A missing or unknown origin is rejected, so a Costy signup cannot be sent to Grammarbar.
+- `POST /account/verification-email` sends another verification link for the signed-in user.
+- `POST /account/verify` with `{ "token": "..." }` sets `email_verified`.
+- `POST /account/forgot-password` requires `linkOrigin`. An unknown address still returns 204. A missing origin is rejected. The reset link is `{origin}/reset-password?token=`.
+- `POST /account/reset-password` with `{ "token": "...", "password": "..." }` sets the password and revokes that user's refresh tokens.
+
+`EMAIL_SERVICE_URL` defaults to `http://localhost:8090`. Email-service renders `verify-email` (`VERIFY_URL`) and `password-reset` (`RESET_URL`). Custom app schemes such as `costy://` are not valid link origins. A mobile app uses the HTTPS page for its site.
+
+`AUTH_EMAIL_FROM_GRAMMARBAR` is the From header for `https://grammarbar.com`. `AUTH_EMAIL_FROM_POSADSKIY` is the From header for Costy, Repeaty, and `http://localhost:3000`. Each value is a full sender such as `Grammarbar <noreply@mail.grammarbar.com>`. Email-service accepts that address only when it is listed in `RESEND_ALLOWED_FROM`.

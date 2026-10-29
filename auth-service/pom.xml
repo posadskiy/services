@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.posadskiy.auth</groupId>
     <artifactId>auth-service</artifactId>
-    <version>0.6.7</version>
+    <version>0.7.1</version>
     <packaging>pom</packaging>
     <modules>
         <module>auth-service-api</module>
@@ -37,11 +37,6 @@
         <repository>
             <id>central</id>
             <url>https://repo.maven.apache.org/maven2</url>
-        </repository>
-        <repository>
-            <id>github</id>
-            <name>GitHub posadskiy Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/posadskiy/services</url>
         </repository>
     </repositories>
 

@@ -12,6 +12,6 @@ public record RefreshRequest(
     @JsonProperty("refresh_token") String refreshToken,
     @JsonProperty("client_id") String clientId,
     @JsonProperty("client_secret") String clientSecret,
-    String username,
+    String email,
     String password) {
 }

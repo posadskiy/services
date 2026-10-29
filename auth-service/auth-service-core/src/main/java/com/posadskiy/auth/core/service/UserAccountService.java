@@ -3,7 +3,6 @@ package com.posadskiy.auth.core.service;
 import com.posadskiy.auth.core.crypto.EmailNormalizer;
 import com.posadskiy.auth.core.crypto.PasswordHasher;
 import com.posadskiy.auth.core.crypto.PasswordPolicy;
-import com.posadskiy.auth.core.crypto.SecureTokens;
 import com.posadskiy.auth.core.exception.AuthException;
 import com.posadskiy.auth.core.exception.InvalidCredentialsException;
 import com.posadskiy.auth.core.storage.db.UsersRepository;
@@ -33,17 +32,16 @@ public class UserAccountService {
     }
 
     @Transactional
-    public UserEntity register(String email, String rawPassword, String username) {
+    public UserEntity register(String email, String rawPassword) {
         String normalized = EmailNormalizer.normalize(email);
         if (normalized == null || !normalized.contains("@")) {
             throw new AuthException("A valid email is required");
         }
-        passwordPolicy.validate(rawPassword, normalized, username);
+        passwordPolicy.validate(rawPassword, normalized);
         if (usersRepository.findByEmailNormalized(normalized).isPresent()) {
             throw new AuthException("An account with that email already exists", 409);
         }
         UserEntity saved = usersRepository.save(UserEntity.newAccount(
-            uniqueUsername(username, normalized),
             email.trim(),
             normalized,
             passwordHasher.hash(rawPassword),
@@ -54,11 +52,9 @@ public class UserAccountService {
         return saved;
     }
 
-    public UserEntity authenticate(String identity, String rawPassword) {
-        String lookup = identity.contains("@") ? EmailNormalizer.normalize(identity) : identity;
-        UserEntity user = identity.contains("@")
-            ? usersRepository.findByEmailNormalized(lookup).orElse(null)
-            : usersRepository.findByUsername(lookup).orElse(null);
+    public UserEntity authenticate(String email, String rawPassword) {
+        String lookup = EmailNormalizer.normalize(email);
+        UserEntity user = lookup == null ? null : usersRepository.findByEmailNormalized(lookup).orElse(null);
         if (user == null) {
             passwordHasher.dummyVerify(rawPassword);
             throw new InvalidCredentialsException();
@@ -85,23 +81,5 @@ public class UserAccountService {
         UserEntity updated = usersRepository.update(user.deactivatedAt(Instant.now()));
         auditService.record(user.id(), "USER_DEACTIVATED", null);
         return updated;
-    }
-
-    private String uniqueUsername(String requested, String email) {
-        String base = requested == null || requested.isBlank()
-            ? email.substring(0, email.indexOf('@')).replaceAll("[^a-zA-Z0-9._-]", "")
-            : requested.trim();
-        if (base.isBlank()) {
-            base = "user";
-        }
-        String candidate = base;
-        int attempts = 0;
-        while (usersRepository.findByUsername(candidate).isPresent()) {
-            candidate = base + "_" + SecureTokens.randomUrl(3);
-            if (++attempts > 8) {
-                throw new AuthException("Unable to allocate a username");
-            }
-        }
-        return candidate;
     }
 }

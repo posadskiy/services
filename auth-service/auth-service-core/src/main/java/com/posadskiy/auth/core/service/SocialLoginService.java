@@ -1,14 +1,13 @@
 package com.posadskiy.auth.core.service;
 
 import com.posadskiy.auth.core.crypto.EmailNormalizer;
-import com.posadskiy.auth.core.crypto.SecureTokens;
 import com.posadskiy.auth.core.exception.OAuthException;
 import com.posadskiy.auth.core.oauth.ExternalProfile;
 import com.posadskiy.auth.core.storage.db.ExternalIdentityRepository;
+import com.posadskiy.auth.core.storage.db.RefreshTokenRepository;
 import com.posadskiy.auth.core.storage.db.UsersRepository;
 import com.posadskiy.auth.core.storage.db.entity.ExternalIdentityEntity;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
-import io.micronaut.core.util.StringUtils;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
 
@@ -20,14 +19,17 @@ public class SocialLoginService {
 
     private final UsersRepository usersRepository;
     private final ExternalIdentityRepository externalIdentityRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final AuditService auditService;
 
     public SocialLoginService(
         UsersRepository usersRepository,
         ExternalIdentityRepository externalIdentityRepository,
+        RefreshTokenRepository refreshTokenRepository,
         AuditService auditService) {
         this.usersRepository = usersRepository;
         this.externalIdentityRepository = externalIdentityRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
         this.auditService = auditService;
     }
 
@@ -79,13 +81,17 @@ public class SocialLoginService {
         if (!user.active()) {
             throw new OAuthException("Account is disabled", 403);
         }
+        if (!user.emailVerified()) {
+            user = usersRepository.update(user.claimedByVerifiedProvider(Instant.now()));
+            refreshTokenRepository.revokeAllForUser(user.id());
+            auditService.record(user.id(), "UNVERIFIED_ACCOUNT_CLAIMED", profile.provider());
+        }
         return user;
     }
 
     private UserEntity createUserFromProfile(ExternalProfile profile, String email) {
         String normalized = EmailNormalizer.normalize(email);
         UserEntity saved = usersRepository.save(UserEntity.newAccount(
-            buildUsername(profile, normalized),
             email,
             normalized,
             null,
@@ -98,27 +104,6 @@ public class SocialLoginService {
 
     private UserEntity touchUser(UserEntity user, ExternalProfile profile) {
         return usersRepository.update(user.withProfile(Instant.now(), profile.emailVerified(), profile.pictureUrl()));
-    }
-
-    private String buildUsername(ExternalProfile profile, String email) {
-        String base;
-        if (StringUtils.isNotEmpty(profile.displayName())) {
-            base = profile.displayName().replaceAll("\\s+", ".").toLowerCase();
-        } else if (email != null && email.contains("@")) {
-            base = email.substring(0, email.indexOf('@'));
-        } else {
-            base = profile.provider() + "_" + profile.providerUserId();
-        }
-        String candidate = base;
-        int attempts = 0;
-        while (usersRepository.findByUsername(candidate).isPresent()) {
-            candidate = base + "_" + SecureTokens.randomUrl(3);
-            if (++attempts > 8) {
-                candidate = profile.provider() + "_" + SecureTokens.randomUrl(6);
-                break;
-            }
-        }
-        return candidate;
     }
 
     private String uniqueFallbackEmail(ExternalProfile profile) {

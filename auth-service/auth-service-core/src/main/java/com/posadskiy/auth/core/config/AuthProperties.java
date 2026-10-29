@@ -10,7 +10,7 @@ import java.time.Duration;
  * this type exists so the rest of the code does not read string keys.
  */
 @ConfigurationProperties("auth")
-public record AuthProperties(Jwt jwt, Password password, Token token, RateLimit rateLimit, OAuth oauth) {
+public record AuthProperties(Jwt jwt, Password password, Token token, RateLimit rateLimit, OAuth oauth, Mail mail) {
 
     @ConfigurationProperties("jwt")
     public record Jwt(
@@ -41,5 +41,14 @@ public record AuthProperties(Jwt jwt, Password password, Token token, RateLimit 
         String redirectBaseUrl,
         @Nullable String frontendRedirectUrl,
         @Nullable String allowedFrontendRedirectUrls) {
+    }
+
+    @ConfigurationProperties("mail")
+    public record Mail(
+        @Nullable String allowedOrigins,
+        Duration verifyTtl,
+        Duration resetTtl,
+        @Nullable String grammarbarFrom,
+        @Nullable String posadskiyFrom) {
     }
 }

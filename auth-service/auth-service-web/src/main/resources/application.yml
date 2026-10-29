@@ -27,6 +27,12 @@ micronaut:
         access: isAnonymous()
       - pattern: /signup
         access: isAnonymous()
+      - pattern: /account/verify
+        access: isAnonymous()
+      - pattern: /account/forgot-password
+        access: isAnonymous()
+      - pattern: /account/reset-password
+        access: isAnonymous()
       - pattern: /oauth/token
         access: isAnonymous()
       - pattern: /oauth/revoke
@@ -96,6 +102,10 @@ micronaut:
         read-timeout: 10s
         connect-timeout: 5s
         follow-redirects: false
+      email-service:
+        url: ${EMAIL_SERVICE_URL:http://localhost:8090}
+        read-timeout: 10s
+        connect-timeout: 3s
     client:
       read-timeout: 10s
       connect-timeout: 5s
@@ -153,6 +163,12 @@ auth:
   rate-limit:
     login-per-minute: ${AUTH_LOGIN_RATE:20}
     window: PT1M
+  mail:
+    allowed-origins: ${AUTH_EMAIL_LINK_ORIGINS:`http://localhost:3000,https://grammarbar.com,https://costy.posadskiy.com,https://repeaty.posadskiy.com`}
+    verify-ttl: PT24H
+    reset-ttl: PT1H
+    grammarbar-from: ${AUTH_EMAIL_FROM_GRAMMARBAR:}
+    posadskiy-from: ${AUTH_EMAIL_FROM_POSADSKIY:}
   oauth:
     redirect-base-url: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}
     frontend-redirect-url: ${OAUTH_FRONTEND_REDIRECT_URL:}
