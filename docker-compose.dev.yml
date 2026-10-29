@@ -53,9 +53,6 @@ services:
     build:
       context: ./auth-service
       dockerfile: Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
     depends_on:
       auth-db:
         condition: service_healthy
@@ -81,6 +78,8 @@ services:
       USER_SERVICE_URL: http://user-service:8095
       EMAIL_SERVICE_URL: http://email-service:8090
       EMAIL_TEMPLATE_SERVICE_URL: http://email-template-service:8091
+      AUTH_EMAIL_FROM_GRAMMARBAR: ${AUTH_EMAIL_FROM_GRAMMARBAR:?Set AUTH_EMAIL_FROM_GRAMMARBAR}
+      AUTH_EMAIL_FROM_POSADSKIY: ${AUTH_EMAIL_FROM_POSADSKIY:?Set AUTH_EMAIL_FROM_POSADSKIY}
     ports:
       - "127.0.0.1:8100:8100"
       - "127.0.0.1:5005:5005"
@@ -94,9 +93,6 @@ services:
     build:
       context: ./user-service
       dockerfile: Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
     depends_on:
       auth-db:
         condition: service_healthy
@@ -118,17 +114,12 @@ services:
       logging: promtail
       service: user-service
 
-  # Skipped by `docker compose up`. Start with: docker compose --profile email up -d
   email-service:
     <<: *java
     container_name: email-service
-    profiles: [email]
     build:
-      context: ./email-service
-      dockerfile: Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-        GITHUB_USERNAME: ${GITHUB_USERNAME:-}
+      context: .
+      dockerfile: email-service/Dockerfile
     environment:
       MICRONAUT_ENVIRONMENTS: dev
       JWT_GENERATOR_SIGNATURE_SECRET: ${JWT_GENERATOR_SIGNATURE_SECRET}
@@ -139,6 +130,8 @@ services:
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
       OTEL_TRACES_SAMPLER_ARG: "1.0"
       USER_SERVICE_URL: http://user-service:8095
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_ALLOWED_FROM: ${RESEND_ALLOWED_FROM:?Set RESEND_ALLOWED_FROM}
     ports:
       - "127.0.0.1:8090:8090"
       - "127.0.0.1:5007:5007"

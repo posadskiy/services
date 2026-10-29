@@ -20,8 +20,6 @@ VERSION=$1
 
 echo "🚀 Building and pushing $SERVICE_NAME to Docker Hub (version: $VERSION)..."
 docker buildx build --platform linux/arm64 \
-  --build-arg GITHUB_TOKEN=$GITHUB_TOKEN \
-  --build-arg GITHUB_USERNAME=$GITHUB_USERNAME \
   -f "$SERVICE_ROOT/Dockerfile.prod" \
   -t $DOCKERHUB_USERNAME/$SERVICE_NAME:$VERSION \
   -t $DOCKERHUB_USERNAME/$SERVICE_NAME:latest \
