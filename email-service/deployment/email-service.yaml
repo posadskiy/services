@@ -19,12 +19,26 @@ spec:
         prometheus.io/path: "/prometheus"
         prometheus.io/port: "8090"
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       imagePullSecrets:
         - name: dockerhub-registry-secret
       containers:
         - name: email-service
           image: ${DOCKERHUB_USERNAME}/email-service:${IMAGE_VERSION}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           ports:
             - containerPort: 8090
           env:
@@ -62,18 +76,26 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "500m"
+          startupProbe:
+            httpGet:
+              path: /health/liveness
+              port: 8090
+            failureThreshold: 30
+            periodSeconds: 5
           livenessProbe:
             httpGet:
-              path: /health
+              path: /health/liveness
               port: 8090
-            initialDelaySeconds: 120
             periodSeconds: 30
           readinessProbe:
             httpGet:
-              path: /health
+              path: /health/readiness
               port: 8090
-            initialDelaySeconds: 60
             periodSeconds: 10
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
       restartPolicy: Always
 ---
 apiVersion: v1

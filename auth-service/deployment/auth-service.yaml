@@ -19,12 +19,26 @@ spec:
         prometheus.io/path: "/prometheus"
         prometheus.io/port: "8100"
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       imagePullSecrets:
         - name: dockerhub-registry-secret
       containers:
         - name: auth-service
           image: ${DOCKERHUB_USERNAME}/auth-service:${IMAGE_VERSION}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           ports:
             - containerPort: 8100
           env:
@@ -198,6 +212,10 @@ spec:
               path: /health/readiness
               port: 8100
             periodSeconds: 10
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
       restartPolicy: Always
 ---
 apiVersion: v1

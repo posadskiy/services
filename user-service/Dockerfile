@@ -11,8 +11,12 @@ RUN --mount=type=cache,target=/root/.m2 \
 FROM amazoncorretto:25-alpine-jdk
 WORKDIR /app
 
+RUN addgroup -g 10001 -S app && adduser -u 10001 -S -G app app
+
 COPY --from=build /app/user-service-web/target/user-service-web-*.jar app.jar
 
 EXPOSE 8095
 
-ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006", "-jar", "-Dmicronaut.environments=${MICRONAUT_ENVIRONMENTS}", "app.jar"]
+USER 10001:10001
+
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006", "-jar", "app.jar"]
