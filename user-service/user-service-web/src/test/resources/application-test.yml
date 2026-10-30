@@ -27,11 +27,11 @@ micronaut:
         signatures:
           secret:
             generator:
-              secret: "test-secret-key-for-jwt-signing"
+              secret: "test-secret-key-for-jwt-signing!"
         generator:
           refresh-token:
             enabled: true
-            secret: "test-secret-key-for-jwt-signing"
+            secret: "test-secret-key-for-jwt-signing!"
       generator:
         access-token:
           expiration: 360000

@@ -26,19 +26,9 @@ micronaut:
     token:
       jwt:
         signatures:
-          secret:
-            generator:
-              secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
           jwks:
             auth-service:
               url: ${AUTH_JWKS_URL:`http://auth-service:8100/keys`}
-        generator:
-          refresh-token:
-            enabled: true
-            secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
-      generator:
-        access-token:
-          expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:360000}
   metrics:
     enabled: true
     export:

@@ -21,6 +21,15 @@ micronaut:
         access: isAnonymous()
       - pattern: /signup
         access: isAnonymous()
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
+        claims-validators:
+          issuer: ${AUTH_JWT_ISSUER:`https://auth.posadskiy.com`}
+          audience: ${AUTH_JWT_AUDIENCE:api.posadskiy.com}
   endpoints:
     health:
       enabled: true

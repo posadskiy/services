@@ -6,16 +6,23 @@ micronaut:
         access: isAnonymous()
       - pattern: /health
         access: isAnonymous()
+      - pattern: /health/liveness
+        access: isAnonymous()
+      - pattern: /health/readiness
+        access: isAnonymous()
       - pattern: /prometheus
         access: isAnonymous()
+    token:
+      jwt:
+        claims-validators:
+          issuer: ${AUTH_JWT_ISSUER:`https://auth.posadskiy.com`}
+          audience: ${AUTH_JWT_AUDIENCE:api.posadskiy.com}
   endpoints:
     health:
       enabled: true
       sensitive: false
       details:
-        enabled: true
-      jdbc:
-        enabled: false  # avoid DB connection on every /health probe so pool can go to 0 when idle (Neon)
+        enabled: false
 #end::micronaut[]
 
 #tag::database[]
@@ -38,5 +45,5 @@ flyway:
 otel:
   traces:
     sampler:
-      arg: "1.0"
+      arg: ${OTEL_TRACES_SAMPLER_ARG:0.1}
 #end::otel[]
