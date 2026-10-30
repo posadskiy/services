@@ -65,6 +65,7 @@ public class TokenService {
     public TokenResponse issueForUser(
         UserEntity user, String provider, Long externalIdentityId, ClientContext client) {
         String access = accessToken(user, provider, externalIdentityId);
+        boolean newDevice = client != null && isNewDevice(user.id(), client.userAgent());
         String refresh = persistRefresh(
             user.id(),
             provider,
@@ -72,11 +73,23 @@ public class TokenService {
             UUID.randomUUID(),
             client == null ? null : client.userAgent(),
             client == null ? null : client.ip());
-        if (client != null) {
+        if (newDevice) {
             accountMailService.sendNewDevice(user, client);
         }
         return new TokenResponse(
             access, refresh, properties.jwt().accessTokenTtl().toSeconds(), "Bearer", UserResponse.idOf(user.id()));
+    }
+
+    /**
+     * A sign-in is "new" only when the account has signed in before and never from this user agent.
+     * The first sign-in is not announced, and a request without a user agent cannot be told apart.
+     */
+    private boolean isNewDevice(Long userId, String userAgent) {
+        if (userAgent == null || userAgent.isBlank()) {
+            return false;
+        }
+        return refreshTokenRepository.existsByUserId(userId)
+            && !refreshTokenRepository.existsByUserIdAndUserAgent(userId, userAgent);
     }
 
     @Transactional

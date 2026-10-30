@@ -30,6 +30,10 @@ public interface RefreshTokenRepository extends CrudRepository<RefreshTokenEntit
         """)
     long consumeIfCurrent(String tokenHash, Instant usedAt);
 
+    boolean existsByUserId(Long userId);
+
+    boolean existsByUserIdAndUserAgent(Long userId, String userAgent);
+
     @Query("DELETE FROM refresh_token WHERE expires_at < :before")
     void deleteExpiredBefore(Instant before);
 
