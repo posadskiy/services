@@ -18,10 +18,11 @@ public interface EmailServiceClient {
 
     @io.micronaut.serde.annotation.Serdeable
     record TransactionalEmailPayload(
-            String from,
-            String to,
-            String template,
-            Map<String, String> variables,
-            String idempotencyKey,
-            String category) {}
+        String from,
+        String to,
+        String template,
+        Map<String, String> variables,
+        String idempotencyKey,
+        String category) {
+    }
 }

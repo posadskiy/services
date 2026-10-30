@@ -52,6 +52,25 @@ public class PasskeyController {
         this.json = json;
     }
 
+    private static String origin(HttpRequest<?> request, JsonNode root) {
+        String header = request.getHeaders().get("Origin");
+        if (header != null && !header.isBlank()) {
+            return header;
+        }
+        return text(root, "linkOrigin");
+    }
+
+    private static String text(JsonNode root, String field) {
+        if (root == null || root.isNull()) {
+            return null;
+        }
+        JsonNode value = root.get(field);
+        if (value == null || value.isNull()) {
+            return null;
+        }
+        return value.getStringValue();
+    }
+
     @Post("/account/passkeys/options")
     @Secured(SecurityRule.IS_AUTHENTICATED)
     public Map<String, Object> registrationOptions(HttpRequest<?> request) {
@@ -110,25 +129,6 @@ public class PasskeyController {
         } catch (IOException e) {
             throw new AuthException("Passkey response is missing");
         }
-    }
-
-    private static String origin(HttpRequest<?> request, JsonNode root) {
-        String header = request.getHeaders().get("Origin");
-        if (header != null && !header.isBlank()) {
-            return header;
-        }
-        return text(root, "linkOrigin");
-    }
-
-    private static String text(JsonNode root, String field) {
-        if (root == null || root.isNull()) {
-            return null;
-        }
-        JsonNode value = root.get(field);
-        if (value == null || value.isNull()) {
-            return null;
-        }
-        return value.getStringValue();
     }
 
     private UserEntity currentUser() {

@@ -28,6 +28,10 @@ public class CaptchaVerifier {
         this.client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
     }
 
+    private static String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
     public void verify(String token, String remoteIp) {
         if (secret.isEmpty()) {
             return;
@@ -54,9 +58,5 @@ public class CaptchaVerifier {
             LOG.warn("captcha verification failed", e);
             throw new AuthException("Captcha was not accepted");
         }
-    }
-
-    private static String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }

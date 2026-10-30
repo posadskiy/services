@@ -20,179 +20,179 @@ spec:
         prometheus.io/port: "8100"
     spec:
       imagePullSecrets:
-      - name: dockerhub-registry-secret
+        - name: dockerhub-registry-secret
       containers:
-      - name: auth-service
-        image: ${DOCKERHUB_USERNAME}/auth-service:${IMAGE_VERSION}
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8100
-        env:
-        - name: MICRONAUT_ENVIRONMENTS
-          value: "prod"
-        - name: DATASOURCE_URL
-          valueFrom:
-            configMapKeyRef:
-              name: microservices-config
-              key: AUTH_DATABASE_URL
-        - name: DATASOURCE_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              name: microservices-config
-              key: AUTH_DATABASE_USER
-        - name: DATASOURCE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: AUTH_DATABASE_PASSWORD
-        - name: AUTH_JWT_ISSUER
-          value: "https://auth.posadskiy.com"
-        - name: AUTH_JWT_AUDIENCE
-          value: "api.posadskiy.com"
-        - name: JWT_GENERATOR_SIGNATURE_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: JWT_GENERATOR_SIGNATURE_SECRET
-        - name: AUTH_JWT_PRIVATE_KEY_PEM
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: AUTH_JWT_PRIVATE_KEY_PEM
-              optional: true
-        - name: AUTH_JWT_PUBLIC_KEY_PEM
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: AUTH_JWT_PUBLIC_KEY_PEM
-              optional: true
-        - name: OAUTH_REDIRECT_BASE_URL
-          valueFrom:
-            configMapKeyRef:
-              name: microservices-config
-              key: OAUTH_REDIRECT_BASE_URL
-        - name: OAUTH_FRONTEND_REDIRECT_URL
-          valueFrom:
-            configMapKeyRef:
-              name: microservices-config
-              key: OAUTH_FRONTEND_REDIRECT_URL
-              optional: true
-        - name: OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS
-          valueFrom:
-            configMapKeyRef:
-              name: microservices-config
-              key: OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS
-              optional: true
-        - name: EMAIL_SERVICE_URL
-          value: "http://email-service:8090"
-        - name: AUTH_EMAIL_LINK_ORIGINS
-          value: "https://grammarbar.com,https://costy.posadskiy.com,https://repeaty.posadskiy.com"
-        - name: AUTH_EMAIL_FROM_GRAMMARBAR
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: AUTH_EMAIL_FROM_GRAMMARBAR
-        - name: AUTH_EMAIL_FROM_POSADSKIY
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: AUTH_EMAIL_FROM_POSADSKIY
-        - name: GOOGLE_OAUTH_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: GOOGLE_OAUTH_CLIENT_ID
-        - name: GOOGLE_OAUTH_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: GOOGLE_OAUTH_CLIENT_SECRET
-        - name: APPLE_OAUTH_ENABLED
-          value: "true"
-        - name: APPLE_OAUTH_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: APPLE_OAUTH_CLIENT_ID
-              optional: true
-        - name: APPLE_OAUTH_TEAM_ID
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: APPLE_OAUTH_TEAM_ID
-              optional: true
-        - name: APPLE_OAUTH_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: APPLE_OAUTH_KEY_ID
-              optional: true
-        - name: APPLE_OAUTH_PRIVATE_KEY_PEM
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: APPLE_OAUTH_PRIVATE_KEY_PEM
-              optional: true
-        - name: SYSTEM_CLIENT_ENABLED
-          value: "true"
-        - name: SYSTEM_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: SYSTEM_CLIENT_ID
-        - name: SYSTEM_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: SYSTEM_CLIENT_SECRET
-        - name: AUTH_JWT_HMAC_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: microservices-secrets
-              key: JWT_GENERATOR_SIGNATURE_SECRET
-        - name: OTEL_SERVICE_NAME
-          value: "auth-service"
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: "http://grafana-alloy.observability.svc.cluster.local:4317"
-        - name: OTEL_TRACES_SAMPLER
-          value: parentbased_traceidratio
-        - name: OTEL_TRACES_SAMPLER_ARG
-          value: "0.1"
-        - name: DB_MAX_POOL_SIZE
-          value: "3"
-        - name: DB_MIN_IDLE
-          value: "0"
-        - name: DB_IDLE_TIMEOUT
-          value: "60000"
-        - name: DB_MAX_LIFETIME
-          value: "600000"
-        - name: DATASOURCES_DEFAULT_HIKARI_MAXIMUM_POOL_SIZE
-          value: "3"
-        - name: DATASOURCES_DEFAULT_HIKARI_MINIMUM_IDLE
-          value: "0"
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        startupProbe:
-          httpGet:
-            path: /health/liveness
-            port: 8100
-          failureThreshold: 30
-          periodSeconds: 5
-        livenessProbe:
-          httpGet:
-            path: /health/liveness
-            port: 8100
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /health/readiness
-            port: 8100
-          periodSeconds: 10
+        - name: auth-service
+          image: ${DOCKERHUB_USERNAME}/auth-service:${IMAGE_VERSION}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8100
+          env:
+            - name: MICRONAUT_ENVIRONMENTS
+              value: "prod"
+            - name: DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: microservices-config
+                  key: AUTH_DATABASE_URL
+            - name: DATASOURCE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: microservices-config
+                  key: AUTH_DATABASE_USER
+            - name: DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: AUTH_DATABASE_PASSWORD
+            - name: AUTH_JWT_ISSUER
+              value: "https://auth.posadskiy.com"
+            - name: AUTH_JWT_AUDIENCE
+              value: "api.posadskiy.com"
+            - name: JWT_GENERATOR_SIGNATURE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: JWT_GENERATOR_SIGNATURE_SECRET
+            - name: AUTH_JWT_PRIVATE_KEY_PEM
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: AUTH_JWT_PRIVATE_KEY_PEM
+                  optional: true
+            - name: AUTH_JWT_PUBLIC_KEY_PEM
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: AUTH_JWT_PUBLIC_KEY_PEM
+                  optional: true
+            - name: OAUTH_REDIRECT_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: microservices-config
+                  key: OAUTH_REDIRECT_BASE_URL
+            - name: OAUTH_FRONTEND_REDIRECT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: microservices-config
+                  key: OAUTH_FRONTEND_REDIRECT_URL
+                  optional: true
+            - name: OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: microservices-config
+                  key: OAUTH_ALLOWED_FRONTEND_REDIRECT_URLS
+                  optional: true
+            - name: EMAIL_SERVICE_URL
+              value: "http://email-service:8090"
+            - name: AUTH_EMAIL_LINK_ORIGINS
+              value: "https://grammarbar.com,https://costy.posadskiy.com,https://repeaty.posadskiy.com"
+            - name: AUTH_EMAIL_FROM_GRAMMARBAR
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: AUTH_EMAIL_FROM_GRAMMARBAR
+            - name: AUTH_EMAIL_FROM_POSADSKIY
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: AUTH_EMAIL_FROM_POSADSKIY
+            - name: GOOGLE_OAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: GOOGLE_OAUTH_CLIENT_ID
+            - name: GOOGLE_OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: GOOGLE_OAUTH_CLIENT_SECRET
+            - name: APPLE_OAUTH_ENABLED
+              value: "true"
+            - name: APPLE_OAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: APPLE_OAUTH_CLIENT_ID
+                  optional: true
+            - name: APPLE_OAUTH_TEAM_ID
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: APPLE_OAUTH_TEAM_ID
+                  optional: true
+            - name: APPLE_OAUTH_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: APPLE_OAUTH_KEY_ID
+                  optional: true
+            - name: APPLE_OAUTH_PRIVATE_KEY_PEM
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: APPLE_OAUTH_PRIVATE_KEY_PEM
+                  optional: true
+            - name: SYSTEM_CLIENT_ENABLED
+              value: "true"
+            - name: SYSTEM_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: SYSTEM_CLIENT_ID
+            - name: SYSTEM_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: SYSTEM_CLIENT_SECRET
+            - name: AUTH_JWT_HMAC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: JWT_GENERATOR_SIGNATURE_SECRET
+            - name: OTEL_SERVICE_NAME
+              value: "auth-service"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://grafana-alloy.observability.svc.cluster.local:4317"
+            - name: OTEL_TRACES_SAMPLER
+              value: parentbased_traceidratio
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: "0.1"
+            - name: DB_MAX_POOL_SIZE
+              value: "3"
+            - name: DB_MIN_IDLE
+              value: "0"
+            - name: DB_IDLE_TIMEOUT
+              value: "60000"
+            - name: DB_MAX_LIFETIME
+              value: "600000"
+            - name: DATASOURCES_DEFAULT_HIKARI_MAXIMUM_POOL_SIZE
+              value: "3"
+            - name: DATASOURCES_DEFAULT_HIKARI_MINIMUM_IDLE
+              value: "0"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          startupProbe:
+            httpGet:
+              path: /health/liveness
+              port: 8100
+            failureThreshold: 30
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: 8100
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 8100
+            periodSeconds: 10
       restartPolicy: Always
 ---
 apiVersion: v1
@@ -205,11 +205,11 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 8100
-    targetPort: 8100
-    protocol: TCP
+    - port: 8100
+      targetPort: 8100
+      protocol: TCP
   selector:
-    app: auth-service 
+    app: auth-service
 ---
 apiVersion: v1
 kind: Service
@@ -222,5 +222,5 @@ spec:
   type: ExternalName
   externalName: auth-service.microservices.svc.cluster.local
   ports:
-  - port: 8100
-    protocol: TCP 
+    - port: 8100
+      protocol: TCP 

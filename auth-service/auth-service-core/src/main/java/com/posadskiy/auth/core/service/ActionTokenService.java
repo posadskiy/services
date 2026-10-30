@@ -6,6 +6,7 @@ import com.posadskiy.auth.core.storage.db.ActionTokenRepository;
 import com.posadskiy.auth.core.storage.db.entity.ActionTokenEntity;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
+
 import java.time.Duration;
 import java.time.Instant;
 
@@ -49,5 +50,6 @@ public class ActionTokenService {
         return new AuthException("Invalid or expired token");
     }
 
-    public record Issued(Long id, String raw) {}
+    public record Issued(Long id, String raw) {
+    }
 }

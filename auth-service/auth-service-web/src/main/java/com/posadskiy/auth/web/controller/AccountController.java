@@ -2,11 +2,7 @@ package com.posadskiy.auth.web.controller;
 
 import com.posadskiy.auth.api.dto.*;
 import com.posadskiy.auth.core.crypto.EmailNormalizer;
-import com.posadskiy.auth.core.service.AccountMailService;
-import com.posadskiy.auth.core.service.CaptchaVerifier;
-import com.posadskiy.auth.core.service.LoginRateLimiter;
-import com.posadskiy.auth.core.service.TokenService;
-import com.posadskiy.auth.core.service.UserAccountService;
+import com.posadskiy.auth.core.service.*;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import com.posadskiy.auth.web.ClientAddresses;
 import io.micronaut.http.HttpRequest;

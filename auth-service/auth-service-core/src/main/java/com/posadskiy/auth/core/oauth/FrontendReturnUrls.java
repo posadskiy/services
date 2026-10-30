@@ -2,6 +2,7 @@ package com.posadskiy.auth.core.oauth;
 
 import com.posadskiy.auth.core.exception.OAuthException;
 import io.micronaut.core.annotation.Nullable;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -10,7 +11,8 @@ import java.util.Set;
  */
 public final class FrontendReturnUrls {
 
-    private FrontendReturnUrls() {}
+    private FrontendReturnUrls() {
+    }
 
     public static String resolve(@Nullable String requested, @Nullable String fallback, @Nullable String allowlist) {
         Set<String> allowed = parse(allowlist);

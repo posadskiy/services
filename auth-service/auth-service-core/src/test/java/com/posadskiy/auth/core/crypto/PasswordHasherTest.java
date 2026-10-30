@@ -1,9 +1,9 @@
 package com.posadskiy.auth.core.crypto;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.posadskiy.auth.core.config.AuthProperties;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class PasswordHasherTest {
 

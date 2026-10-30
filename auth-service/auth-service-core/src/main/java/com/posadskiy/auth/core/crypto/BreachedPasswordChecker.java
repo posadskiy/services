@@ -28,6 +28,32 @@ public class BreachedPasswordChecker {
         this.client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
     }
 
+    static boolean listed(String body, String suffix) {
+        if (body == null) {
+            return false;
+        }
+        for (String line : body.split("\n")) {
+            String trimmed = line.trim();
+            int colon = trimmed.indexOf(':');
+            if (colon < 0) {
+                continue;
+            }
+            if (trimmed.substring(0, colon).equalsIgnoreCase(suffix)) {
+                try {
+                    return Integer.parseInt(trimmed.substring(colon + 1).trim()) > 0;
+                } catch (NumberFormatException ignored) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static String sha1(String password) throws Exception {
+        byte[] digest = MessageDigest.getInstance("SHA-1").digest(password.getBytes(StandardCharsets.UTF_8));
+        return HexFormat.of().formatHex(digest).toUpperCase();
+    }
+
     public void check(String password) {
         if (!enabled || password == null) {
             return;
@@ -54,31 +80,5 @@ public class BreachedPasswordChecker {
         } catch (Exception e) {
             LOG.warn("breached-password check skipped", e);
         }
-    }
-
-    static boolean listed(String body, String suffix) {
-        if (body == null) {
-            return false;
-        }
-        for (String line : body.split("\n")) {
-            String trimmed = line.trim();
-            int colon = trimmed.indexOf(':');
-            if (colon < 0) {
-                continue;
-            }
-            if (trimmed.substring(0, colon).equalsIgnoreCase(suffix)) {
-                try {
-                    return Integer.parseInt(trimmed.substring(colon + 1).trim()) > 0;
-                } catch (NumberFormatException ignored) {
-                    return false;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static String sha1(String password) throws Exception {
-        byte[] digest = MessageDigest.getInstance("SHA-1").digest(password.getBytes(StandardCharsets.UTF_8));
-        return HexFormat.of().formatHex(digest).toUpperCase();
     }
 }

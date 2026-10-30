@@ -1,10 +1,10 @@
 package com.posadskiy.auth.core.mail;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.posadskiy.auth.core.exception.AuthException;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class EmailLinkOriginsTest {
 
@@ -26,6 +26,6 @@ class EmailLinkOriginsTest {
         assertThrows(AuthException.class, () -> EmailLinkOrigins.resolve("https://evil.example", ALLOWED));
         assertThrows(AuthException.class, () -> EmailLinkOrigins.resolve("costy://oauth", ALLOWED));
         assertThrows(
-                AuthException.class, () -> EmailLinkOrigins.resolve("https://grammarbar.com/verify-email", ALLOWED));
+            AuthException.class, () -> EmailLinkOrigins.resolve("https://grammarbar.com/verify-email", ALLOWED));
     }
 }

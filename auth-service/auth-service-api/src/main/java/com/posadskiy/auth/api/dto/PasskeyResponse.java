@@ -6,5 +6,6 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 @Introspected
-public record PasskeyResponse(String id, @Nullable String label, @Nullable String createdAt, @Nullable String lastUsedAt) {
+public record PasskeyResponse(String id, @Nullable String label, @Nullable String createdAt,
+                              @Nullable String lastUsedAt) {
 }

@@ -11,7 +11,8 @@ public final class MailFrom {
 
     public static final String GRAMMARBAR_ORIGIN = "https://grammarbar.com";
 
-    private MailFrom() {}
+    private MailFrom() {
+    }
 
     public static String resolve(String origin, @Nullable String grammarbarFrom, @Nullable String posadskiyFrom) {
         String from = GRAMMARBAR_ORIGIN.equals(origin) ? grammarbarFrom : posadskiyFrom;

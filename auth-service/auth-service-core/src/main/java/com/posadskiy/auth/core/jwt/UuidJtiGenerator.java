@@ -2,6 +2,7 @@ package com.posadskiy.auth.core.jwt;
 
 import io.micronaut.security.token.claims.JtiGenerator;
 import jakarta.inject.Singleton;
+
 import java.util.UUID;
 
 @Singleton

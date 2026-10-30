@@ -8,25 +8,8 @@ import com.posadskiy.auth.core.storage.db.WebAuthnChallengeRepository;
 import com.posadskiy.auth.core.storage.db.entity.PasskeyCredentialEntity;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import com.posadskiy.auth.core.storage.db.entity.WebAuthnChallengeEntity;
-import com.yubico.webauthn.AssertionRequest;
-import com.yubico.webauthn.AssertionResult;
-import com.yubico.webauthn.FinishAssertionOptions;
-import com.yubico.webauthn.FinishRegistrationOptions;
-import com.yubico.webauthn.RegisteredCredential;
-import com.yubico.webauthn.RegistrationResult;
-import com.yubico.webauthn.RelyingParty;
-import com.yubico.webauthn.StartAssertionOptions;
-import com.yubico.webauthn.StartRegistrationOptions;
-import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
-import com.yubico.webauthn.data.AuthenticatorAttestationResponse;
-import com.yubico.webauthn.data.ByteArray;
-import com.yubico.webauthn.data.ClientAssertionExtensionOutputs;
-import com.yubico.webauthn.data.ClientRegistrationExtensionOutputs;
-import com.yubico.webauthn.data.PublicKeyCredential;
-import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
-import com.yubico.webauthn.data.PublicKeyCredentialDescriptor;
-import com.yubico.webauthn.data.RelyingPartyIdentity;
-import com.yubico.webauthn.data.UserIdentity;
+import com.yubico.webauthn.*;
+import com.yubico.webauthn.data.*;
 import com.yubico.webauthn.exception.AssertionFailedException;
 import com.yubico.webauthn.exception.RegistrationFailedException;
 import io.micronaut.transaction.annotation.Transactional;
@@ -70,6 +53,33 @@ public class PasskeyService implements com.yubico.webauthn.CredentialRepository 
             .map(String::trim)
             .filter(origin -> !origin.isEmpty())
             .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private static boolean matches(String host, String rpId) {
+        return host != null && (host.equals(rpId) || host.endsWith("." + rpId));
+    }
+
+    private static String host(String origin) {
+        if (origin == null || origin.isBlank()) {
+            return null;
+        }
+        try {
+            String value = origin.contains("://") ? origin : "https://" + origin;
+            return URI.create(value).getHost();
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private static ByteArray handle(Long userId) {
+        return new ByteArray(ByteBuffer.allocate(8).putLong(userId).array());
+    }
+
+    private static String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.length() > 120 ? value.substring(0, 120) : value;
     }
 
     public PasskeyCeremony registrationOptions(UserEntity user, String origin) {
@@ -150,9 +160,9 @@ public class PasskeyService implements com.yubico.webauthn.CredentialRepository 
                 PublicKeyCredential.parseAssertionResponseJson(credentialJson);
             AssertionResult result = partyForRpId(request.getPublicKeyCredentialRequestOptions().getRpId())
                 .finishAssertion(FinishAssertionOptions.builder()
-                .request(request)
-                .response(response)
-                .build());
+                    .request(request)
+                    .response(response)
+                    .build());
             if (!result.isSuccess()) {
                 throw new AuthException("Passkey was not accepted", 401);
             }
@@ -311,32 +321,6 @@ public class PasskeyService implements com.yubico.webauthn.CredentialRepository 
         return properties.passkey().rpId();
     }
 
-    private static boolean matches(String host, String rpId) {
-        return host != null && (host.equals(rpId) || host.endsWith("." + rpId));
+    public record PasskeyCeremony(Long challengeId, String publicKeyJson) {
     }
-
-    private static String host(String origin) {
-        if (origin == null || origin.isBlank()) {
-            return null;
-        }
-        try {
-            String value = origin.contains("://") ? origin : "https://" + origin;
-            return URI.create(value).getHost();
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    private static ByteArray handle(Long userId) {
-        return new ByteArray(ByteBuffer.allocate(8).putLong(userId).array());
-    }
-
-    private static String blankToNull(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return value.length() > 120 ? value.substring(0, 120) : value;
-    }
-
-    public record PasskeyCeremony(Long challengeId, String publicKeyJson) {}
 }
