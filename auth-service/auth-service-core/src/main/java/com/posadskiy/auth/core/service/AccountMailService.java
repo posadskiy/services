@@ -8,7 +8,6 @@ import com.posadskiy.auth.core.exception.AuthException;
 import com.posadskiy.auth.core.mail.EmailLinkOrigins;
 import com.posadskiy.auth.core.mail.MailFrom;
 import com.posadskiy.auth.core.mail.TransactionalMail;
-import com.posadskiy.auth.core.mail.TransactionalMailer;
 import com.posadskiy.auth.core.storage.db.EmailSuppressionRepository;
 import com.posadskiy.auth.core.storage.db.RefreshTokenRepository;
 import com.posadskiy.auth.core.storage.db.UsersRepository;
@@ -38,7 +37,7 @@ public class AccountMailService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordHasher passwordHasher;
     private final PasswordPolicy passwordPolicy;
-    private final TransactionalMailer mailer;
+    private final MailOutbox outbox;
     private final AuditService auditService;
     private final AuthProperties properties;
     private final EmailSuppressionRepository suppressionRepository;
@@ -49,7 +48,7 @@ public class AccountMailService {
         RefreshTokenRepository refreshTokenRepository,
         PasswordHasher passwordHasher,
         PasswordPolicy passwordPolicy,
-        TransactionalMailer mailer,
+        MailOutbox outbox,
         AuditService auditService,
         AuthProperties properties,
         EmailSuppressionRepository suppressionRepository) {
@@ -58,7 +57,7 @@ public class AccountMailService {
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordHasher = passwordHasher;
         this.passwordPolicy = passwordPolicy;
-        this.mailer = mailer;
+        this.outbox = outbox;
         this.auditService = auditService;
         this.properties = properties;
         this.suppressionRepository = suppressionRepository;
@@ -224,7 +223,7 @@ public class AccountMailService {
         try {
             AuthProperties.Mail mail = properties.mail();
             String from = MailFrom.resolve(origin, mail.grammarbarFrom(), mail.posadskiyFrom());
-            mailer.send(new TransactionalMail(from, to, template, variables, key, category));
+            outbox.submit(new TransactionalMail(from, to, template, variables, key, category));
         } catch (RuntimeException e) {
             LOG.warn("transactional mail was not accepted userId={} template={}", user.id(), template, e);
         }

@@ -13,10 +13,20 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class CapturingTransactionalMailer implements TransactionalMailer {
 
     private final List<TransactionalMail> sent = new CopyOnWriteArrayList<>();
+    private volatile int failures;
 
     @Override
     public void send(TransactionalMail mail) {
+        if (failures > 0) {
+            failures--;
+            throw new IllegalStateException("email-service is down");
+        }
         sent.add(mail);
+    }
+
+    /** The next {@code count} calls to {@link #send} throw, as if email-service were unreachable. */
+    public void failNext(int count) {
+        failures = count;
     }
 
     public List<TransactionalMail> sent() {
@@ -24,6 +34,7 @@ public class CapturingTransactionalMailer implements TransactionalMailer {
     }
 
     public void clear() {
+        failures = 0;
         sent.clear();
     }
 }
