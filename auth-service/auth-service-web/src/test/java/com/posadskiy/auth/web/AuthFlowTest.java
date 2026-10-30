@@ -91,6 +91,14 @@ class AuthFlowTest extends PostgresMicronautTest {
                     new RefreshRequest("refresh_token", tokens.refreshToken(), null, null, null, null))));
         assertEquals(HttpStatus.UNAUTHORIZED, reuse.getStatus());
 
+        HttpClientResponseException successor = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking()
+                .retrieve(HttpRequest.POST(
+                    "/oauth/token",
+                    new RefreshRequest("refresh_token", refreshed.refreshToken(), null, null, null, null))));
+        assertEquals(HttpStatus.UNAUTHORIZED, successor.getStatus());
+
         client.toBlocking().exchange(HttpRequest.POST("/oauth/revoke", new RevokeRequest(refreshed.refreshToken())));
 
         HttpClientResponseException afterRevoke = assertThrows(

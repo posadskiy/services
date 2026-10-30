@@ -30,6 +30,7 @@ public class TokenService {
     private final List<OAuthClientProperties> clients;
     private final AuditService auditService;
     private final AuthMetrics metrics;
+    private final RefreshTokenRevoker refreshTokenRevoker;
 
     public TokenService(
         TokenGenerator tokenGenerator,
@@ -38,7 +39,8 @@ public class TokenService {
         AuthProperties properties,
         List<OAuthClientProperties> clients,
         AuditService auditService,
-        AuthMetrics metrics) {
+        AuthMetrics metrics,
+        RefreshTokenRevoker refreshTokenRevoker) {
         this.tokenGenerator = tokenGenerator;
         this.refreshTokenRepository = refreshTokenRepository;
         this.userAccountService = userAccountService;
@@ -46,6 +48,7 @@ public class TokenService {
         this.clients = clients;
         this.auditService = auditService;
         this.metrics = metrics;
+        this.refreshTokenRevoker = refreshTokenRevoker;
     }
 
     private static boolean secretConfigured(String clientSecret) {
@@ -61,32 +64,35 @@ public class TokenService {
 
     @Transactional
     public TokenResponse refresh(String refreshToken) {
-        RefreshTokenEntity existing = refreshTokenRepository
-            .findByTokenHash(SecureTokens.sha256Hex(refreshToken))
-            .orElseThrow(() -> {
-                metrics.refresh("unknown");
-                return new InvalidCredentialsException();
-            });
-        if (existing.revoked() || Instant.now().isAfter(existing.expiresAt())) {
-            refreshTokenRepository.revokeFamily(existing.familyId());
-            metrics.refresh("revoked");
-            auditService.record(existing.userId(), "REFRESH_REUSE_OR_EXPIRED", null);
+        String hash = SecureTokens.sha256Hex(refreshToken);
+        Instant now = Instant.now();
+        if (refreshTokenRepository.consumeIfCurrent(hash, now) == 1) {
+            RefreshTokenEntity existing =
+                refreshTokenRepository.findByTokenHash(hash).orElseThrow(InvalidCredentialsException::new);
+            UserEntity user = userAccountService.requireActive(existing.userId());
+            String next =
+                persistRefresh(user.id(), existing.provider(), existing.externalIdentityId(), existing.familyId());
+            RefreshTokenEntity replacement = refreshTokenRepository
+                .findByTokenHash(SecureTokens.sha256Hex(next))
+                .orElseThrow();
+            refreshTokenRepository.update(existing.consumed(now, replacement.id()));
+            metrics.refresh("success");
+            return new TokenResponse(
+                accessToken(user, existing.provider(), existing.externalIdentityId()),
+                next,
+                properties.jwt().accessTokenTtl().toSeconds(),
+                "Bearer",
+                UserResponse.idOf(user.id()));
+        }
+        var existing = refreshTokenRepository.findByTokenHash(hash);
+        if (existing.isEmpty()) {
+            metrics.refresh("unknown");
             throw new InvalidCredentialsException();
         }
-        UserEntity user = userAccountService.requireActive(existing.userId());
-        String next =
-            persistRefresh(user.id(), existing.provider(), existing.externalIdentityId(), existing.familyId());
-        RefreshTokenEntity replacement = refreshTokenRepository
-            .findByTokenHash(SecureTokens.sha256Hex(next))
-            .orElseThrow();
-        refreshTokenRepository.update(existing.consumed(Instant.now(), replacement.id()));
-        metrics.refresh("success");
-        return new TokenResponse(
-            accessToken(user, existing.provider(), existing.externalIdentityId()),
-            next,
-            properties.jwt().accessTokenTtl().toSeconds(),
-            "Bearer",
-            UserResponse.idOf(user.id()));
+        refreshTokenRevoker.revokeFamily(
+            existing.get().familyId(), existing.get().userId());
+        metrics.refresh("revoked");
+        throw new InvalidCredentialsException();
     }
 
     @Transactional
