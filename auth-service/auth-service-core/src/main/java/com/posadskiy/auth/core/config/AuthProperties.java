@@ -2,6 +2,7 @@ package com.posadskiy.auth.core.config;
 
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.bind.annotation.Bindable;
 
 import java.time.Duration;
 
@@ -43,7 +44,7 @@ public record AuthProperties(
     }
 
     @ConfigurationProperties("token")
-    public record Token(Duration refreshTokenTtl) {
+    public record Token(Duration refreshTokenTtl, @Bindable(defaultValue = "PT10S") Duration reuseGrace) {
     }
 
     @ConfigurationProperties("rate-limit")

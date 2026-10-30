@@ -111,10 +111,53 @@ public class TokenService {
             metrics.refresh("unknown");
             throw new InvalidCredentialsException();
         }
+        if (withinReuseGrace(existing.get(), now)) {
+            return reissueWithinGrace(existing.get());
+        }
         refreshTokenRevoker.revokeFamily(
             existing.get().familyId(), existing.get().userId());
         metrics.refresh("revoked");
         throw new InvalidCredentialsException();
+    }
+
+    /**
+     * Two requests holding the same refresh token (two tabs, an app resuming) must not log the user out. A token that
+     * was rotated a moment ago, whose replacement is still unused, is answered with one more token in the same family.
+     * Once the window has passed, or the replacement has been used or revoked, presenting it is treated as theft.
+     */
+    private boolean withinReuseGrace(RefreshTokenEntity token, Instant now) {
+        var grace = properties.token().reuseGrace();
+        if (grace == null
+            || grace.isZero()
+            || grace.isNegative()
+            || token.replacedById() == null
+            || token.lastUsedAt() == null
+            || !token.expiresAt().isAfter(now)
+            || token.lastUsedAt().plus(grace).isBefore(now)) {
+            return false;
+        }
+        return refreshTokenRepository
+            .findById(token.replacedById())
+            .map(replacement -> !replacement.revoked())
+            .orElse(false);
+    }
+
+    private TokenResponse reissueWithinGrace(RefreshTokenEntity used) {
+        UserEntity user = userAccountService.requireActive(used.userId());
+        String next = persistRefresh(
+            user.id(),
+            used.provider(),
+            used.externalIdentityId(),
+            used.familyId(),
+            used.userAgent(),
+            used.clientIp());
+        metrics.refresh("grace");
+        return new TokenResponse(
+            accessToken(user, used.provider(), used.externalIdentityId()),
+            next,
+            properties.jwt().accessTokenTtl().toSeconds(),
+            "Bearer",
+            UserResponse.idOf(user.id()));
     }
 
     @Transactional

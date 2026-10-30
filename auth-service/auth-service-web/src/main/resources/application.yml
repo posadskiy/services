@@ -173,6 +173,8 @@ auth:
     turnstile-secret: ${AUTH_TURNSTILE_SECRET:}
   token:
     refresh-token-ttl: ${AUTH_REFRESH_TTL:P30D}
+    # A just-rotated refresh token is still answered for this long. 0 turns the allowance off.
+    reuse-grace: ${AUTH_REFRESH_REUSE_GRACE:PT10S}
   rate-limit:
     login-per-minute: ${AUTH_LOGIN_RATE:20}
     window: PT1M

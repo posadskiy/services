@@ -111,6 +111,8 @@ auth:
         jwks-uri: https://www.googleapis.com/oauth2/v3/certs
         issuer: https://accounts.google.com
         redirect-uri: http://localhost:8100/oauth2/callback/google
+  token:
+    reuse-grace: PT0S
   clients:
     system:
       enabled: true

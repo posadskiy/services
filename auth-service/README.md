@@ -21,7 +21,10 @@ Micronaut 5 authentication service: email/password accounts plus Google and Appl
 number of seconds. The database id stays a number.
 
 Access tokens last **15 minutes**. Refresh tokens are opaque, stored as SHA-256 hashes, rotated on use, and expire after
-30 days. Reuse of a rotated refresh token revokes the whole family.
+30 days. Reuse of a rotated refresh token revokes the whole family, except for `AUTH_REFRESH_REUSE_GRACE` (default 10
+seconds) after the rotation: a second request with the same token (two tabs, an app resuming) gets another token in the
+same family instead of a logout. Set it to `PT0S` to turn that off.
+
 The `system` password backdoor is gone. Machine clients use `grant_type=client_credentials` (`SYSTEM_CLIENT_ID` /
 `SYSTEM_CLIENT_SECRET`). `client_credentials` is for pods inside the cluster only: a request carrying `X-Forwarded-For`,
 `Forwarded` or `X-Real-Ip` (anything that came through Traefik) is refused. In production the secret must be at least 32
