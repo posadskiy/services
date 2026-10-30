@@ -7,6 +7,7 @@ import com.posadskiy.auth.core.service.LoginRateLimiter;
 import com.posadskiy.auth.core.service.TokenService;
 import com.posadskiy.auth.core.service.UserAccountService;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
+import com.posadskiy.auth.web.ClientAddresses;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -44,7 +45,7 @@ public class AccountController {
     }
 
     private static String clientKey(HttpRequest<?> request) {
-        return request.getRemoteAddress().getAddress().getHostAddress();
+        return ClientAddresses.key(request);
     }
 
     @Get("/me")

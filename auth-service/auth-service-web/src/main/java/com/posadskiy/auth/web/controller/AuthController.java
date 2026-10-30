@@ -4,6 +4,7 @@ import com.posadskiy.auth.api.dto.*;
 import com.posadskiy.auth.core.exception.AuthException;
 import com.posadskiy.auth.core.service.*;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
+import com.posadskiy.auth.web.ClientAddresses;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -46,7 +47,7 @@ public class AuthController {
     }
 
     private static String clientKey(HttpRequest<?> request) {
-        return request.getRemoteAddress().getAddress().getHostAddress();
+        return ClientAddresses.key(request);
     }
 
     static UserResponse toResponse(UserEntity user) {
@@ -60,7 +61,8 @@ public class AuthController {
 
     @Post(uris = {"/users", "/signup"})
     @Secured(SecurityRule.IS_ANONYMOUS)
-    public HttpResponse<UserResponse> register(@Body @Valid RegisterRequest request) {
+    public HttpResponse<UserResponse> register(@Body @Valid RegisterRequest request, HttpRequest<?> httpRequest) {
+        rateLimiter.check(clientKey(httpRequest) + "|register|" + request.email());
         accountMailService.checkOrigin(request.linkOrigin());
         UserEntity user = userAccountService.register(request.email(), request.password());
         accountMailService.sendVerification(user, request.linkOrigin());
