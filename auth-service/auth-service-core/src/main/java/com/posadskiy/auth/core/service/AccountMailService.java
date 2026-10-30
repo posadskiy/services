@@ -128,7 +128,10 @@ public class AccountMailService {
             throw invalidToken();
         }
         passwordPolicy.validate(newPassword, user.email());
-        usersRepository.update(user.withPassword(passwordHasher.hash(newPassword), Instant.now()));
+        usersRepository.update(
+            user
+                .withPassword(passwordHasher.hash(newPassword), Instant.now())
+                .withEmailVerified(true));
         refreshTokenRepository.revokeAllForUser(user.id());
         auditService.record(user.id(), "PASSWORD_RESET", null);
     }

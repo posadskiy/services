@@ -394,6 +394,45 @@ class AuthFlowTest extends PostgresMicronautTest {
             () -> client.toBlocking()
                 .retrieve(HttpRequest.POST("/login", new LoginRequest("reset@example.com", "correcthorse"))));
         assertEquals(HttpStatus.UNAUTHORIZED, oldPassword.getStatus());
+        UserResponse me = client.toBlocking()
+            .retrieve(HttpRequest.GET("/account/me").bearerAuth(next.accessToken()), UserResponse.class);
+        assertTrue(me.emailVerified());
+    }
+
+    @Test
+    void passwordResetConfirmsAnUnverifiedAccount() {
+        mailer.clear();
+        client.toBlocking()
+            .retrieve(
+                HttpRequest.POST(
+                    "/signup",
+                    new RegisterRequest(
+                        "reset-unverified@example.com", "correcthorse", "http://localhost:3000")),
+                UserResponse.class);
+        client.toBlocking()
+            .exchange(HttpRequest.POST(
+                "/account/forgot-password",
+                new ForgotPasswordRequest("reset-unverified@example.com", "http://localhost:3000")));
+        String token =
+            tokenFrom(mailer.sent().getLast(), "RESET_URL", "http://localhost:3000/reset-password?token=");
+        client.toBlocking()
+            .exchange(HttpRequest.POST("/account/reset-password", new ResetPasswordRequest(token, "correcthorse2")));
+
+        TokenResponse tokens = client.toBlocking()
+            .retrieve(
+                HttpRequest.POST("/login", new LoginRequest("reset-unverified@example.com", "correcthorse2")),
+                TokenResponse.class);
+        UserResponse me = client.toBlocking()
+            .retrieve(HttpRequest.GET("/account/me").bearerAuth(tokens.accessToken()), UserResponse.class);
+        assertTrue(me.emailVerified());
+
+        socialLoginService.handle(new ExternalProfile(
+            "google", "google-reset-unverified", "reset-unverified@example.com", true, "Reset", null));
+        TokenResponse still = client.toBlocking()
+            .retrieve(
+                HttpRequest.POST("/login", new LoginRequest("reset-unverified@example.com", "correcthorse2")),
+                TokenResponse.class);
+        assertNotNull(still.accessToken());
     }
 
     @Test
