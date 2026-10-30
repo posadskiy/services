@@ -37,5 +37,18 @@ flyway:
       validate-on-migrate: true
 
 auth:
+  jwt:
+    # Local docker key only. Production injects AUTH_JWT_PRIVATE_KEY_PEM and AUTH_JWT_PUBLIC_KEY_PEM.
+    private-key-pem: |
+      -----BEGIN PRIVATE KEY-----
+      MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgeyNQpjKxbec5Na/o
+      EzW5OCNsBrV60+zc/Gbq0FHhHZuhRANCAARYzzK3XUnhBaeDANi+VqPuhDuJcE4M
+      qNBhpVxShSHvqw820cey0cRzt3funfi1S25QHbAo5eumIMtQgHUtQo87
+      -----END PRIVATE KEY-----
+    public-key-pem: |
+      -----BEGIN PUBLIC KEY-----
+      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEWM8yt11J4QWngwDYvlaj7oQ7iXBO
+      DKjQYaVcUoUh76sPNtHHstHEc7d37p34tUtuUB2wKOXrpiDLUIB1LUKPOw==
+      -----END PUBLIC KEY-----
   oauth:
     redirect-base-url: http://localhost:8100

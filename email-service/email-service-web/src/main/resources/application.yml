@@ -29,6 +29,9 @@ micronaut:
           secret:
             generator:
               secret: "${JWT_GENERATOR_SIGNATURE_SECRET}"
+          jwks:
+            auth-service:
+              url: ${AUTH_JWKS_URL:`http://auth-service:8100/keys`}
         generator:
           refresh-token:
             enabled: true
