@@ -7,6 +7,7 @@ import com.posadskiy.user.core.db.ExternalIdentityRepository;
 import com.posadskiy.user.core.db.UsersRepository;
 import com.posadskiy.user.core.db.entity.ExternalIdentityEntity;
 import com.posadskiy.user.core.db.entity.UserEntity;
+import com.posadskiy.user.core.exception.AuthException;
 import jakarta.inject.Singleton;
 
 import java.time.LocalDateTime;
@@ -60,7 +61,17 @@ public class SocialIdentityService {
     }
 
     public void unlinkIdentity(Long userId, String provider) {
+        UserEntity user = usersRepository
+            .findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         List<ExternalIdentityEntity> identities = externalIdentityRepository.findByUserId(userId);
+        long others = identities.stream()
+            .filter(identity -> !Boolean.TRUE.equals(identity.getRevoked()))
+            .filter(identity -> !identity.getProvider().equalsIgnoreCase(provider))
+            .count();
+        if (user.getPasswordHash() == null && others == 0) {
+            throw new AuthException("Add a password or another sign-in method before unlinking");
+        }
         identities.stream()
             .filter(identity -> identity.getProvider().equalsIgnoreCase(provider))
             .forEach(identity -> {

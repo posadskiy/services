@@ -1,5 +1,6 @@
 package com.posadskiy.user.core.service;
 
+import com.posadskiy.user.core.db.AccountCleanupRepository;
 import com.posadskiy.user.core.db.ExternalIdentityRepository;
 import com.posadskiy.user.core.db.UsersRepository;
 import com.posadskiy.user.core.db.entity.UserEntity;
@@ -29,11 +30,14 @@ class UserServiceTest {
     @Mock
     private ExternalIdentityRepository externalIdentityRepository;
 
+    @Mock
+    private AccountCleanupRepository accountCleanupRepository;
+
     private UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userEntityMapper, userRepository, externalIdentityRepository);
+        userService = new UserService(userEntityMapper, userRepository, externalIdentityRepository, accountCleanupRepository);
     }
 
     @Test

@@ -22,7 +22,11 @@ public class UserEntityMapper {
             user.getPasswordHash() == null ? "oauth" : "local",
             List.of(),
             user.getActive() != null ? user.getActive() : Boolean.TRUE,
-            user.getDeactivatedAt());
+            user.getDeactivatedAt(),
+            user.getDisplayName(),
+            user.getLocale(),
+            user.getTimeZone(),
+            user.getAvatarUrl());
     }
 
     public UserEntity mapToEntity(User user) {
@@ -37,6 +41,10 @@ public class UserEntityMapper {
         entity.setPictureUrl(user.pictureUrl());
         entity.setActive(user.active() != null ? user.active() : Boolean.TRUE);
         entity.setDeactivatedAt(user.deactivatedAt());
+        entity.setDisplayName(user.displayName());
+        entity.setLocale(user.locale());
+        entity.setTimeZone(user.timeZone());
+        entity.setAvatarUrl(user.avatarUrl());
         return entity;
     }
 }

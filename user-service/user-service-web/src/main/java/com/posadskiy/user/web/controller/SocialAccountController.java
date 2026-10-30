@@ -4,6 +4,8 @@ import com.posadskiy.user.api.LinkSocialIdentityRequest;
 import com.posadskiy.user.api.SocialIdentityDto;
 import com.posadskiy.user.api.UserIds;
 import com.posadskiy.user.core.service.SocialIdentityService;
+import com.posadskiy.user.web.AccountAccess;
+import io.micronaut.security.authentication.Authentication;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.*;
@@ -33,17 +35,22 @@ public class SocialAccountController {
     }
 
     @Get
-    public List<SocialIdentityDto> listIdentities(@PathVariable String userId) {
+    public List<SocialIdentityDto> listIdentities(Authentication authentication, @PathVariable String userId) {
+        AccountAccess.selfOrService(authentication, userId);
         return socialIdentityService.listIdentities(parseUserId(userId));
     }
 
     @Post
-    public SocialIdentityDto linkIdentity(@PathVariable String userId, @Body @Valid LinkSocialIdentityRequest request) {
+    public SocialIdentityDto linkIdentity(
+        Authentication authentication, @PathVariable String userId, @Body @Valid LinkSocialIdentityRequest request) {
+        AccountAccess.selfOrService(authentication, userId);
         return socialIdentityService.linkIdentity(parseUserId(userId), request);
     }
 
     @Delete("/{provider}")
-    public HttpResponse<Void> unlinkIdentity(@PathVariable String userId, @PathVariable String provider) {
+    public HttpResponse<Void> unlinkIdentity(
+        Authentication authentication, @PathVariable String userId, @PathVariable String provider) {
+        AccountAccess.selfOrService(authentication, userId);
         socialIdentityService.unlinkIdentity(parseUserId(userId), provider);
         return HttpResponse.noContent();
     }

@@ -40,8 +40,12 @@ public class RegistrationService {
             user.pictureUrl(),
             createdVia,
             user.authProviders(),
-            true, // active - new users are always active
-            null); // deactivatedAt - null for new users
+            true,
+            null,
+            user.displayName(),
+            user.locale(),
+            user.timeZone(),
+            user.avatarUrl());
 
         UserEntity savedUser = userRepository.save(userEntityMapper.mapToEntity(encodedPasswordUser));
 

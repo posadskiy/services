@@ -1,5 +1,6 @@
 package com.posadskiy.user.core.service;
 
+import com.posadskiy.user.core.db.AccountCleanupRepository;
 import com.posadskiy.user.core.db.ExternalIdentityRepository;
 import com.posadskiy.user.core.db.UsersRepository;
 import com.posadskiy.user.core.db.entity.UserEntity;
@@ -17,14 +18,17 @@ public class UserService {
     private final UserEntityMapper userEntityMapper;
     private final UsersRepository userRepository;
     private final ExternalIdentityRepository externalIdentityRepository;
+    private final AccountCleanupRepository accountCleanupRepository;
 
     public UserService(
         UserEntityMapper userEntityMapper,
         UsersRepository userRepository,
-        ExternalIdentityRepository externalIdentityRepository) {
+        ExternalIdentityRepository externalIdentityRepository,
+        AccountCleanupRepository accountCleanupRepository) {
         this.userEntityMapper = userEntityMapper;
         this.userRepository = userRepository;
         this.externalIdentityRepository = externalIdentityRepository;
+        this.accountCleanupRepository = accountCleanupRepository;
     }
 
     public User getUserById(Long id) {
@@ -51,7 +55,11 @@ public class UserService {
             baseUser.createdVia(),
             providers,
             baseUser.active(),
-            baseUser.deactivatedAt());
+            baseUser.deactivatedAt(),
+            baseUser.displayName(),
+            baseUser.locale(),
+            baseUser.timeZone(),
+            baseUser.avatarUrl());
     }
 
     /**
@@ -65,16 +73,65 @@ public class UserService {
             .findById(id)
             .orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
 
-        // Anonymize user data (GDPR-compliant while preserving for analytics)
+        String normalized = existingEntity.getEmailNormalized();
+        if (normalized != null && !normalized.endsWith("@deleted.local")) {
+            accountCleanupRepository.suppress(normalized);
+        }
+        accountCleanupRepository.revokeTokens(id);
+        accountCleanupRepository.deletePasskeys(id);
+        accountCleanupRepository.deletePreferences(id);
+
         existingEntity.setEmail("deleted_user_" + id + "@deleted.local");
         existingEntity.setPasswordHash(null);
         existingEntity.setPictureUrl(null);
+        existingEntity.setDisplayName(null);
+        existingEntity.setLocale(null);
+        existingEntity.setTimeZone(null);
+        existingEntity.setAvatarUrl(null);
         existingEntity.setEmailVerified(Boolean.FALSE);
         existingEntity.setActive(Boolean.FALSE);
         existingEntity.setDeactivatedAt(LocalDateTime.now());
         userRepository.update(existingEntity);
 
-        // Delete external identities (contain PII)
         externalIdentityRepository.deleteAll(externalIdentityRepository.findByUserId(id));
+    }
+
+    public User updateProfile(Long id, String displayName, String locale, String timeZone, String avatarUrl) {
+        UserEntity entity = userRepository
+            .findById(id)
+            .orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
+        if (Boolean.FALSE.equals(entity.getActive())) {
+            throw new AuthException("User account has been deactivated");
+        }
+        entity.setDisplayName(blank(displayName, 120));
+        entity.setLocale(blank(locale, 35));
+        entity.setTimeZone(blank(timeZone, 64));
+        entity.setAvatarUrl(avatar(avatarUrl));
+        return getUserById(userRepository.update(entity).getId());
+    }
+
+    private static String blank(String value, int max) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        if (trimmed.length() > max) {
+            throw new AuthException("Value is too long");
+        }
+        return trimmed;
+    }
+
+    private static String avatar(String value) {
+        String trimmed = blank(value, 2000);
+        if (trimmed == null) {
+            return null;
+        }
+        if (!trimmed.startsWith("https://")) {
+            throw new AuthException("Avatar URL must use https");
+        }
+        return trimmed;
     }
 }

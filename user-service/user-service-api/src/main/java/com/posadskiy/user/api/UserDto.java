@@ -18,7 +18,22 @@ public record UserDto(
     @Nullable Boolean emailVerified,
     @Nullable String pictureUrl,
     @Nullable String createdVia,
-    @Nullable List<String> authProviders) {
+    @Nullable List<String> authProviders,
+    @Nullable String displayName,
+    @Nullable String locale,
+    @Nullable String timeZone,
+    @Nullable String avatarUrl) {
+
+    public UserDto(
+        String id,
+        String email,
+        String password,
+        Boolean emailVerified,
+        String pictureUrl,
+        String createdVia,
+        List<String> authProviders) {
+        this(id, email, password, emailVerified, pictureUrl, createdVia, authProviders, null, null, null, null);
+    }
 
     public static UserDto legacy(String id, String email, String password) {
         return new UserDto(blankToNull(id), email, password, null, null, null, List.of());

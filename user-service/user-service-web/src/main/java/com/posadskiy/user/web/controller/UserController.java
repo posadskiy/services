@@ -1,9 +1,13 @@
 package com.posadskiy.user.web.controller;
 
+import com.posadskiy.user.api.ProductPreferenceDto;
+import com.posadskiy.user.api.UpdateProfileRequest;
 import com.posadskiy.user.api.UserDto;
 import com.posadskiy.user.api.UserIds;
 import com.posadskiy.user.core.mapper.dto.UserDtoMapper;
+import com.posadskiy.user.core.service.ProductPreferenceService;
 import com.posadskiy.user.core.service.UserService;
+import com.posadskiy.user.web.AccountAccess;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.*;
@@ -23,10 +27,12 @@ import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
 public class UserController {
     private final UserService userService;
     private final UserDtoMapper userDtoMapper;
+    private final ProductPreferenceService productPreferenceService;
 
-    public UserController(UserService userService, UserDtoMapper userDtoMapper) {
+    public UserController(UserService userService, UserDtoMapper userDtoMapper, ProductPreferenceService productPreferenceService) {
         this.userService = userService;
         this.userDtoMapper = userDtoMapper;
+        this.productPreferenceService = productPreferenceService;
     }
 
     private static Long parseUserId(String id) {
@@ -55,8 +61,34 @@ public class UserController {
 
     @Get("{id}")
     @ContinueSpan
-    public UserDto getUserById(@Header(AUTHORIZATION) String authorization, @PathVariable String id) {
+    public UserDto getUserById(Authentication authentication, @PathVariable String id) {
+        AccountAccess.selfOrService(authentication, id);
         return userDtoMapper.mapToDto(userService.getUserById(parseUserId(id)));
+    }
+
+    @Patch("/me")
+    @ContinueSpan
+    public UserDto updateProfile(Authentication authentication, @Body UpdateProfileRequest request) {
+        return userDtoMapper.mapToDto(userService.updateProfile(
+            parseUserId(authentication.getName()),
+            request.displayName(),
+            request.locale(),
+            request.timeZone(),
+            request.avatarUrl()));
+    }
+
+    @Get("/me/preferences/{product}")
+    @ContinueSpan
+    public ProductPreferenceDto preference(Authentication authentication, @PathVariable String product) {
+        return productPreferenceService.get(parseUserId(authentication.getName()), product);
+    }
+
+    @Put("/me/preferences/{product}")
+    @ContinueSpan
+    public ProductPreferenceDto savePreference(
+        Authentication authentication, @PathVariable String product, @Body ProductPreferenceDto request) {
+        return productPreferenceService.save(
+            parseUserId(authentication.getName()), product, request.marketingEmail(), request.settings());
     }
 
     /**
@@ -73,7 +105,8 @@ public class UserController {
      */
     @Delete("{id}")
     @ContinueSpan
-    public HttpResponse<?> deleteUser(@Header(AUTHORIZATION) String authorization, @PathVariable String id) {
+    public HttpResponse<?> deleteUser(Authentication authentication, @PathVariable String id) {
+        AccountAccess.selfOrService(authentication, id);
         userService.deleteUser(parseUserId(id));
         return HttpResponse.noContent();
     }

@@ -23,8 +23,12 @@ public class UserDtoMapper {
             dto.pictureUrl(),
             dto.createdVia(),
             providers,
-            true, // active - default to true when creating from DTO
-            null); // deactivatedAt - null for new users
+            true,
+            null,
+            dto.displayName(),
+            dto.locale(),
+            dto.timeZone(),
+            dto.avatarUrl());
     }
 
     public UserDto mapToDto(User user) {
@@ -38,6 +42,10 @@ public class UserDtoMapper {
             user.emailVerified(),
             user.pictureUrl(),
             user.createdVia(),
-            user.authProviders() == null ? List.of() : user.authProviders());
+            user.authProviders() == null ? List.of() : user.authProviders(),
+            user.displayName(),
+            user.locale(),
+            user.timeZone(),
+            user.avatarUrl());
     }
 }

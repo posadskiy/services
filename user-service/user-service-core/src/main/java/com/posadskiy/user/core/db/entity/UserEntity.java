@@ -31,6 +31,17 @@ public class UserEntity {
     @MappedProperty("picture_url")
     private String pictureUrl;
 
+    @MappedProperty("display_name")
+    private String displayName;
+
+    private String locale;
+
+    @MappedProperty("time_zone")
+    private String timeZone;
+
+    @MappedProperty("avatar_url")
+    private String avatarUrl;
+
     @MappedProperty("last_login_at")
     private LocalDateTime lastLoginAt;
 
