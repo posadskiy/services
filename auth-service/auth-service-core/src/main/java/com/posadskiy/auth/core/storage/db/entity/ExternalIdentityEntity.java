@@ -35,6 +35,21 @@ public record ExternalIdentityEntity(
             false);
     }
 
+    public ExternalIdentityEntity withRevoked() {
+        return new ExternalIdentityEntity(
+            id,
+            userId,
+            provider,
+            providerUserId,
+            email,
+            displayName,
+            pictureUrl,
+            lastLoginAt,
+            createdAt,
+            updatedAt,
+            true);
+    }
+
     public ExternalIdentityEntity refreshed(ExternalProfile profile, Instant at) {
         return new ExternalIdentityEntity(
             id,

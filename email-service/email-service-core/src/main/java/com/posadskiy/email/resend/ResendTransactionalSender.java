@@ -98,6 +98,8 @@ public class ResendTransactionalSender {
         return switch (template) {
             case "password-reset" -> "Reset your password";
             case "verify-email" -> "Confirm your email";
+            case "change-email" -> "Confirm your new email";
+            case "new-login" -> "New sign-in to your account";
             default -> template;
         };
     }
@@ -108,9 +110,11 @@ public class ResendTransactionalSender {
             case "password-reset" ->
                     "We received a request to reset your password.\n\n" + url
                             + "\n\nThis link expires in 1 hour. If you did not ask for a reset, you can ignore this message.\n";
-            case "verify-email" ->
-                    "Confirm your email address to finish creating your account.\n\n" + url
-                            + "\n\nThis link expires in 24 hours. If you did not create an account, you can ignore this message.\n";
+            case "verify-email", "change-email" ->
+                    "Confirm your email address.\n\n" + url
+                            + "\n\nThis link expires in 24 hours. If you did not ask for this, you can ignore this message.\n";
+            case "new-login" ->
+                    "A new sign-in used " + request.variables().getOrDefault("DEVICE", "a new device") + ".\n";
             default -> url;
         };
     }

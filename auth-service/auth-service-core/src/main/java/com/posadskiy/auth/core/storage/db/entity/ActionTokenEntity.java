@@ -13,5 +13,6 @@ public record ActionTokenEntity(
     @MappedProperty("token_hash") String tokenHash,
     @MappedProperty("expires_at") Instant expiresAt,
     @Nullable @MappedProperty("consumed_at") Instant consumedAt,
+    @Nullable String payload,
     @DateCreated @Nullable Instant createdAt) {
 }

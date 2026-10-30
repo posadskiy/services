@@ -14,4 +14,6 @@ public interface ExternalIdentityRepository extends CrudRepository<ExternalIdent
     Optional<ExternalIdentityEntity> findByProviderAndProviderUserId(String provider, String providerUserId);
 
     List<ExternalIdentityEntity> findByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
 }

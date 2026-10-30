@@ -9,7 +9,8 @@ class PasswordHasherTest {
 
     @Test
     void hashesAndVerifies() {
-        AuthProperties properties = new AuthProperties(null, new AuthProperties.Password(4), null, null, null, null);
+        AuthProperties properties =
+            new AuthProperties(null, new AuthProperties.Password(4, false), null, null, null, null, null, null);
         PasswordHasher hasher = new PasswordHasher(properties);
         hasher.warmup();
         String hash = hasher.hash("correcthorse");

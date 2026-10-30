@@ -33,6 +33,12 @@ micronaut:
         access: isAnonymous()
       - pattern: /account/reset-password
         access: isAnonymous()
+      - pattern: /account/email/confirm
+        access: isAnonymous()
+      - pattern: /login/passkey
+        access: isAnonymous()
+      - pattern: /login/passkey/**
+        access: isAnonymous()
       - pattern: /oauth/token
         access: isAnonymous()
       - pattern: /oauth/revoke
@@ -158,6 +164,13 @@ auth:
     public-key-pem: ${AUTH_JWT_PUBLIC_KEY_PEM:}
   password:
     bcrypt-cost: ${AUTH_BCRYPT_COST:10}
+    hibp-enabled: ${AUTH_HIBP_ENABLED:false}
+  passkey:
+    rp-id: ${AUTH_PASSKEY_RP_ID:localhost}
+    rp-name: ${AUTH_PASSKEY_RP_NAME:Posadskiy}
+    origins: ${AUTH_PASSKEY_ORIGINS:`http://localhost:3000,https://grammarbar.com,https://costy.posadskiy.com,https://repeaty.posadskiy.com`}
+  captcha:
+    turnstile-secret: ${AUTH_TURNSTILE_SECRET:}
   token:
     refresh-token-ttl: ${AUTH_REFRESH_TTL:P30D}
   rate-limit:

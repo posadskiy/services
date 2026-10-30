@@ -18,6 +18,8 @@ public record RefreshTokenEntity(
     boolean revoked,
     @MappedProperty("expires_at") Instant expiresAt,
     @Nullable @MappedProperty("last_used_at") Instant lastUsedAt,
+    @Nullable @MappedProperty("user_agent") String userAgent,
+    @Nullable @MappedProperty("client_ip") String clientIp,
     @DateCreated @Nullable Instant createdAt) {
 
     public RefreshTokenEntity consumed(Instant usedAt, Long replacementId) {
@@ -32,6 +34,8 @@ public record RefreshTokenEntity(
             true,
             expiresAt,
             usedAt,
+            userAgent,
+            clientIp,
             createdAt);
     }
 }

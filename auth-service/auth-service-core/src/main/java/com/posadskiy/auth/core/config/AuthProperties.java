@@ -10,7 +10,15 @@ import java.time.Duration;
  * this type exists so the rest of the code does not read string keys.
  */
 @ConfigurationProperties("auth")
-public record AuthProperties(Jwt jwt, Password password, Token token, RateLimit rateLimit, OAuth oauth, Mail mail) {
+public record AuthProperties(
+    Jwt jwt,
+    Password password,
+    Token token,
+    RateLimit rateLimit,
+    OAuth oauth,
+    Mail mail,
+    Passkey passkey,
+    Captcha captcha) {
 
     @ConfigurationProperties("jwt")
     public record Jwt(
@@ -23,7 +31,15 @@ public record AuthProperties(Jwt jwt, Password password, Token token, RateLimit 
     }
 
     @ConfigurationProperties("password")
-    public record Password(int bcryptCost) {
+    public record Password(int bcryptCost, boolean hibpEnabled) {
+    }
+
+    @ConfigurationProperties("passkey")
+    public record Passkey(String rpId, String rpName, String origins) {
+    }
+
+    @ConfigurationProperties("captcha")
+    public record Captcha(@Nullable String turnstileSecret) {
     }
 
     @ConfigurationProperties("token")

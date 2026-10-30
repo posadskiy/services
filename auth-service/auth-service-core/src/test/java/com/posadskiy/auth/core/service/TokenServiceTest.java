@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class TokenServiceTest {
 
     private static TokenService service(OAuthClientProperties client) {
-        return new TokenService(null, null, null, null, List.of(client), null, null, null);
+        return new TokenService(null, null, null, null, List.of(client), null, null, null, null);
     }
 
     @Test

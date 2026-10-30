@@ -6,6 +6,7 @@ import io.micronaut.data.jdbc.annotation.JdbcRepository;
 import io.micronaut.data.repository.CrudRepository;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,10 @@ import static io.micronaut.data.model.query.builder.sql.Dialect.POSTGRES;
 public interface RefreshTokenRepository extends CrudRepository<RefreshTokenEntity, Long> {
 
     Optional<RefreshTokenEntity> findByTokenHash(String tokenHash);
+
+    List<RefreshTokenEntity> findByUserIdAndRevokedFalseAndExpiresAtGreaterThan(Long userId, Instant expiresAt);
+
+    Optional<RefreshTokenEntity> findByFamilyIdAndUserIdAndRevokedFalse(UUID familyId, Long userId);
 
     @Query("""
         UPDATE refresh_token

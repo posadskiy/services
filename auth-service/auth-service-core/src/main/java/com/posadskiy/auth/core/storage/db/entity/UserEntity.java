@@ -152,6 +152,43 @@ public record UserEntity(
             version);
     }
 
+    public UserEntity withEmail(String nextEmail, String nextNormalized) {
+        return new UserEntity(
+            id,
+            nextEmail,
+            nextNormalized,
+            passwordHash,
+            true,
+            pictureUrl,
+            roles,
+            lastLoginAt,
+            passwordChangedAt,
+            active,
+            deactivatedAt,
+            updatedAt,
+            createdAt,
+            version);
+    }
+
+    public UserEntity erased(Instant at) {
+        String tombstone = "deleted_user_" + id + "@deleted.local";
+        return new UserEntity(
+            id,
+            tombstone,
+            tombstone,
+            null,
+            false,
+            null,
+            roles,
+            lastLoginAt,
+            passwordChangedAt,
+            false,
+            at,
+            updatedAt,
+            createdAt,
+            version);
+    }
+
     public UserEntity deactivatedAt(Instant at) {
         return new UserEntity(
             id,

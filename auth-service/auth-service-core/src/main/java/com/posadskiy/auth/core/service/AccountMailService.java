@@ -9,6 +9,7 @@ import com.posadskiy.auth.core.mail.EmailLinkOrigins;
 import com.posadskiy.auth.core.mail.MailFrom;
 import com.posadskiy.auth.core.mail.TransactionalMail;
 import com.posadskiy.auth.core.mail.TransactionalMailer;
+import com.posadskiy.auth.core.storage.db.EmailSuppressionRepository;
 import com.posadskiy.auth.core.storage.db.RefreshTokenRepository;
 import com.posadskiy.auth.core.storage.db.UsersRepository;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
@@ -28,6 +29,7 @@ public class AccountMailService {
 
     public static final String VERIFY_EMAIL = "VERIFY_EMAIL";
     public static final String RESET_PASSWORD = "RESET_PASSWORD";
+    public static final String CHANGE_EMAIL = "CHANGE_EMAIL";
 
     private static final Logger LOG = LoggerFactory.getLogger(AccountMailService.class);
 
@@ -39,6 +41,7 @@ public class AccountMailService {
     private final TransactionalMailer mailer;
     private final AuditService auditService;
     private final AuthProperties properties;
+    private final EmailSuppressionRepository suppressionRepository;
 
     public AccountMailService(
         UsersRepository usersRepository,
@@ -48,7 +51,8 @@ public class AccountMailService {
         PasswordPolicy passwordPolicy,
         TransactionalMailer mailer,
         AuditService auditService,
-        AuthProperties properties) {
+        AuthProperties properties,
+        EmailSuppressionRepository suppressionRepository) {
         this.usersRepository = usersRepository;
         this.actionTokenService = actionTokenService;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -57,6 +61,7 @@ public class AccountMailService {
         this.mailer = mailer;
         this.auditService = auditService;
         this.properties = properties;
+        this.suppressionRepository = suppressionRepository;
     }
 
     private static String link(String origin, String path, String token) {
@@ -136,6 +141,64 @@ public class AccountMailService {
         auditService.record(user.id(), "PASSWORD_RESET", null);
     }
 
+    public void requestEmailChange(UserEntity user, String email, String linkOrigin, @Nullable String password) {
+        if (user.passwordHash() != null) {
+            if (password == null || !passwordHasher.verify(password, user.passwordHash())) {
+                throw new com.posadskiy.auth.core.exception.InvalidCredentialsException();
+            }
+        }
+        String normalized = EmailNormalizer.normalize(email);
+        if (normalized == null || !normalized.contains("@")) {
+            throw new AuthException("A valid email is required");
+        }
+        if (normalized.equals(user.emailNormalized())) {
+            throw new AuthException("That is already your email address");
+        }
+        if (usersRepository.findByEmailNormalized(normalized).isPresent()) {
+            throw new AuthException("An account with that email already exists", 409);
+        }
+        String resolved = origin(linkOrigin);
+        ActionTokenService.Issued issued =
+            actionTokenService.issue(user.id(), CHANGE_EMAIL, properties.mail().verifyTtl(), normalized);
+        String url = link(resolved, "/verify-email", issued.raw());
+        deliverTo(
+            user,
+            email.trim(),
+            resolved,
+            "change-email",
+            Map.of("VERIFY_URL", url),
+            "change-email/" + user.id() + "/" + issued.id(),
+            "change_email");
+    }
+
+    @Transactional
+    public void confirmEmailChange(String rawToken) {
+        var token = actionTokenService.consume(rawToken, CHANGE_EMAIL);
+        UserEntity user = usersRepository.findById(token.userId()).orElseThrow(this::invalidToken);
+        if (!user.active() || token.payload() == null) {
+            throw invalidToken();
+        }
+        if (usersRepository.findByEmailNormalized(token.payload()).isPresent()) {
+            throw new AuthException("An account with that email already exists", 409);
+        }
+        usersRepository.update(user.withEmail(token.payload(), token.payload()));
+        auditService.record(user.id(), "EMAIL_CHANGED", null);
+    }
+
+    public void sendNewDevice(UserEntity user, ClientContext client) {
+        if (client == null || client.linkOrigin() == null || client.linkOrigin().isBlank()) {
+            return;
+        }
+        String device = client.userAgent() == null || client.userAgent().isBlank() ? "a new device" : client.userAgent();
+        deliver(
+            user,
+            client.linkOrigin(),
+            "new-login",
+            Map.of("DEVICE", device, "WHEN", Instant.now().toString()),
+            "new-login/" + user.id() + "/" + Instant.now().toEpochMilli(),
+            "new_login");
+    }
+
     private void deliver(
         UserEntity user,
         String origin,
@@ -143,10 +206,25 @@ public class AccountMailService {
         Map<String, String> variables,
         String key,
         String category) {
+        deliverTo(user, user.email(), origin, template, variables, key, category);
+    }
+
+    private void deliverTo(
+        UserEntity user,
+        String to,
+        String origin,
+        String template,
+        Map<String, String> variables,
+        String key,
+        String category) {
+        String normalized = EmailNormalizer.normalize(to);
+        if (normalized != null && suppressionRepository.findById(normalized).isPresent()) {
+            return;
+        }
         try {
             AuthProperties.Mail mail = properties.mail();
             String from = MailFrom.resolve(origin, mail.grammarbarFrom(), mail.posadskiyFrom());
-            mailer.send(new TransactionalMail(from, user.email(), template, variables, key, category));
+            mailer.send(new TransactionalMail(from, to, template, variables, key, category));
         } catch (RuntimeException e) {
             LOG.warn("transactional mail was not accepted userId={} template={}", user.id(), template, e);
         }

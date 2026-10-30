@@ -15,6 +15,8 @@ public interface ActionTokenRepository extends CrudRepository<ActionTokenEntity,
 
     Optional<ActionTokenEntity> findByTokenHash(String tokenHash);
 
+    void deleteByUserId(Long userId);
+
     @Query("""
         UPDATE action_token
         SET consumed_at = :now

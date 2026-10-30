@@ -31,6 +31,7 @@ public class TokenService {
     private final AuditService auditService;
     private final AuthMetrics metrics;
     private final RefreshTokenRevoker refreshTokenRevoker;
+    private final AccountMailService accountMailService;
 
     public TokenService(
         TokenGenerator tokenGenerator,
@@ -40,7 +41,8 @@ public class TokenService {
         List<OAuthClientProperties> clients,
         AuditService auditService,
         AuthMetrics metrics,
-        RefreshTokenRevoker refreshTokenRevoker) {
+        RefreshTokenRevoker refreshTokenRevoker,
+        AccountMailService accountMailService) {
         this.tokenGenerator = tokenGenerator;
         this.refreshTokenRepository = refreshTokenRepository;
         this.userAccountService = userAccountService;
@@ -49,6 +51,7 @@ public class TokenService {
         this.auditService = auditService;
         this.metrics = metrics;
         this.refreshTokenRevoker = refreshTokenRevoker;
+        this.accountMailService = accountMailService;
     }
 
     private static boolean secretConfigured(String clientSecret) {
@@ -56,8 +59,22 @@ public class TokenService {
     }
 
     public TokenResponse issueForUser(UserEntity user, String provider, Long externalIdentityId) {
+        return issueForUser(user, provider, externalIdentityId, null);
+    }
+
+    public TokenResponse issueForUser(
+        UserEntity user, String provider, Long externalIdentityId, ClientContext client) {
         String access = accessToken(user, provider, externalIdentityId);
-        String refresh = persistRefresh(user.id(), provider, externalIdentityId, UUID.randomUUID());
+        String refresh = persistRefresh(
+            user.id(),
+            provider,
+            externalIdentityId,
+            UUID.randomUUID(),
+            client == null ? null : client.userAgent(),
+            client == null ? null : client.ip());
+        if (client != null) {
+            accountMailService.sendNewDevice(user, client);
+        }
         return new TokenResponse(
             access, refresh, properties.jwt().accessTokenTtl().toSeconds(), "Bearer", UserResponse.idOf(user.id()));
     }
@@ -70,8 +87,13 @@ public class TokenService {
             RefreshTokenEntity existing =
                 refreshTokenRepository.findByTokenHash(hash).orElseThrow(InvalidCredentialsException::new);
             UserEntity user = userAccountService.requireActive(existing.userId());
-            String next =
-                persistRefresh(user.id(), existing.provider(), existing.externalIdentityId(), existing.familyId());
+            String next = persistRefresh(
+                user.id(),
+                existing.provider(),
+                existing.externalIdentityId(),
+                existing.familyId(),
+                existing.userAgent(),
+                existing.clientIp());
             RefreshTokenEntity replacement = refreshTokenRepository
                 .findByTokenHash(SecureTokens.sha256Hex(next))
                 .orElseThrow();
@@ -151,7 +173,8 @@ public class TokenService {
             .orElseThrow(() -> new IllegalStateException("Unable to generate access token"));
     }
 
-    private String persistRefresh(Long userId, String provider, Long externalIdentityId, UUID familyId) {
+    private String persistRefresh(
+        Long userId, String provider, Long externalIdentityId, UUID familyId, String userAgent, String clientIp) {
         String value = SecureTokens.randomUrl(64);
         refreshTokenRepository.save(new RefreshTokenEntity(
             null,
@@ -164,6 +187,8 @@ public class TokenService {
             false,
             Instant.now().plus(properties.token().refreshTokenTtl()),
             null,
+            userAgent,
+            clientIp,
             null));
         return value;
     }

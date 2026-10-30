@@ -20,11 +20,16 @@ public class ActionTokenService {
 
     @Transactional
     public Issued issue(Long userId, String purpose, Duration ttl) {
+        return issue(userId, purpose, ttl, null);
+    }
+
+    @Transactional
+    public Issued issue(Long userId, String purpose, Duration ttl, String payload) {
         Instant now = Instant.now();
         actionTokenRepository.consumeOpen(userId, purpose, now);
         String raw = SecureTokens.randomUrl(32);
-        ActionTokenEntity saved = actionTokenRepository.save(
-                new ActionTokenEntity(null, userId, purpose, SecureTokens.sha256Hex(raw), now.plus(ttl), null, null));
+        ActionTokenEntity saved = actionTokenRepository.save(new ActionTokenEntity(
+            null, userId, purpose, SecureTokens.sha256Hex(raw), now.plus(ttl), null, payload, null));
         return new Issued(saved.id(), raw);
     }
 
