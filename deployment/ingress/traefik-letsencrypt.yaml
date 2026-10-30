@@ -41,6 +41,12 @@ spec:
         tls:
           enabled: true
     
+    # Keep the real client address: with the default Cluster policy the load balancer rewrites it
+    # to a node address, and auth-service rate limits would then count every user as one client.
+    service:
+      spec:
+        externalTrafficPolicy: Local
+
     # Additional arguments for Let's Encrypt
     additionalArguments:
       - "--certificatesresolvers.letsencrypt.acme.email=admin@posadskiy.com"
