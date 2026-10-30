@@ -120,6 +120,7 @@ public class AuthController {
     @Secured(SecurityRule.IS_ANONYMOUS)
     public HttpResponse<UserResponse> register(@Body @Valid RegisterRequest request, HttpRequest<?> httpRequest) {
         captchaVerifier.verify(request.captchaToken(), clientKey(httpRequest));
+        rateLimiter.checkAddress(clientKey(httpRequest));
         rateLimiter.check(clientKey(httpRequest) + "|register|" + request.email());
         accountMailService.checkOrigin(request.linkOrigin());
         UserEntity user = userAccountService.register(request.email(), request.password());
@@ -130,6 +131,7 @@ public class AuthController {
     @Post("/login")
     @Secured(SecurityRule.IS_ANONYMOUS)
     public TokenResponse login(@Body @Valid LoginRequest request, HttpRequest<?> httpRequest) {
+        rateLimiter.checkAddress(clientKey(httpRequest));
         rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
         challengeIfNeeded(request.email(), request.captchaToken(), httpRequest);
         try {
@@ -188,6 +190,7 @@ public class AuthController {
                 yield tokenService.clientCredentials(request.clientId(), request.clientSecret());
             }
             case "password" -> {
+                rateLimiter.checkAddress(clientKey(httpRequest));
                 rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
                 challengeIfNeeded(request.email(), request.captchaToken(), httpRequest);
                 UserEntity user = authenticate(request.email(), request.password());

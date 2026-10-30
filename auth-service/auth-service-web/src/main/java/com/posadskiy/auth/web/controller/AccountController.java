@@ -85,6 +85,7 @@ public class AccountController {
     public HttpResponse<Void> forgotPassword(@Body @Valid ForgotPasswordRequest request, HttpRequest<?> httpRequest) {
         String email = EmailNormalizer.normalize(request.email());
         captchaVerifier.verify(request.captchaToken(), clientKey(httpRequest));
+        rateLimiter.checkAddress(clientKey(httpRequest));
         rateLimiter.check(clientKey(httpRequest) + "|forgot|" + email);
         accountMailService.sendPasswordReset(request.email(), request.linkOrigin());
         return HttpResponse.noContent();
