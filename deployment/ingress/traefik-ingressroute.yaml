@@ -7,8 +7,9 @@ spec:
   entryPoints:
     - websecure
   routes:
+    # Metrics and API docs stay inside the cluster, so every service route excludes them.
     # Auth Service
-    - match: Host(`api.posadskiy.com`) && PathPrefix(`/auth`)
+    - match: Host(`api.posadskiy.com`) && PathPrefix(`/auth`) && !PathPrefix(`/auth/prometheus`) && !PathPrefix(`/auth/swagger`) && !PathPrefix(`/auth/v3`)
       kind: Rule
       services:
         - name: auth-service
@@ -20,7 +21,7 @@ spec:
       priority: 10
     
     # User Service
-    - match: Host(`api.posadskiy.com`) && PathPrefix(`/user`)
+    - match: Host(`api.posadskiy.com`) && PathPrefix(`/user`) && !PathPrefix(`/user/prometheus`) && !PathPrefix(`/user/swagger`) && !PathPrefix(`/user/v3`)
       kind: Rule
       services:
         - name: user-service
@@ -31,15 +32,15 @@ spec:
         - name: rate-limit-middleware
       priority: 10
     
-    # Email Service
-    - match: Host(`api.posadskiy.com`) && PathPrefix(`/email`)
+    # Email Service. Only the Resend webhook is public: callers inside the cluster use
+    # http://email-service:8090. The path is forwarded as is (no prefix stripping), because the
+    # controller is mounted at /email/webhooks/resend.
+    - match: Host(`api.posadskiy.com`) && Path(`/email/webhooks/resend`)
       kind: Rule
       services:
         - name: email-service
           port: 8090
       middlewares:
-        - name: cors-middleware
-        - name: strip-prefix-email
         - name: rate-limit-middleware
       priority: 10
 

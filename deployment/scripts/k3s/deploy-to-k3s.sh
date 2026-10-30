@@ -55,6 +55,7 @@ echo "🔐 Creating Docker Hub registry secret..."
 echo ""
 echo "⚙️  Deploying ConfigMap..."
 kubectl apply -f "$K8S_DIR/configmap.yaml"
+kubectl apply -f "$K8S_DIR/network-policies.yaml"
 
 echo ""
 echo "🔒 Deploying Secrets..."
