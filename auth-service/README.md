@@ -27,6 +27,11 @@ The `system` password backdoor is gone. Machine clients use `grant_type=client_c
 `Forwarded` or `X-Real-Ip` (anything that came through Traefik) is refused. In production the secret must be at least 32
 characters or the service does not start.
 
+After 5 wrong passwords for one account within 15 minutes, from any addresses, `POST /login` and the `password` grant
+require a Turnstile token (`captchaToken`, or `captcha_token` on `/oauth/token`) before the password is checked. A correct
+login resets the count. The count is in memory, which is right for one replica. In production the service refuses to start
+without `AUTH_TURNSTILE_SECRET`.
+
 ## Login latency
 
 Password hashing is **not** the 10s delay. BCrypt cost 10 is about 50–150ms even on a 0.5 CPU pod. Cost 12 was rejected

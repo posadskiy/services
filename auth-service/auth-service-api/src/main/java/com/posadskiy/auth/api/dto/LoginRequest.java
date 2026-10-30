@@ -12,9 +12,14 @@ import jakarta.validation.constraints.Size;
 public record LoginRequest(
     @NotBlank @Email @Size(max = 255) String email,
     @NotBlank @Size(max = 72) String password,
-    @Nullable @Size(max = 255) String linkOrigin) {
+    @Nullable @Size(max = 255) String linkOrigin,
+    @Nullable @Size(max = 2048) String captchaToken) {
+
+    public LoginRequest(String email, String password, String linkOrigin) {
+        this(email, password, linkOrigin, null);
+    }
 
     public LoginRequest(String email, String password) {
-        this(email, password, null);
+        this(email, password, null, null);
     }
 }

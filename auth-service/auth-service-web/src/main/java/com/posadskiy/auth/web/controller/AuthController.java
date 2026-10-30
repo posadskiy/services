@@ -1,7 +1,9 @@
 package com.posadskiy.auth.web.controller;
 
 import com.posadskiy.auth.api.dto.*;
+import com.posadskiy.auth.core.crypto.EmailNormalizer;
 import com.posadskiy.auth.core.exception.AuthException;
+import com.posadskiy.auth.core.exception.InvalidCredentialsException;
 import com.posadskiy.auth.core.service.*;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import com.posadskiy.auth.web.ClientAddresses;
@@ -68,6 +70,33 @@ public class AuthController {
             UserResponse.idOf(user.id()), user.email(), user.emailVerified(), user.pictureUrl(), user.roleList());
     }
 
+    /**
+     * Wrong passwords are counted per account across all addresses, so a botnet spreading one account over many
+     * addresses still ends up facing the captcha.
+     */
+    private void challengeIfNeeded(String email, String captchaToken, HttpRequest<?> httpRequest) {
+        String account = EmailNormalizer.normalize(email);
+        if (account != null && rateLimiter.challengeRequired(account)) {
+            captchaVerifier.verify(captchaToken, clientKey(httpRequest));
+        }
+    }
+
+    private UserEntity authenticate(String email, String password) {
+        String account = EmailNormalizer.normalize(email);
+        try {
+            UserEntity user = userAccountService.authenticate(email, password);
+            if (account != null) {
+                rateLimiter.clearFailures(account);
+            }
+            return user;
+        } catch (InvalidCredentialsException e) {
+            if (account != null) {
+                rateLimiter.recordFailure(account);
+            }
+            throw e;
+        }
+    }
+
     private TokenResponse passwordSession(UserEntity user, String linkOrigin, HttpRequest<?> httpRequest) {
         if (!user.emailVerified()) {
             resendVerification(user, linkOrigin);
@@ -102,8 +131,9 @@ public class AuthController {
     @Secured(SecurityRule.IS_ANONYMOUS)
     public TokenResponse login(@Body @Valid LoginRequest request, HttpRequest<?> httpRequest) {
         rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
+        challengeIfNeeded(request.email(), request.captchaToken(), httpRequest);
         try {
-            UserEntity user = userAccountService.authenticate(request.email(), request.password());
+            UserEntity user = authenticate(request.email(), request.password());
             TokenResponse tokens = passwordSession(user, request.linkOrigin(), httpRequest);
             metrics.loginSuccess("password");
             auditService.record(user.id(), "LOGIN_SUCCESS", "password");
@@ -133,7 +163,8 @@ public class AuthController {
                 form.get("client_id"),
                 form.get("client_secret"),
                 form.get("email"),
-                form.get("password")),
+                form.get("password"),
+                form.get("captcha_token")),
             httpRequest);
     }
 
@@ -158,7 +189,8 @@ public class AuthController {
             }
             case "password" -> {
                 rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
-                UserEntity user = userAccountService.authenticate(request.email(), request.password());
+                challengeIfNeeded(request.email(), request.captchaToken(), httpRequest);
+                UserEntity user = authenticate(request.email(), request.password());
                 TokenResponse tokens = passwordSession(user, null, httpRequest);
                 metrics.loginSuccess("password");
                 yield tokens;
