@@ -12,6 +12,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Singleton
 public class ResendTransactionalSender {
@@ -120,6 +122,18 @@ public class ResendTransactionalSender {
         return "password-reset".equals(template) ? "RESET_URL" : "VERIFY_URL";
     }
 
+    private static final Pattern PLACEHOLDER = Pattern.compile("\\{\\{\\{([A-Za-z0-9_]+)}}}");
+
+    /**
+     * Single pass, so a value that itself looks like a placeholder is never substituted again.
+     */
+    static String render(String html, Map<String, String> variables) {
+        return PLACEHOLDER.matcher(html).replaceAll(match -> {
+            String key = match.group(1);
+            return Matcher.quoteReplacement(variables.containsKey(key) ? escape(variables.get(key)) : match.group());
+        });
+    }
+
     private static String escape(String value) {
         if (value == null) {
             return "";
@@ -204,9 +218,7 @@ public class ResendTransactionalSender {
         if (html == null) {
             return null;
         }
-        for (Map.Entry<String, String> entry : request.variables().entrySet()) {
-            html = html.replace("{{{" + entry.getKey() + "}}}", escape(entry.getValue()));
-        }
+        html = render(html, request.variables());
         return new HtmlMail(
             request.from().trim(),
             List.of(request.to()),
