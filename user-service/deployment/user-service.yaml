@@ -30,16 +30,6 @@ spec:
           env:
             - name: MICRONAUT_ENVIRONMENTS
               value: "prod"
-            - name: GITHUB_USERNAME
-              valueFrom:
-                configMapKeyRef:
-                  name: microservices-config
-                  key: GITHUB_USERNAME
-            - name: GITHUB_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: microservices-secrets
-                  key: GITHUB_TOKEN
             - name: DATASOURCE_URL
               valueFrom:
                 configMapKeyRef:
@@ -55,11 +45,6 @@ spec:
                 secretKeyRef:
                   name: microservices-secrets
                   key: AUTH_DATABASE_PASSWORD
-            - name: JWT_GENERATOR_SIGNATURE_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: microservices-secrets
-                  key: JWT_GENERATOR_SIGNATURE_SECRET
             - name: OTEL_SERVICE_NAME
               value: "user-service"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
@@ -67,7 +52,7 @@ spec:
             - name: OTEL_TRACES_SAMPLER
               value: parentbased_traceidratio
             - name: OTEL_TRACES_SAMPLER_ARG
-              value: "1.0"
+              value: "0.1"
             - name: DB_MAX_POOL_SIZE
               value: "3"
             - name: DB_MIN_IDLE

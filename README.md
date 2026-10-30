@@ -1,6 +1,6 @@
 # Shared services
 
-Auth, user, email, and email-template services in one repository. Run them locally from the root Compose file. Prepare the cluster from [`deployment/`](deployment), then deploy each service from its own `deployment/` folder.
+Auth, user, and email services in one repository. Run them locally from the root Compose file. Prepare the cluster from [`deployment/`](deployment), then deploy each service from its own `deployment/` folder.
 
 ## Layout
 
@@ -37,7 +37,7 @@ AUTH_DATABASE_PASSWORD=
 JWT_GENERATOR_SIGNATURE_SECRET=
 ```
 
-`GITHUB_USERNAME` and `GITHUB_TOKEN` are build args for email-template only. OAuth client variables are optional. Auth and email also need `AUTH_EMAIL_FROM_GRAMMARBAR`, `AUTH_EMAIL_FROM_POSADSKIY`, `RESEND_API_KEY`, and `RESEND_ALLOWED_FROM`. Email-template starts only with the `email` profile.
+OAuth client variables are optional. Auth and email also need `AUTH_EMAIL_FROM_GRAMMARBAR`, `AUTH_EMAIL_FROM_POSADSKIY`, `RESEND_API_KEY`, and `RESEND_ALLOWED_FROM`.
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d

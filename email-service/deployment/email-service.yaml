@@ -30,33 +30,16 @@ spec:
           env:
             - name: MICRONAUT_ENVIRONMENTS
               value: "prod"
-            - name: GITHUB_USERNAME
-              valueFrom:
-                configMapKeyRef:
-                  name: microservices-config
-                  key: GITHUB_USERNAME
-            - name: GITHUB_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: microservices-secrets
-                  key: GITHUB_TOKEN
-            - name: JWT_GENERATOR_SIGNATURE_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: microservices-secrets
-                  key: JWT_GENERATOR_SIGNATURE_SECRET
             - name: RESEND_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: microservices-secrets
                   key: RESEND_API_KEY
-                  optional: true
             - name: RESEND_WEBHOOK_SECRET
               valueFrom:
                 secretKeyRef:
                   name: microservices-secrets
                   key: RESEND_WEBHOOK_SECRET
-                  optional: true
             - name: RESEND_ALLOWED_FROM
               valueFrom:
                 secretKeyRef:
@@ -71,7 +54,7 @@ spec:
             - name: OTEL_TRACES_SAMPLER
               value: parentbased_traceidratio
             - name: OTEL_TRACES_SAMPLER_ARG
-              value: "1.0"
+              value: "0.1"
           resources:
             requests:
               memory: "256Mi"

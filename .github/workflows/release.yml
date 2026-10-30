@@ -108,8 +108,6 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           VERSION: ${{ steps.release.outputs.version }}
-          GITHUB_TOKEN: ${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}
-          GITHUB_USERNAME: ${{ github.repository_owner }}
         run: |
           image="$DOCKERHUB_USERNAME/$(basename "$PWD")"
           context="."
