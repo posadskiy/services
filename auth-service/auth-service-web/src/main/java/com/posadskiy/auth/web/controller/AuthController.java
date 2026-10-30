@@ -52,11 +52,26 @@ public class AuthController {
 
     static UserResponse toResponse(UserEntity user) {
         return new UserResponse(
-            UserResponse.idOf(user.id()),
-            user.email(),
-            user.emailVerified(),
-            user.pictureUrl(),
-            user.roleList());
+            UserResponse.idOf(user.id()), user.email(), user.emailVerified(), user.pictureUrl(), user.roleList());
+    }
+
+    private TokenResponse passwordSession(UserEntity user, String linkOrigin) {
+        if (!user.emailVerified()) {
+            resendVerification(user, linkOrigin);
+            throw new AuthException("Confirm your email before signing in", 403);
+        }
+        return tokenService.issueForUser(user, "password", null);
+    }
+
+    private void resendVerification(UserEntity user, String linkOrigin) {
+        if (linkOrigin == null || linkOrigin.isBlank()) {
+            return;
+        }
+        try {
+            accountMailService.sendVerification(user, linkOrigin);
+        } catch (AuthException ignored) {
+            // A rejected origin still leaves the account unsigned-in.
+        }
     }
 
     @Post(uris = {"/users", "/signup"})
@@ -75,9 +90,10 @@ public class AuthController {
         rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
         try {
             UserEntity user = userAccountService.authenticate(request.email(), request.password());
+            TokenResponse tokens = passwordSession(user, request.linkOrigin());
             metrics.loginSuccess("password");
             auditService.record(user.id(), "LOGIN_SUCCESS", "password");
-            return tokenService.issueForUser(user, "password", null);
+            return tokens;
         } catch (AuthException e) {
             metrics.loginFailure("password");
             throw e;
@@ -125,8 +141,9 @@ public class AuthController {
             case "password" -> {
                 rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
                 UserEntity user = userAccountService.authenticate(request.email(), request.password());
+                TokenResponse tokens = passwordSession(user, null);
                 metrics.loginSuccess("password");
-                yield tokenService.issueForUser(user, "password", null);
+                yield tokens;
             }
             default -> throw new AuthException("Unsupported grant_type");
         };

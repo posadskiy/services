@@ -49,16 +49,21 @@ class AuthFlowTest extends PostgresMicronautTest {
         return url.substring(prefix.length());
     }
 
+    private void confirmLatest(String origin) {
+        String token = tokenFrom(mailer.sent().getLast(), "VERIFY_URL", origin + "/verify-email?token=");
+        client.toBlocking().exchange(HttpRequest.POST("/account/verify", new VerifyEmailRequest(token)));
+    }
+
     @Test
     void registerLoginRefreshAndRevoke() {
         UserResponse created = client.toBlocking()
             .retrieve(
                 HttpRequest.POST(
                     "/users",
-                    new RegisterRequest(
-                        "flow@example.com", "correcthorse", "http://localhost:3000")),
+                    new RegisterRequest("flow@example.com", "correcthorse", "http://localhost:3000")),
                 UserResponse.class);
         assertEquals("flow@example.com", created.email());
+        confirmLatest("http://localhost:3000");
 
         TokenResponse tokens = client.toBlocking()
             .retrieve(
@@ -96,7 +101,8 @@ class AuthFlowTest extends PostgresMicronautTest {
             () -> client.toBlocking()
                 .retrieve(HttpRequest.POST(
                     "/oauth/token",
-                    new RefreshRequest("refresh_token", refreshed.refreshToken(), null, null, null, null))));
+                    new RefreshRequest(
+                        "refresh_token", refreshed.refreshToken(), null, null, null, null))));
         assertEquals(HttpStatus.UNAUTHORIZED, successor.getStatus());
 
         client.toBlocking().exchange(HttpRequest.POST("/oauth/revoke", new RevokeRequest(refreshed.refreshToken())));
@@ -117,9 +123,9 @@ class AuthFlowTest extends PostgresMicronautTest {
             .retrieve(
                 HttpRequest.POST(
                     "/users",
-                    new RegisterRequest(
-                        "form@example.com", "correcthorse", "http://localhost:3000")),
+                    new RegisterRequest("form@example.com", "correcthorse", "http://localhost:3000")),
                 UserResponse.class);
+        confirmLatest("http://localhost:3000");
         TokenResponse tokens = client.toBlocking()
             .retrieve(
                 HttpRequest.POST("/login", new LoginRequest("form@example.com", "correcthorse")),
@@ -145,8 +151,8 @@ class AuthFlowTest extends PostgresMicronautTest {
                     new RefreshRequest("client_credentials", null, "system", "system-secret", null, null)),
                 TokenResponse.class);
         assertNotNull(tokens.accessToken());
-        assertEquals(null, tokens.refreshToken());
-        assertEquals(null, tokens.userId());
+        assertNull(tokens.refreshToken());
+        assertNull(tokens.userId());
     }
 
     @Test
@@ -155,9 +161,9 @@ class AuthFlowTest extends PostgresMicronautTest {
             .retrieve(
                 HttpRequest.POST(
                     "/signup",
-                    new RegisterRequest(
-                        "id@example.com", "correcthorse", "http://localhost:3000")),
+                    new RegisterRequest("id@example.com", "correcthorse", "http://localhost:3000")),
                 String.class);
+        confirmLatest("http://localhost:3000");
         TokenResponse tokens = client.toBlocking()
             .retrieve(
                 HttpRequest.POST("/login", new LoginRequest("id@example.com", "correcthorse")),
@@ -182,16 +188,14 @@ class AuthFlowTest extends PostgresMicronautTest {
             .retrieve(
                 HttpRequest.POST(
                     "/users",
-                    new RegisterRequest(
-                        "dup@example.com", "correcthorse", "http://localhost:3000")),
+                    new RegisterRequest("dup@example.com", "correcthorse", "http://localhost:3000")),
                 UserResponse.class);
         HttpClientResponseException ex = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking()
                 .retrieve(HttpRequest.POST(
                     "/users",
-                    new RegisterRequest(
-                        "DUP@example.com", "correcthorse", "http://localhost:3000"))));
+                    new RegisterRequest("DUP@example.com", "correcthorse", "http://localhost:3000"))));
         assertEquals(HttpStatus.CONFLICT, ex.getStatus());
     }
 
@@ -210,9 +214,9 @@ class AuthFlowTest extends PostgresMicronautTest {
             .retrieve(
                 HttpRequest.POST(
                     "/users",
-                    new RegisterRequest(
-                        "me@example.com", "correcthorse", "http://localhost:3000")),
+                    new RegisterRequest("me@example.com", "correcthorse", "http://localhost:3000")),
                 UserResponse.class);
+        confirmLatest("http://localhost:3000");
         TokenResponse tokens = client.toBlocking()
             .retrieve(
                 HttpRequest.POST("/login", new LoginRequest("me@example.com", "correcthorse")),
@@ -270,7 +274,7 @@ class AuthFlowTest extends PostgresMicronautTest {
         io.micronaut.http.HttpResponse<String> response = client.toBlocking()
             .exchange(
                 HttpRequest.GET(
-                    "/oauth2/authorize/google?code_challenge=test-challenge&return_to=https://grammarbar.com/oauth/callback")
+                        "/oauth2/authorize/google?code_challenge=test-challenge&return_to=https://grammarbar.com/oauth/callback")
                     .accept(MediaType.TEXT_HTML),
                 String.class);
         assertTrue(response.getStatus().getCode() >= 300 && response.getStatus().getCode() < 400);
@@ -285,8 +289,9 @@ class AuthFlowTest extends PostgresMicronautTest {
         HttpClientResponseException ex = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking()
-                .retrieve(HttpRequest.GET(
-                    "/oauth2/authorize/google?code_challenge=test-challenge&return_to=https://evil.example/oauth/callback")));
+                .retrieve(
+                    HttpRequest.GET(
+                        "/oauth2/authorize/google?code_challenge=test-challenge&return_to=https://evil.example/oauth/callback")));
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
     }
 
@@ -295,7 +300,7 @@ class AuthFlowTest extends PostgresMicronautTest {
         io.micronaut.http.HttpResponse<String> response = client.toBlocking()
             .exchange(
                 HttpRequest.GET(
-                    "/oauth2/authorize/google?code_challenge=test-challenge&return_to=https://costy.posadskiy.com/oauth/callback")
+                        "/oauth2/authorize/google?code_challenge=test-challenge&return_to=https://costy.posadskiy.com/oauth/callback")
                     .accept(MediaType.APPLICATION_JSON),
                 String.class);
         assertEquals(HttpStatus.OK, response.getStatus());
@@ -317,8 +322,7 @@ class AuthFlowTest extends PostgresMicronautTest {
             HttpClientResponseException.class,
             () -> client.toBlocking()
                 .retrieve(HttpRequest.POST(
-                    "/users",
-                    new RegisterRequest("weak@example.com", "short", "http://localhost:3000"))));
+                    "/users", new RegisterRequest("weak@example.com", "short", "http://localhost:3000"))));
         assertTrue(ex.getStatus().getCode() >= 400);
     }
 
@@ -334,31 +338,30 @@ class AuthFlowTest extends PostgresMicronautTest {
     }
 
     @Test
-    void passwordAccountCanLogInBeforeTheVerificationLinkIsOpened() {
+    void passwordAccountCannotLogInBeforeTheVerificationLinkIsOpened() {
         mailer.clear();
         UserResponse created = client.toBlocking()
             .retrieve(
                 HttpRequest.POST(
                     "/signup",
-                    new RegisterRequest(
-                        "verify@example.com", "correcthorse", "https://grammarbar.com")),
+                    new RegisterRequest("verify@example.com", "correcthorse", "https://grammarbar.com")),
                 UserResponse.class);
         assertFalse(created.emailVerified());
+
+        HttpClientResponseException blocked = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking()
+                .retrieve(HttpRequest.POST("/login", new LoginRequest("verify@example.com", "correcthorse"))));
+        assertEquals(HttpStatus.FORBIDDEN, blocked.getStatus());
+
+        assertEquals("Alpha <alpha@example.com>", mailer.sent().getLast().from());
+        String token = tokenFrom(mailer.sent().getLast(), "VERIFY_URL", "https://grammarbar.com/verify-email?token=");
+        client.toBlocking().exchange(HttpRequest.POST("/account/verify", new VerifyEmailRequest(token)));
 
         TokenResponse tokens = client.toBlocking()
             .retrieve(
                 HttpRequest.POST("/login", new LoginRequest("verify@example.com", "correcthorse")),
                 TokenResponse.class);
-        UserResponse before = client.toBlocking()
-            .retrieve(HttpRequest.GET("/account/me").bearerAuth(tokens.accessToken()), UserResponse.class);
-        assertFalse(before.emailVerified());
-
-        assertEquals(
-                "Alpha <alpha@example.com>",
-                mailer.sent().getLast().from());
-        String token = tokenFrom(mailer.sent().getLast(), "VERIFY_URL", "https://grammarbar.com/verify-email?token=");
-        client.toBlocking().exchange(HttpRequest.POST("/account/verify", new VerifyEmailRequest(token)));
-
         UserResponse after = client.toBlocking()
             .retrieve(HttpRequest.GET("/account/me").bearerAuth(tokens.accessToken()), UserResponse.class);
         assertTrue(after.emailVerified());
@@ -377,10 +380,9 @@ class AuthFlowTest extends PostgresMicronautTest {
                 HttpRequest.POST(
                     "/signup",
                     new RegisterRequest(
-                        "reset@example.com",
-                        "correcthorse",
-                        "https://costy.posadskiy.com")),
+                        "reset@example.com", "correcthorse", "https://costy.posadskiy.com")),
                 UserResponse.class);
+        confirmLatest("https://costy.posadskiy.com");
         TokenResponse tokens = client.toBlocking()
             .retrieve(
                 HttpRequest.POST("/login", new LoginRequest("reset@example.com", "correcthorse")),
@@ -435,10 +437,10 @@ class AuthFlowTest extends PostgresMicronautTest {
             .exchange(HttpRequest.POST(
                 "/account/forgot-password",
                 new ForgotPasswordRequest("reset-unverified@example.com", "http://localhost:3000")));
-        String token =
-            tokenFrom(mailer.sent().getLast(), "RESET_URL", "http://localhost:3000/reset-password?token=");
+        String token = tokenFrom(mailer.sent().getLast(), "RESET_URL", "http://localhost:3000/reset-password?token=");
         client.toBlocking()
-            .exchange(HttpRequest.POST("/account/reset-password", new ResetPasswordRequest(token, "correcthorse2")));
+            .exchange(
+                HttpRequest.POST("/account/reset-password", new ResetPasswordRequest(token, "correcthorse2")));
 
         TokenResponse tokens = client.toBlocking()
             .retrieve(
@@ -475,8 +477,7 @@ class AuthFlowTest extends PostgresMicronautTest {
             () -> client.toBlocking()
                 .retrieve(HttpRequest.POST(
                     "/signup",
-                    new RegisterRequest(
-                        "evil@example.com", "correcthorse", "https://evil.example"))));
+                    new RegisterRequest("evil@example.com", "correcthorse", "https://evil.example"))));
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
         HttpClientResponseException login = assertThrows(
             HttpClientResponseException.class,
@@ -492,34 +493,27 @@ class AuthFlowTest extends PostgresMicronautTest {
                 HttpRequest.POST(
                     "/signup",
                     new RegisterRequest(
-                        "victim-claim@example.com",
-                        "correcthorse",
-                        "http://localhost:3000")),
+                        "victim-claim@example.com", "correcthorse", "http://localhost:3000")),
                 UserResponse.class);
-        TokenResponse tokens = client.toBlocking()
-            .retrieve(
-                HttpRequest.POST("/login", new LoginRequest("victim-claim@example.com", "correcthorse")),
-                TokenResponse.class);
+        HttpClientResponseException blocked = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking()
+                .retrieve(HttpRequest.POST(
+                    "/login", new LoginRequest("victim-claim@example.com", "correcthorse"))));
+        assertEquals(HttpStatus.FORBIDDEN, blocked.getStatus());
 
         SocialLoginService.SocialLoginResult result = socialLoginService.handle(
             new ExternalProfile("google", "google-victim-claim", "victim-claim@example.com", true, "Victim", null));
 
         assertEquals(created.id(), String.valueOf(result.user().id()));
         assertTrue(result.user().emailVerified());
-        assertEquals(null, result.user().passwordHash());
+        assertNull(result.user().passwordHash());
         HttpClientResponseException password = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking()
                 .retrieve(HttpRequest.POST(
                     "/login", new LoginRequest("victim-claim@example.com", "correcthorse"))));
         assertEquals(HttpStatus.UNAUTHORIZED, password.getStatus());
-        HttpClientResponseException refresh = assertThrows(
-            HttpClientResponseException.class,
-            () -> client.toBlocking()
-                .retrieve(HttpRequest.POST(
-                    "/oauth/token",
-                    new RefreshRequest("refresh_token", tokens.refreshToken(), null, null, null, null))));
-        assertEquals(HttpStatus.UNAUTHORIZED, refresh.getStatus());
     }
 
     @Test
@@ -530,9 +524,7 @@ class AuthFlowTest extends PostgresMicronautTest {
                 HttpRequest.POST(
                     "/signup",
                     new RegisterRequest(
-                        "victim-verified@example.com",
-                        "correcthorse",
-                        "http://localhost:3000")),
+                        "victim-verified@example.com", "correcthorse", "http://localhost:3000")),
                 UserResponse.class);
         String token = tokenFrom(mailer.sent().getLast(), "VERIFY_URL", "http://localhost:3000/verify-email?token=");
         client.toBlocking().exchange(HttpRequest.POST("/account/verify", new VerifyEmailRequest(token)));
@@ -554,9 +546,7 @@ class AuthFlowTest extends PostgresMicronautTest {
                 HttpRequest.POST(
                     "/signup",
                     new RegisterRequest(
-                        "victim-unverified@example.com",
-                        "correcthorse",
-                        "http://localhost:3000")),
+                        "victim-unverified@example.com", "correcthorse", "http://localhost:3000")),
                 UserResponse.class);
 
         assertThrows(
@@ -564,6 +554,7 @@ class AuthFlowTest extends PostgresMicronautTest {
             () -> socialLoginService.handle(new ExternalProfile(
                 "google", "google-victim-unverified", "victim-unverified@example.com", false, "Victim", null)));
 
+        confirmLatest("http://localhost:3000");
         TokenResponse tokens = client.toBlocking()
             .retrieve(
                 HttpRequest.POST("/login", new LoginRequest("victim-unverified@example.com", "correcthorse")),
