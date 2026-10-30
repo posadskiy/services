@@ -146,13 +146,6 @@
         </dependency>
         <!-- Management -->
 
-        <!-- Reactor -->
-        <dependency>
-            <groupId>io.micronaut.reactor</groupId>
-            <artifactId>micronaut-reactor</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <!-- Reactor -->
     </dependencies>
 
     <build>
@@ -189,11 +182,6 @@
                                     <artifactId>micronaut-inject</artifactId>
                                 </exclusion>
                             </exclusions>
-                        </path>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
                         </path>
                         <path>
                             <groupId>io.micronaut.openapi</groupId>

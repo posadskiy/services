@@ -19,8 +19,6 @@ import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.tracing.annotation.ContinueSpan;
 
-import static io.micronaut.http.HttpHeaders.AUTHORIZATION;
-
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @ExecuteOn(TaskExecutors.VIRTUAL)
 @Controller("v0/user")
@@ -29,7 +27,8 @@ public class UserController {
     private final UserDtoMapper userDtoMapper;
     private final ProductPreferenceService productPreferenceService;
 
-    public UserController(UserService userService, UserDtoMapper userDtoMapper, ProductPreferenceService productPreferenceService) {
+    public UserController(
+        UserService userService, UserDtoMapper userDtoMapper, ProductPreferenceService productPreferenceService) {
         this.userService = userService;
         this.userDtoMapper = userDtoMapper;
         this.productPreferenceService = productPreferenceService;

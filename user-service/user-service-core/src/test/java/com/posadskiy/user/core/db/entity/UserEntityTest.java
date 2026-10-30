@@ -9,68 +9,49 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserEntityTest {
 
     @Test
-    void testUserEntityCreation() {
-        UserEntity user = new UserEntity();
-
-        assertNull(user.getId());
-        assertNull(user.getEmail());
-        assertNull(user.getPasswordHash());
-        assertNull(user.getUpdatedAt());
-        assertNull(user.getCreatedAt());
-    }
-
-    @Test
-    void testUserEntitySettersAndGetters() {
-        UserEntity user = new UserEntity();
+    void normalizesEmailWithoutChangingTheStoredAddress() {
         LocalDateTime now = LocalDateTime.now();
+        UserEntity user = new UserEntity(
+            123L,
+            " Test@Example.com ",
+            UserEntity.normalizedEmail(" Test@Example.com "),
+            "hashedPassword",
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            true,
+            now,
+            now,
+            null);
 
-        user.setId(123L);
-        user.setEmail(" Test@Example.com ");
-        user.setPasswordHash("hashedPassword");
-        user.setUpdatedAt(now);
-        user.setCreatedAt(now);
-
-        assertEquals(123L, user.getId());
-        assertEquals(" Test@Example.com ", user.getEmail());
-        assertEquals("test@example.com", user.getEmailNormalized());
-        assertEquals("hashedPassword", user.getPasswordHash());
-        assertEquals(now, user.getUpdatedAt());
-        assertEquals(now, user.getCreatedAt());
+        assertEquals(123L, user.id());
+        assertEquals(" Test@Example.com ", user.email());
+        assertEquals("test@example.com", user.emailNormalized());
+        assertEquals("hashedPassword", user.passwordHash());
+        assertEquals(now, user.updatedAt());
+        assertEquals(now, user.createdAt());
     }
 
     @Test
-    void testUserEntityWithNullValues() {
-        UserEntity user = new UserEntity();
+    void keepsNormalizedEmailEmptyWhenAddressIsMissing() {
+        UserEntity user = UserEntity.account(null, null, null);
 
-        user.setId(null);
-        user.setEmail(null);
-        user.setPasswordHash(null);
-        user.setUpdatedAt(null);
-        user.setCreatedAt(null);
-
-        assertNull(user.getId());
-        assertNull(user.getEmail());
-        assertNull(user.getPasswordHash());
-        assertNull(user.getUpdatedAt());
-        assertNull(user.getCreatedAt());
+        assertNull(user.id());
+        assertNull(user.email());
+        assertNull(user.emailNormalized());
+        assertNull(user.passwordHash());
     }
 
     @Test
-    void testUserEntityEquality() {
-        UserEntity user1 = new UserEntity();
-        user1.setId(123L);
-        user1.setEmail("test@example.com");
-        user1.setPasswordHash("hashedPassword");
-
-        UserEntity user2 = new UserEntity();
-        user2.setId(123L);
-        user2.setEmail("test@example.com");
-        user2.setPasswordHash("hashedPassword");
-
-        UserEntity user3 = new UserEntity();
-        user3.setId(456L);
-        user3.setEmail("test@example.com");
-        user3.setPasswordHash("hashedPassword");
+    void equalityIncludesTheWholeRow() {
+        UserEntity user1 = UserEntity.account(123L, "test@example.com", "hashedPassword");
+        UserEntity user2 = UserEntity.account(123L, "test@example.com", "hashedPassword");
+        UserEntity user3 = UserEntity.account(456L, "test@example.com", "hashedPassword");
 
         assertEquals(user1, user2);
         assertNotEquals(user1, user3);

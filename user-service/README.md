@@ -1,6 +1,7 @@
 # User Service
 
-A Micronaut-based user management service with comprehensive user registration, authentication, and profile management capabilities.
+A Micronaut-based user management service with comprehensive user registration, authentication, and profile management
+capabilities.
 
 ## 🚀 Features
 
@@ -29,38 +30,44 @@ A Micronaut-based user management service with comprehensive user registration, 
 ### Database Schema
 
 #### Users Table
+
 ```sql
-CREATE TABLE users (
-    id            BIGSERIAL PRIMARY KEY,
-    email         VARCHAR(255) NOT NULL UNIQUE,
-    password_hash TEXT         NOT NULL,
-    active        BOOLEAN      NOT NULL DEFAULT TRUE,
+CREATE TABLE users
+(
+    id             BIGSERIAL PRIMARY KEY,
+    email          VARCHAR(255) NOT NULL UNIQUE,
+    password_hash  TEXT         NOT NULL,
+    active         BOOLEAN      NOT NULL    DEFAULT TRUE,
     deactivated_at TIMESTAMP WITH TIME ZONE,
-    created_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
 **GDPR-Compliant User Deletion**:
 
 **Primary Deletion Endpoint** - `DELETE /v0/user/{id}`:
+
 - GDPR-compliant deletion that always anonymizes user data (GDPR Article 17 - Right to Erasure)
 - **Always anonymizes by default** (no configuration needed):
-  - Replaces email with `deleted_user_{id}@deleted.local`
-  - Removes password hash, picture URL, and other PII
-  - Deletes all external identity data (OAuth providers)
-  - Sets `active = FALSE` and `deactivated_at` timestamp
-  - Preserves data structure for analytics while removing PII
+    - Replaces email with `deleted_user_{id}@deleted.local`
+    - Removes password hash, picture URL, and other PII
+    - Deletes all external identity data (OAuth providers)
+    - Sets `active = FALSE` and `deactivated_at` timestamp
+    - Preserves data structure for analytics while removing PII
 - This is the primary and recommended endpoint for user deletion
 - GDPR-compliant by default - anonymization preserves data structure while removing all PII
 
 **Hard Delete Endpoint** - `POST /v0/user/{id}/hard-delete`:
+
 - Alternative endpoint for complete data removal (no anonymization)
 - Completely removes user and all related data from database
 - Use only when hard delete is explicitly required
 - May break referential integrity if other tables reference this user
 
-**Important**: The default anonymization behavior is GDPR-compliant and recommended. It removes all personally identifiable information while preserving data structure for business needs (analytics, fraud prevention). See [GDPR_COMPLIANCE.md](./GDPR_COMPLIANCE.md) for detailed compliance information.
+**Important**: The default anonymization behavior is GDPR-compliant and recommended. It removes all personally
+identifiable information while preserving data structure for business needs (analytics, fraud prevention).
+See [GDPR_COMPLIANCE.md](./GDPR_COMPLIANCE.md) for detailed compliance information.
 
 ## 🛠️ Setup & Installation
 
@@ -120,11 +127,11 @@ docker compose -f docker-compose.dev.yml up -d
 - `POST /signup` - User registration
 - `GET /v0/user/{id}` - Get user by ID (returns 404 if user is deactivated)
 - `DELETE /v0/user/{id}` - GDPR-compliant user deletion (always anonymizes data by default)
-  - Always anonymizes user data (removes PII, preserves structure for analytics)
-  - GDPR-compliant default behavior
+    - Always anonymizes user data (removes PII, preserves structure for analytics)
+    - GDPR-compliant default behavior
 - `POST /v0/user/{id}/hard-delete` - Hard delete endpoint (complete data removal without anonymization)
-  - Use only when complete removal is explicitly required
-  - May break referential integrity
+    - Use only when complete removal is explicitly required
+    - May break referential integrity
 
 ### Social Identity Endpoints
 
@@ -156,6 +163,7 @@ The service is configured to send distributed traces to Jaeger:
 ### Prometheus Metrics
 
 Built-in metrics include:
+
 - User management metrics
 - Authentication metrics
 - HTTP request metrics
@@ -181,6 +189,7 @@ mvn test -Dtest=UserIntegrationTest
 ### Test Coverage
 
 The service includes comprehensive tests for:
+
 - **API DTOs**: UserDto serialization/deserialization
 - **Core Services**: UserService, RegistrationService with proper mocking
 - **Mappers**: UserEntityMapper, UserDtoMapper
@@ -241,7 +250,9 @@ docker build -f Dockerfile.prod -t user-service:prod .
 
 ### Kubernetes
 
-The service has its own **`deployment/`** folder: manifest `deployment/user-service.yaml` and scripts **`deployment/scripts/deploy.sh`**, **`deployment/scripts/build-and-push.sh`**. Shared cluster config (namespace, ConfigMap, Secrets, Traefik) lives in the repository **`deployment/`** directory.
+The service has its own **`deployment/`** folder: manifest `deployment/user-service.yaml` and scripts **
+`deployment/scripts/deploy.sh`**, **`deployment/scripts/build-and-push.sh`**. Shared cluster config (namespace,
+ConfigMap, Secrets, Traefik) lives in the repository **`deployment/`** directory.
 
 ```bash
 # Deploy this service
@@ -256,7 +267,8 @@ export SHARED_K8S="$(pwd)/../deployment"
 
 Pull requests and `main` run `mvn install` in this directory with Maven 3.9.12.
 
-A tag `user-service/vX.Y.Z` (the same version as `pom.xml`) publishes the Maven modules, pushes the production image to Docker Hub, and creates a GitHub Release. Deploy that image with `./deployment/scripts/deploy.sh <version>`.
+A tag `user-service/vX.Y.Z` (the same version as `pom.xml`) publishes the Maven modules, pushes the production image to
+Docker Hub, and creates a GitHub Release. Deploy that image with `./deployment/scripts/deploy.sh <version>`.
 
 ## 📝 Contributing
 
@@ -273,6 +285,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 For support and questions:
+
 - Create an issue in the repository
 - Check the documentation
 - Review the test cases for usage examples

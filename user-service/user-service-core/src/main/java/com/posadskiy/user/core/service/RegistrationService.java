@@ -7,30 +7,31 @@ import com.posadskiy.user.core.mapper.entity.UserEntityMapper;
 import com.posadskiy.user.core.model.User;
 import com.posadskiy.user.core.utils.PasswordEncoder;
 import jakarta.inject.Singleton;
-import lombok.NonNull;
-import org.apache.commons.lang3.StringUtils;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Singleton
 public class RegistrationService {
-    private UserEntityMapper userEntityMapper;
-    private UsersRepository userRepository;
+    private final UserEntityMapper userEntityMapper;
+    private final UsersRepository userRepository;
 
     public RegistrationService(UserEntityMapper userEntityMapper, UsersRepository userRepository) {
         this.userEntityMapper = userEntityMapper;
         this.userRepository = userRepository;
     }
 
-    public User registration(@NonNull User user) {
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    public User registration(User user) {
+        Objects.requireNonNull(user, "user");
         final Optional<UserEntity> byEmail = userRepository.findByEmail(user.email());
         if (byEmail.isPresent()) throw new AuthException("User already exists");
 
-        var encodedPassword = StringUtils.isBlank(user.password()) ? null : PasswordEncoder.encode(user.password());
-
-        var createdVia = StringUtils.isBlank(user.createdVia())
-            ? (encodedPassword == null ? "oauth" : "local")
-            : user.createdVia();
+        var encodedPassword = isBlank(user.password()) ? null : PasswordEncoder.encode(user.password());
+        var createdVia = isBlank(user.createdVia()) ? (encodedPassword == null ? "oauth" : "local") : user.createdVia();
 
         var encodedPasswordUser = new User(
             user.id(),
@@ -48,7 +49,6 @@ public class RegistrationService {
             user.avatarUrl());
 
         UserEntity savedUser = userRepository.save(userEntityMapper.mapToEntity(encodedPasswordUser));
-
         return userEntityMapper.mapFromEntity(savedUser);
     }
 }

@@ -14,7 +14,10 @@ import java.util.List;
 public record UserDto(
     @Nullable String id,
     @NonNull @NotNull String email,
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) @Nullable String password,
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) @Nullable
+    String password,
+
     @Nullable Boolean emailVerified,
     @Nullable String pictureUrl,
     @Nullable String createdVia,

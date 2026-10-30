@@ -37,17 +37,15 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userEntityMapper, userRepository, externalIdentityRepository, accountCleanupRepository);
+        userService =
+            new UserService(userEntityMapper, userRepository, externalIdentityRepository, accountCleanupRepository);
     }
 
     @Test
     void testGetUserById_Success() {
         // Given
         Long userId = 123L;
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(userId);
-        userEntity.setEmail("test@example.com");
-        userEntity.setPasswordHash("hashedPassword");
+        UserEntity userEntity = UserEntity.account(userId, "test@example.com", "hashedPassword");
 
         User expectedUser = new User(1L, "test@example.com", "hashedPassword");
 

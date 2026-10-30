@@ -36,10 +36,7 @@ class RegistrationServiceTest {
     void testRegistration_Success() {
         // Given
         User inputUser = new User(null, "test@example.com", "password123");
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(123L);
-        userEntity.setEmail("test@example.com");
-        userEntity.setPasswordHash("hashedPassword");
+        UserEntity userEntity = UserEntity.account(123L, "test@example.com", "hashedPassword");
 
         User expectedUser = new User(1L, "test@example.com", "hashedPassword");
 
@@ -63,9 +60,7 @@ class RegistrationServiceTest {
     void testRegistration_UserAlreadyExists() {
         // Given
         User inputUser = new User(null, "test@example.com", "password123");
-        UserEntity existingUser = new UserEntity();
-        existingUser.setId(456L);
-        existingUser.setEmail("test@example.com");
+        UserEntity existingUser = UserEntity.account(456L, "test@example.com", null);
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
 

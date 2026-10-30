@@ -5,12 +5,12 @@ import com.posadskiy.user.api.SocialIdentityDto;
 import com.posadskiy.user.api.UserIds;
 import com.posadskiy.user.core.service.SocialIdentityService;
 import com.posadskiy.user.web.AccountAccess;
-import io.micronaut.security.authentication.Authentication;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.*;
 import io.micronaut.http.exceptions.HttpStatusException;
 import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import jakarta.validation.Valid;
 
@@ -42,7 +42,9 @@ public class SocialAccountController {
 
     @Post
     public SocialIdentityDto linkIdentity(
-        Authentication authentication, @PathVariable String userId, @Body @Valid LinkSocialIdentityRequest request) {
+        Authentication authentication,
+        @PathVariable String userId,
+        @Body @Valid LinkSocialIdentityRequest request) {
         AccountAccess.selfOrService(authentication, userId);
         return socialIdentityService.linkIdentity(parseUserId(userId), request);
     }

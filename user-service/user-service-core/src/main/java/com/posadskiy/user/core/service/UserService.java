@@ -31,19 +31,44 @@ public class UserService {
         this.accountCleanupRepository = accountCleanupRepository;
     }
 
+    private static String blank(String value, int max) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        if (trimmed.length() > max) {
+            throw new AuthException("Value is too long");
+        }
+        return trimmed;
+    }
+
+    private static String avatar(String value) {
+        String trimmed = blank(value, 2000);
+        if (trimmed == null) {
+            return null;
+        }
+        if (!trimmed.startsWith("https://")) {
+            throw new AuthException("Avatar URL must use https");
+        }
+        return trimmed;
+    }
+
     public User getUserById(Long id) {
         var entity = userRepository
             .findById(id)
             .orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
 
         // Check if user is active
-        if (Boolean.FALSE.equals(entity.getActive())) {
+        if (!entity.active()) {
             throw new AuthException("User account has been deactivated");
         }
 
         User baseUser = userEntityMapper.mapFromEntity(entity);
         List<String> providers = externalIdentityRepository.findByUserId(id).stream()
-            .map(identity -> identity.getProvider().toLowerCase())
+            .map(identity -> identity.provider().toLowerCase())
             .distinct()
             .collect(Collectors.toList());
         return new User(
@@ -73,7 +98,7 @@ public class UserService {
             .findById(id)
             .orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
 
-        String normalized = existingEntity.getEmailNormalized();
+        String normalized = existingEntity.emailNormalized();
         if (normalized != null && !normalized.endsWith("@deleted.local")) {
             accountCleanupRepository.suppress(normalized);
         }
@@ -81,17 +106,7 @@ public class UserService {
         accountCleanupRepository.deletePasskeys(id);
         accountCleanupRepository.deletePreferences(id);
 
-        existingEntity.setEmail("deleted_user_" + id + "@deleted.local");
-        existingEntity.setPasswordHash(null);
-        existingEntity.setPictureUrl(null);
-        existingEntity.setDisplayName(null);
-        existingEntity.setLocale(null);
-        existingEntity.setTimeZone(null);
-        existingEntity.setAvatarUrl(null);
-        existingEntity.setEmailVerified(Boolean.FALSE);
-        existingEntity.setActive(Boolean.FALSE);
-        existingEntity.setDeactivatedAt(LocalDateTime.now());
-        userRepository.update(existingEntity);
+        userRepository.update(existingEntity.erased(LocalDateTime.now()));
 
         externalIdentityRepository.deleteAll(externalIdentityRepository.findByUserId(id));
     }
@@ -100,38 +115,11 @@ public class UserService {
         UserEntity entity = userRepository
             .findById(id)
             .orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
-        if (Boolean.FALSE.equals(entity.getActive())) {
+        if (!entity.active()) {
             throw new AuthException("User account has been deactivated");
         }
-        entity.setDisplayName(blank(displayName, 120));
-        entity.setLocale(blank(locale, 35));
-        entity.setTimeZone(blank(timeZone, 64));
-        entity.setAvatarUrl(avatar(avatarUrl));
-        return getUserById(userRepository.update(entity).getId());
-    }
-
-    private static String blank(String value, int max) {
-        if (value == null) {
-            return null;
-        }
-        String trimmed = value.trim();
-        if (trimmed.isEmpty()) {
-            return null;
-        }
-        if (trimmed.length() > max) {
-            throw new AuthException("Value is too long");
-        }
-        return trimmed;
-    }
-
-    private static String avatar(String value) {
-        String trimmed = blank(value, 2000);
-        if (trimmed == null) {
-            return null;
-        }
-        if (!trimmed.startsWith("https://")) {
-            throw new AuthException("Avatar URL must use https");
-        }
-        return trimmed;
+        UserEntity updated = userRepository.update(
+            entity.withProfile(blank(displayName, 120), blank(locale, 35), blank(timeZone, 64), avatar(avatarUrl)));
+        return getUserById(updated.id());
     }
 }

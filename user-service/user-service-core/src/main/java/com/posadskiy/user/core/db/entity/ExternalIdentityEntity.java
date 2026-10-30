@@ -1,74 +1,100 @@
 package com.posadskiy.user.core.db.entity;
 
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.data.annotation.*;
-import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Data
 @MappedEntity("user_social_identity")
-public class ExternalIdentityEntity {
+public record ExternalIdentityEntity(
+    @Id @GeneratedValue @Nullable Long id,
+    @MappedProperty("user_id") Long userId,
+    String provider,
+    @MappedProperty("provider_user_id") String providerUserId,
+    @Nullable String email,
+    @Nullable @MappedProperty("display_name") String displayName,
+    @Nullable @MappedProperty("picture_url") String pictureUrl,
+    @Nullable @MappedProperty("access_token_encrypted") String accessTokenEncrypted,
+    @Nullable @MappedProperty("refresh_token_encrypted") String refreshTokenEncrypted,
+    @Nullable @MappedProperty("expires_at") LocalDateTime expiresAt,
+    @Nullable String scopes,
+    @Nullable @MappedProperty("raw_claims") String rawClaims,
+    @Nullable @MappedProperty("last_login_at") LocalDateTime lastLoginAt,
+    @DateCreated @Nullable LocalDateTime createdAt,
+    @DateUpdated @Nullable LocalDateTime updatedAt,
+    boolean revoked) {
 
-    @Id
-    @GeneratedValue
-    private Long id;
-    @Relation(Relation.Kind.MANY_TO_ONE)
-    @MappedProperty("user_id")
-    private UserEntity user;
-    private String provider;
-    @MappedProperty("provider_user_id")
-    private String providerUserId;
-    private String email;
-    @MappedProperty("display_name")
-    private String displayName;
-    @MappedProperty("picture_url")
-    private String pictureUrl;
-    @MappedProperty("access_token_encrypted")
-    private String accessTokenEncrypted;
-    @MappedProperty("refresh_token_encrypted")
-    private String refreshTokenEncrypted;
-    @MappedProperty("expires_at")
-    private LocalDateTime expiresAt;
-    private String scopes;
-    @MappedProperty("raw_claims")
-    private String rawClaims;
-    @MappedProperty("last_login_at")
-    private LocalDateTime lastLoginAt;
-    @DateCreated
-    private LocalDateTime createdAt;
-    @DateUpdated
-    private LocalDateTime updatedAt;
-    private Boolean revoked = Boolean.FALSE;
-
-    public Long getId() {
-        return id;
+    public static ExternalIdentityEntity linked(
+        Long userId,
+        String provider,
+        String providerUserId,
+        @Nullable String email,
+        @Nullable String displayName,
+        @Nullable String pictureUrl,
+        LocalDateTime at) {
+        return new ExternalIdentityEntity(
+            null,
+            userId,
+            provider,
+            providerUserId,
+            email,
+            displayName,
+            pictureUrl,
+            null,
+            null,
+            null,
+            null,
+            null,
+            at,
+            null,
+            null,
+            false);
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public ExternalIdentityEntity refreshed(
+        Long userId,
+        String provider,
+        String providerUserId,
+        @Nullable String email,
+        @Nullable String displayName,
+        @Nullable String pictureUrl,
+        LocalDateTime at) {
+        return new ExternalIdentityEntity(
+            id,
+            userId,
+            provider,
+            providerUserId,
+            email,
+            displayName,
+            pictureUrl,
+            accessTokenEncrypted,
+            refreshTokenEncrypted,
+            expiresAt,
+            scopes,
+            rawClaims,
+            at,
+            createdAt,
+            updatedAt,
+            false);
     }
 
-    public UserEntity getUser() {
-        return user;
-    }
-
-    public void setUser(UserEntity user) {
-        this.user = user;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    public String getProviderUserId() {
-        return providerUserId;
-    }
-
-    public void setProviderUserId(String providerUserId) {
-        this.providerUserId = providerUserId;
+    public ExternalIdentityEntity withRevoked() {
+        return new ExternalIdentityEntity(
+            id,
+            userId,
+            provider,
+            providerUserId,
+            email,
+            displayName,
+            pictureUrl,
+            accessTokenEncrypted,
+            refreshTokenEncrypted,
+            expiresAt,
+            scopes,
+            rawClaims,
+            lastLoginAt,
+            createdAt,
+            updatedAt,
+            true);
     }
 }

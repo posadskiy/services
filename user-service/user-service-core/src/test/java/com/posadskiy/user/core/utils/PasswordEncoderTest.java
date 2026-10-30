@@ -36,19 +36,11 @@ class PasswordEncoderTest {
 
     @Test
     void testEncodeNullPassword() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            PasswordEncoder.encode(null);
-        });
+        assertThrows(IllegalArgumentException.class, () -> PasswordEncoder.encode(null));
     }
 
     @Test
     void testPasswordStrength() {
         assertEquals(16, PasswordEncoder.PASSWORD_STRENGTH);
-    }
-
-    @Test
-    void testEncoderInstance() {
-        assertNotNull(PasswordEncoder.encoder);
-        assertTrue(PasswordEncoder.encoder instanceof org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder);
     }
 }

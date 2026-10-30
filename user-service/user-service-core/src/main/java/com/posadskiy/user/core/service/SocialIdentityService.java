@@ -38,23 +38,29 @@ public class SocialIdentityService {
             .findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
+        LocalDateTime now = LocalDateTime.now();
         ExternalIdentityEntity entity = externalIdentityRepository
             .findByProviderAndProviderUserId(request.provider(), request.providerUserId())
-            .orElseGet(ExternalIdentityEntity::new);
-
-        entity.setUser(user);
-        entity.setProvider(request.provider());
-        entity.setProviderUserId(request.providerUserId());
-        entity.setEmail(request.email());
-        entity.setDisplayName(request.displayName());
-        entity.setPictureUrl(request.pictureUrl());
-        entity.setRevoked(Boolean.FALSE);
-        entity.setLastLoginAt(LocalDateTime.now());
+            .map(existing -> existing.refreshed(
+                user.id(),
+                request.provider(),
+                request.providerUserId(),
+                request.email(),
+                request.displayName(),
+                request.pictureUrl(),
+                now))
+            .orElseGet(() -> ExternalIdentityEntity.linked(
+                user.id(),
+                request.provider(),
+                request.providerUserId(),
+                request.email(),
+                request.displayName(),
+                request.pictureUrl(),
+                now));
         ExternalIdentityEntity saved = externalIdentityRepository.save(entity);
 
         if (request.emailVerified()) {
-            user.setEmailVerified(Boolean.TRUE);
-            usersRepository.update(user);
+            usersRepository.update(user.withEmailVerified(true));
         }
 
         return mapToDto(saved);
@@ -66,31 +72,28 @@ public class SocialIdentityService {
             .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         List<ExternalIdentityEntity> identities = externalIdentityRepository.findByUserId(userId);
         long others = identities.stream()
-            .filter(identity -> !Boolean.TRUE.equals(identity.getRevoked()))
-            .filter(identity -> !identity.getProvider().equalsIgnoreCase(provider))
+            .filter(identity -> !identity.revoked())
+            .filter(identity -> !identity.provider().equalsIgnoreCase(provider))
             .count();
-        if (user.getPasswordHash() == null && others == 0) {
+        if (user.passwordHash() == null && others == 0) {
             throw new AuthException("Add a password or another sign-in method before unlinking");
         }
         identities.stream()
-            .filter(identity -> identity.getProvider().equalsIgnoreCase(provider))
-            .forEach(identity -> {
-                identity.setRevoked(Boolean.TRUE);
-                externalIdentityRepository.save(identity);
-            });
+            .filter(identity -> identity.provider().equalsIgnoreCase(provider))
+            .forEach(identity -> externalIdentityRepository.save(identity.withRevoked()));
     }
 
     private SocialIdentityDto mapToDto(ExternalIdentityEntity entity) {
         return new SocialIdentityDto(
-            entity.getId() == null ? null : UserIds.of(entity.getId()),
-            entity.getProvider(),
-            entity.getProviderUserId(),
-            entity.getEmail(),
-            entity.getDisplayName(),
-            entity.getPictureUrl(),
-            entity.getLastLoginAt() != null
-                ? entity.getLastLoginAt().atZone(ZoneOffset.UTC).toInstant()
+            entity.id() == null ? null : UserIds.of(entity.id()),
+            entity.provider(),
+            entity.providerUserId(),
+            entity.email(),
+            entity.displayName(),
+            entity.pictureUrl(),
+            entity.lastLoginAt() != null
+                ? entity.lastLoginAt().atZone(ZoneOffset.UTC).toInstant()
                 : null,
-            Boolean.TRUE.equals(entity.getRevoked()));
+            entity.revoked());
     }
 }

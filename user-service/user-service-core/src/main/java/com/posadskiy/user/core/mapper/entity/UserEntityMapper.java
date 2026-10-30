@@ -14,37 +14,41 @@ public class UserEntityMapper {
             return null;
         }
         return new User(
-            user.getId(),
-            user.getEmail(),
-            user.getPasswordHash(),
-            user.getEmailVerified(),
-            user.getPictureUrl(),
-            user.getPasswordHash() == null ? "oauth" : "local",
+            user.id(),
+            user.email(),
+            user.passwordHash(),
+            user.emailVerified(),
+            user.pictureUrl(),
+            user.passwordHash() == null ? "oauth" : "local",
             List.of(),
-            user.getActive() != null ? user.getActive() : Boolean.TRUE,
-            user.getDeactivatedAt(),
-            user.getDisplayName(),
-            user.getLocale(),
-            user.getTimeZone(),
-            user.getAvatarUrl());
+            user.active(),
+            user.deactivatedAt(),
+            user.displayName(),
+            user.locale(),
+            user.timeZone(),
+            user.avatarUrl());
     }
 
     public UserEntity mapToEntity(User user) {
         if (user == null) {
             return null;
         }
-        UserEntity entity = new UserEntity();
-        entity.setId(user.id());
-        entity.setEmail(user.email());
-        entity.setPasswordHash(user.password());
-        entity.setEmailVerified(user.emailVerified() != null ? user.emailVerified() : Boolean.FALSE);
-        entity.setPictureUrl(user.pictureUrl());
-        entity.setActive(user.active() != null ? user.active() : Boolean.TRUE);
-        entity.setDeactivatedAt(user.deactivatedAt());
-        entity.setDisplayName(user.displayName());
-        entity.setLocale(user.locale());
-        entity.setTimeZone(user.timeZone());
-        entity.setAvatarUrl(user.avatarUrl());
-        return entity;
+        return new UserEntity(
+            user.id(),
+            user.email(),
+            UserEntity.normalizedEmail(user.email()),
+            user.password(),
+            Boolean.TRUE.equals(user.emailVerified()),
+            user.pictureUrl(),
+            user.displayName(),
+            user.locale(),
+            user.timeZone(),
+            user.avatarUrl(),
+            null,
+            user.deactivatedAt(),
+            user.active() != null ? user.active() : Boolean.TRUE,
+            null,
+            null,
+            null);
     }
 }

@@ -1,158 +1,116 @@
 package com.posadskiy.user.core.db.entity;
 
-import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.data.annotation.*;
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Locale;
 
-@Data
 @MappedEntity("users")
-public class UserEntity {
+public record UserEntity(
+    @Id @GeneratedValue @Nullable Long id,
+    String email,
+    @Nullable @MappedProperty("email_normalized") String emailNormalized,
+    @Nullable String passwordHash,
+    @MappedProperty("email_verified") boolean emailVerified,
+    @Nullable @MappedProperty("picture_url") String pictureUrl,
+    @Nullable @MappedProperty("display_name") String displayName,
+    @Nullable String locale,
+    @Nullable @MappedProperty("time_zone") String timeZone,
+    @Nullable @MappedProperty("avatar_url") String avatarUrl,
+    @Nullable @MappedProperty("last_login_at") LocalDateTime lastLoginAt,
+    @Nullable @MappedProperty("deactivated_at") LocalDateTime deactivatedAt,
+    boolean active,
+    @DateUpdated @Nullable LocalDateTime updatedAt,
+    @DateCreated @Nullable LocalDateTime createdAt,
+    @Version @Nullable Long version) {
 
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    @NonNull
-    @NotBlank
-    private String email;
-
-    @MappedProperty("email_normalized")
-    private String emailNormalized;
-
-    private String passwordHash;
-
-    @MappedProperty("email_verified")
-    private Boolean emailVerified = Boolean.FALSE;
-
-    @MappedProperty("picture_url")
-    private String pictureUrl;
-
-    @MappedProperty("display_name")
-    private String displayName;
-
-    private String locale;
-
-    @MappedProperty("time_zone")
-    private String timeZone;
-
-    @MappedProperty("avatar_url")
-    private String avatarUrl;
-
-    @MappedProperty("last_login_at")
-    private LocalDateTime lastLoginAt;
-
-    @MappedProperty("deactivated_at")
-    private LocalDateTime deactivatedAt;
-
-    private Boolean active = Boolean.TRUE;
-
-    @DateUpdated
-    private LocalDateTime updatedAt;
-
-    @DateCreated
-    private LocalDateTime createdAt;
-
-    @Version
-    private Long version;
-
-    public Long getId() {
-        return id;
+    public static String normalizedEmail(@Nullable String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public static UserEntity account(@Nullable Long id, @Nullable String email, @Nullable String passwordHash) {
+        return new UserEntity(
+            id,
+            email,
+            normalizedEmail(email),
+            passwordHash,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            true,
+            null,
+            null,
+            null);
     }
 
-    public @NonNull @NotBlank String getEmail() {
-        return email;
+    public UserEntity withEmailVerified(boolean verified) {
+        return new UserEntity(
+            id,
+            email,
+            emailNormalized,
+            passwordHash,
+            verified,
+            pictureUrl,
+            displayName,
+            locale,
+            timeZone,
+            avatarUrl,
+            lastLoginAt,
+            deactivatedAt,
+            active,
+            updatedAt,
+            createdAt,
+            version);
     }
 
-    public void setEmail(@NonNull @NotBlank String email) {
-        this.email = email;
-        this.emailNormalized = email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    public UserEntity withProfile(
+        @Nullable String displayName,
+        @Nullable String locale,
+        @Nullable String timeZone,
+        @Nullable String avatarUrl) {
+        return new UserEntity(
+            id,
+            email,
+            emailNormalized,
+            passwordHash,
+            emailVerified,
+            pictureUrl,
+            displayName,
+            locale,
+            timeZone,
+            avatarUrl,
+            lastLoginAt,
+            deactivatedAt,
+            active,
+            updatedAt,
+            createdAt,
+            version);
     }
 
-    public String getEmailNormalized() {
-        return emailNormalized;
-    }
-
-    public void setEmailNormalized(String emailNormalized) {
-        this.emailNormalized = emailNormalized;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public Boolean getEmailVerified() {
-        return emailVerified;
-    }
-
-    public void setEmailVerified(Boolean emailVerified) {
-        this.emailVerified = emailVerified;
-    }
-
-    public String getPictureUrl() {
-        return pictureUrl;
-    }
-
-    public void setPictureUrl(String pictureUrl) {
-        this.pictureUrl = pictureUrl;
-    }
-
-    public LocalDateTime getLastLoginAt() {
-        return lastLoginAt;
-    }
-
-    public void setLastLoginAt(LocalDateTime lastLoginAt) {
-        this.lastLoginAt = lastLoginAt;
-    }
-
-    public LocalDateTime getDeactivatedAt() {
-        return deactivatedAt;
-    }
-
-    public void setDeactivatedAt(LocalDateTime deactivatedAt) {
-        this.deactivatedAt = deactivatedAt;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Long getVersion() {
-        return version;
-    }
-
-    public void setVersion(Long version) {
-        this.version = version;
+    public UserEntity erased(LocalDateTime at) {
+        String tombstone = "deleted_user_" + id + "@deleted.local";
+        return new UserEntity(
+            id,
+            tombstone,
+            tombstone,
+            null,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            lastLoginAt,
+            at,
+            false,
+            updatedAt,
+            createdAt,
+            version);
     }
 }

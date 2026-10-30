@@ -6,7 +6,8 @@ import io.micronaut.data.model.query.builder.sql.Dialect;
 import io.micronaut.data.repository.GenericRepository;
 
 @JdbcRepository(dialect = Dialect.POSTGRES)
-public interface AccountCleanupRepository extends GenericRepository<com.posadskiy.user.core.db.entity.UserEntity, Long> {
+public interface AccountCleanupRepository
+    extends GenericRepository<com.posadskiy.user.core.db.entity.UserEntity, Long> {
 
     @Query("UPDATE refresh_token SET revoked = TRUE WHERE user_id = :userId")
     void revokeTokens(Long userId);

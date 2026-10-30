@@ -20,6 +20,13 @@ public class ProductPreferenceService {
         this.repository = repository;
     }
 
+    private static String product(String product) {
+        if (product == null || !PRODUCTS.contains(product)) {
+            throw new AuthException("Unknown product");
+        }
+        return product;
+    }
+
     public ProductPreferenceDto get(Long userId, String product) {
         String normalized = product(product);
         return repository
@@ -42,12 +49,5 @@ public class ProductPreferenceService {
             repository.save(entity);
         }
         return new ProductPreferenceDto(normalized, marketingEmail, stored);
-    }
-
-    private static String product(String product) {
-        if (product == null || !PRODUCTS.contains(product)) {
-            throw new AuthException("Unknown product");
-        }
-        return product;
     }
 }
