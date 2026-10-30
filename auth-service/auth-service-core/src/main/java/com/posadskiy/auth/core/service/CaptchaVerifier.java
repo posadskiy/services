@@ -25,6 +25,9 @@ public class CaptchaVerifier {
     public CaptchaVerifier(AuthProperties properties) {
         String configured = properties.captcha().turnstileSecret();
         this.secret = configured == null ? "" : configured.trim();
+        if (secret.isEmpty()) {
+            LOG.warn("AUTH_TURNSTILE_SECRET is not set: sign-up and password-reset captcha is disabled");
+        }
         this.client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
     }
 
