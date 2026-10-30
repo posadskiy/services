@@ -17,6 +17,9 @@ public interface ActionTokenRepository extends CrudRepository<ActionTokenEntity,
 
     void deleteByUserId(Long userId);
 
+    @Query("DELETE FROM action_token WHERE expires_at < :before")
+    void deleteExpiredBefore(Instant before);
+
     @Query("""
         UPDATE action_token
         SET consumed_at = :now

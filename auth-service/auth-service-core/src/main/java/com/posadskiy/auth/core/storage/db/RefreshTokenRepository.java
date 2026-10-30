@@ -30,6 +30,9 @@ public interface RefreshTokenRepository extends CrudRepository<RefreshTokenEntit
         """)
     long consumeIfCurrent(String tokenHash, Instant usedAt);
 
+    @Query("DELETE FROM refresh_token WHERE expires_at < :before")
+    void deleteExpiredBefore(Instant before);
+
     @Query("UPDATE refresh_token SET revoked = TRUE WHERE family_id = :familyId")
     void revokeFamily(UUID familyId);
 
