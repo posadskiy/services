@@ -242,9 +242,20 @@ class AuthFlowTest extends PostgresMicronautTest {
     }
 
     @Test
+    void oauthAuthorizeRequiresACodeChallenge() {
+        HttpClientResponseException ex = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().retrieve(HttpRequest.GET("/oauth2/authorize/google")));
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+    }
+
+    @Test
     void oauthAuthorizeStartsPkceFlow() {
         io.micronaut.http.HttpResponse<String> response = client.toBlocking()
-            .exchange(HttpRequest.GET("/oauth2/authorize/google").accept(MediaType.APPLICATION_JSON), String.class);
+            .exchange(
+                HttpRequest.GET("/oauth2/authorize/google?code_challenge=test-challenge")
+                    .accept(MediaType.APPLICATION_JSON),
+                String.class);
         assertEquals(HttpStatus.OK, response.getStatus());
         String body = response.body();
         assertTrue(body.contains("accounts.google.com"));
@@ -258,7 +269,8 @@ class AuthFlowTest extends PostgresMicronautTest {
     void oauthAuthorizeRedirectsABrowserAndScopesTheBindingCookie() {
         io.micronaut.http.HttpResponse<String> response = client.toBlocking()
             .exchange(
-                HttpRequest.GET("/oauth2/authorize/google?return_to=https://grammarbar.com/oauth/callback")
+                HttpRequest.GET(
+                    "/oauth2/authorize/google?code_challenge=test-challenge&return_to=https://grammarbar.com/oauth/callback")
                     .accept(MediaType.TEXT_HTML),
                 String.class);
         assertTrue(response.getStatus().getCode() >= 300 && response.getStatus().getCode() < 400);
@@ -274,7 +286,7 @@ class AuthFlowTest extends PostgresMicronautTest {
             HttpClientResponseException.class,
             () -> client.toBlocking()
                 .retrieve(HttpRequest.GET(
-                    "/oauth2/authorize/google?return_to=https://evil.example/oauth/callback")));
+                    "/oauth2/authorize/google?code_challenge=test-challenge&return_to=https://evil.example/oauth/callback")));
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
     }
 
@@ -282,7 +294,8 @@ class AuthFlowTest extends PostgresMicronautTest {
     void oauthAuthorizeAcceptsAllowlistedReturnUrl() {
         io.micronaut.http.HttpResponse<String> response = client.toBlocking()
             .exchange(
-                HttpRequest.GET("/oauth2/authorize/google?return_to=https://costy.posadskiy.com/oauth/callback")
+                HttpRequest.GET(
+                    "/oauth2/authorize/google?code_challenge=test-challenge&return_to=https://costy.posadskiy.com/oauth/callback")
                     .accept(MediaType.APPLICATION_JSON),
                 String.class);
         assertEquals(HttpStatus.OK, response.getStatus());
@@ -293,7 +306,8 @@ class AuthFlowTest extends PostgresMicronautTest {
     void unknownOauthProviderIsRejected() {
         HttpClientResponseException ex = assertThrows(
             HttpClientResponseException.class,
-            () -> client.toBlocking().retrieve(HttpRequest.GET("/oauth2/authorize/facebook")));
+            () -> client.toBlocking()
+                .retrieve(HttpRequest.GET("/oauth2/authorize/facebook?code_challenge=test-challenge")));
         assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
     }
 

@@ -97,9 +97,12 @@ public class OAuthController {
         @QueryValue(value = "code_challenge", defaultValue = "") String codeChallenge,
         @QueryValue(value = "return_to", defaultValue = "") String returnTo,
         HttpRequest<?> request) {
+        if (codeChallenge == null || codeChallenge.isBlank()) {
+            throw new OAuthException("code_challenge is required");
+        }
         String binding = existingOrNewBinding(request);
         AuthorizationRequest authorization =
-            authorizationService.authorize(provider, binding, blankToNull(codeChallenge), blankToNull(returnTo));
+            authorizationService.authorize(provider, binding, codeChallenge, blankToNull(returnTo));
         MutableHttpResponse<?> response = browserNavigation(request)
             ? HttpResponse.redirect(URI.create(authorization.authorizationUri()))
             : HttpResponse.ok(
