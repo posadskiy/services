@@ -88,9 +88,6 @@ public class OAuthTokenExchangeService {
         if (StringUtils.isEmpty(name) && appleUserJson != null) {
             name = readAppleName(appleUserJson);
         }
-        if (StringUtils.isEmpty(email) && appleUserJson != null) {
-            email = stringValue(readJson(appleUserJson), "email");
-        }
         ExternalProfile profile = new ExternalProfile(state.provider(), subject, email, emailVerified, name, picture);
         return new ExchangeResult(profile, state.codeChallenge(), state.frontendRedirectUrl());
     }
