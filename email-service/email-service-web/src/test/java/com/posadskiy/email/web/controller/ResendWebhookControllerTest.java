@@ -1,19 +1,32 @@
 package com.posadskiy.email.web.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.posadskiy.email.resend.ResendProperties;
 import com.svix.Webhook;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
+import org.junit.jupiter.api.Test;
+
 import java.time.Instant;
 import java.util.Base64;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ResendWebhookControllerTest {
 
     private static final String SECRET = "whsec_" + Base64.getEncoder().encodeToString("test-secret".getBytes());
+
+    private static ResendWebhookController controller() {
+        return new ResendWebhookController(
+            new ResendProperties("re_test", "from@example.com", "https://api.resend.com", SECRET));
+    }
+
+    private static HttpRequest<?> request(String payload, String id, String timestamp, String signature) {
+        return HttpRequest.POST("/email/webhooks/resend", payload)
+            .header("svix-id", id)
+            .header("svix-timestamp", timestamp)
+            .header("svix-signature", signature);
+    }
 
     @Test
     void acceptsASignedBounce() throws Exception {
@@ -34,20 +47,8 @@ class ResendWebhookControllerTest {
         String signature = new Webhook(SECRET).sign(id, timestamp, "{}");
 
         HttpResponse<Void> response =
-                controller().receive(request("{\"type\":\"email.bounced\"}", id, Long.toString(timestamp), signature));
+            controller().receive(request("{\"type\":\"email.bounced\"}", id, Long.toString(timestamp), signature));
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatus());
-    }
-
-    private static ResendWebhookController controller() {
-        return new ResendWebhookController(
-                new ResendProperties("re_test", "from@example.com", "https://api.resend.com", SECRET));
-    }
-
-    private static HttpRequest<?> request(String payload, String id, String timestamp, String signature) {
-        return HttpRequest.POST("/email/webhooks/resend", payload)
-                .header("svix-id", id)
-                .header("svix-timestamp", timestamp)
-                .header("svix-signature", signature);
     }
 }

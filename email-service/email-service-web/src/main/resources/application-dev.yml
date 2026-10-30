@@ -31,15 +31,9 @@ otel:
       arg: ${OTEL_TRACES_SAMPLER_ARG:1.0}
 #end::otel[]
 
-#tag::email[]
-email:
-  debug: ${EMAIL_DEBUG:true}
-#end::email[]
-
 #tag::logging[]
 logging:
   level:
     com.posadskiy.email: ${LOG_LEVEL_APP:DEBUG}
     io.micronaut: ${LOG_LEVEL_MICRONAUT:INFO}
-    org.springframework.mail: ${LOG_LEVEL_MAIL:DEBUG}
 #end::logging[]

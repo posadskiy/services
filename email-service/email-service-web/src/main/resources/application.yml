@@ -70,21 +70,6 @@ otel:
       arg: ${OTEL_TRACES_SAMPLER_ARG:1.0}
 #end::otel[]
 
-#tag::email[]
-email:
-  host: ${EMAIL_HOST:smtp.gmail.com}
-  port: ${EMAIL_PORT:587}
-  username: ${EMAIL_ADDRESS}
-  password: ${EMAIL_TOKEN}
-  protocol: ${EMAIL_PROTOCOL:smtp}
-  auth: ${EMAIL_AUTH:true}
-  starttls:
-    enable: ${EMAIL_STARTTLS_ENABLE:true}
-  connection-timeout: ${EMAIL_CONNECTION_TIMEOUT:30000}
-  timeout: ${EMAIL_TIMEOUT:60000}
-  write-timeout: ${EMAIL_WRITE_TIMEOUT:60000}
-#end::email[]
-
 resend:
   api-key: ${RESEND_API_KEY:}
   allowed-from: ${RESEND_ALLOWED_FROM}
@@ -97,6 +82,5 @@ logging:
     root: ${LOG_LEVEL_ROOT:INFO}
     com.posadskiy.email: ${LOG_LEVEL_APP:INFO}
     io.micronaut: ${LOG_LEVEL_MICRONAUT:INFO}
-    org.springframework.mail: ${LOG_LEVEL_MAIL:WARN}
 #end::logging[]
 

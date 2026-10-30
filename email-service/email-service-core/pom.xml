@@ -22,11 +22,6 @@
             <groupId>com.posadskiy.email</groupId>
             <artifactId>email-service-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.posadskiy.user</groupId>
-            <artifactId>user-service-api</artifactId>
-        </dependency>
-
         <!-- Logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -36,23 +31,8 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>7.4</version>
         </dependency>
         <!-- Logging -->
-
-        <!-- Java Mail -->
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-        </dependency>
-        <!-- Java Mail -->
-
-        <!-- Micronaut HTTP Client -->
-        <dependency>
-            <groupId>io.micronaut</groupId>
-            <artifactId>micronaut-http-client</artifactId>
-        </dependency>
-        <!-- Micronaut HTTP Client -->
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -95,19 +75,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <annotationProcessorPaths combine.children="append">
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
             </plugin>
         </plugins>
     </build>

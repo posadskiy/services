@@ -78,17 +78,6 @@ logging:
     io.micronaut: WARN
 #end::logging[] 
 
-email:
-  username: test@example.com
-  password: testpassword
-  protocol: smtp
-  host: smtp.example.com
-  port: 587
-  auth: true
-  starttls:
-    enable: true
-  debug: false
-
 resend:
   api-key: re_test
   allowed-from: alpha@example.com,beta@example.com

@@ -1,6 +1,7 @@
 package com.posadskiy.email.resend;
 
 import jakarta.inject.Singleton;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -16,7 +17,15 @@ public class JdkResendHttp implements ResendHttp {
     public JdkResendHttp(ResendProperties properties) {
         this.properties = properties;
         this.httpClient =
-                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
+            HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
+    }
+
+    static String excerpt(String body) {
+        if (body == null || body.isBlank()) {
+            return "";
+        }
+        String compact = body.replaceAll("\\s+", " ").trim();
+        return compact.length() <= 500 ? compact : compact.substring(0, 500);
     }
 
     @Override
@@ -25,21 +34,21 @@ public class JdkResendHttp implements ResendHttp {
             throw new EmailDeliveryException("RESEND_API_KEY is not set");
         }
         String base = properties.apiUrl().endsWith("/")
-                ? properties.apiUrl().substring(0, properties.apiUrl().length() - 1)
-                : properties.apiUrl();
+            ? properties.apiUrl().substring(0, properties.apiUrl().length() - 1)
+            : properties.apiUrl();
         HttpRequest request = HttpRequest.newBuilder(URI.create(base + "/emails"))
-                .timeout(Duration.ofSeconds(10))
-                .header("Authorization", "Bearer " + properties.apiKey())
-                .header("Content-Type", "application/json")
-                .header("Idempotency-Key", idempotencyKey)
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
+            .timeout(Duration.ofSeconds(10))
+            .header("Authorization", "Bearer " + properties.apiKey())
+            .header("Content-Type", "application/json")
+            .header("Idempotency-Key", idempotencyKey)
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .build();
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             int status = response.statusCode();
             if (status / 100 != 2) {
                 throw new EmailDeliveryException(
-                        "Resend rejected the message: " + status + " " + excerpt(response.body()));
+                    "Resend rejected the message: " + status + " " + excerpt(response.body()));
             }
             return status;
         } catch (EmailDeliveryException e) {
@@ -50,13 +59,5 @@ public class JdkResendHttp implements ResendHttp {
         } catch (Exception e) {
             throw new EmailDeliveryException("Resend request failed: " + e.getMessage(), e);
         }
-    }
-
-    static String excerpt(String body) {
-        if (body == null || body.isBlank()) {
-            return "";
-        }
-        String compact = body.replaceAll("\\s+", " ").trim();
-        return compact.length() <= 500 ? compact : compact.substring(0, 500);
     }
 }

@@ -26,8 +26,3 @@ otel:
     sampler:
       arg: "1.0"
 #end::otel[]
-
-#tag::email[]
-email:
-  debug: ${EMAIL_DEBUG:false}
-#end::email[]

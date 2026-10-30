@@ -10,12 +10,6 @@ data:
   AUTH_DATABASE_USER: "avnadmin"
   GITHUB_USERNAME: "posadskiy"
   JAEGER_ENDPOINT: "http://jaeger-collector.observability-stack:14268/api/traces"
-  EMAIL_HOST: "smtp.gmail.com"
-  EMAIL_PORT: "587"
-  EMAIL_PROTOCOL: "smtp"
-  EMAIL_AUTH: "true"
-  EMAIL_STARTTLS_ENABLE: "true"
-  EMAIL_DEBUG: "true"
   # Traefik publishes auth at /auth and strips that prefix. Google must be sent this exact base.
   OAUTH_REDIRECT_BASE_URL: "https://api.posadskiy.com/auth"
   # Exact return URLs for OAuth. The iOS app origin is capacitor://localhost.

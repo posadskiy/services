@@ -4,14 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.posadskiy.email.api.TransactionalEmailRequest;
 import jakarta.inject.Singleton;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Singleton
 public class ResendTransactionalSender {
@@ -23,60 +20,6 @@ public class ResendTransactionalSender {
     public ResendTransactionalSender(ResendProperties properties, ResendHttp http) {
         this.properties = properties;
         this.http = http;
-    }
-
-    public void send(TransactionalEmailRequest request) {
-        if (properties.apiKey() == null || properties.apiKey().isBlank()) {
-            throw new EmailDeliveryException("RESEND_API_KEY is not set");
-        }
-        if (!allowed(properties.allowedFrom()).contains(mailbox(request.from()))) {
-            throw new EmailDeliveryException("from address is not allowed");
-        }
-        String json = body(request);
-        int status;
-        try {
-            status = http.postEmails(json, request.idempotencyKey());
-        } catch (EmailDeliveryException e) {
-            throw e;
-        } catch (RuntimeException e) {
-            throw new EmailDeliveryException("Resend request failed: " + e, e);
-        }
-        if (status / 100 != 2) {
-            throw new EmailDeliveryException("Resend rejected the message: " + status);
-        }
-    }
-
-    private String body(TransactionalEmailRequest request) {
-        Object payload = rendered(request);
-        if (payload == null) {
-            payload = new Payload(
-                    request.from().trim(),
-                    List.of(request.to()),
-                    new Template(request.template(), request.variables()),
-                    List.of(new Tag("category", request.category())));
-        }
-        try {
-            return objectMapper.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            throw new EmailDeliveryException("Resend request could not be encoded", e);
-        }
-    }
-
-    private HtmlMail rendered(TransactionalEmailRequest request) {
-        String html = template(request.template());
-        if (html == null) {
-            return null;
-        }
-        for (Map.Entry<String, String> entry : request.variables().entrySet()) {
-            html = html.replace("{{{" + entry.getKey() + "}}}", escape(entry.getValue()));
-        }
-        return new HtmlMail(
-                request.from().trim(),
-                List.of(request.to()),
-                subject(request.template()),
-                html,
-                text(request),
-                List.of(new Tag("category", request.category())));
     }
 
     private static String template(String name) {
@@ -107,14 +50,12 @@ public class ResendTransactionalSender {
     private static String text(TransactionalEmailRequest request) {
         String url = request.variables().getOrDefault(urlKey(request.template()), "");
         return switch (request.template()) {
-            case "password-reset" ->
-                    "We received a request to reset your password.\n\n" + url
-                            + "\n\nThis link expires in 1 hour. If you did not ask for a reset, you can ignore this message.\n";
-            case "verify-email", "change-email" ->
-                    "Confirm your email address.\n\n" + url
-                            + "\n\nThis link expires in 24 hours. If you did not ask for this, you can ignore this message.\n";
+            case "password-reset" -> "We received a request to reset your password.\n\n" + url
+                + "\n\nThis link expires in 1 hour. If you did not ask for a reset, you can ignore this message.\n";
+            case "verify-email", "change-email" -> "Confirm your email address.\n\n" + url
+                + "\n\nThis link expires in 24 hours. If you did not ask for this, you can ignore this message.\n";
             case "new-login" ->
-                    "A new sign-in used " + request.variables().getOrDefault("DEVICE", "a new device") + ".\n";
+                "A new sign-in used " + request.variables().getOrDefault("DEVICE", "a new device") + ".\n";
             default -> url;
         };
     }
@@ -128,9 +69,9 @@ public class ResendTransactionalSender {
             return "";
         }
         return value.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;");
     }
 
     private static Set<String> allowed(String raw) {
@@ -164,12 +105,69 @@ public class ResendTransactionalSender {
         return address;
     }
 
-    private record HtmlMail(
-            String from, List<String> to, String subject, String html, String text, List<Tag> tags) {}
+    public void send(TransactionalEmailRequest request) {
+        if (properties.apiKey() == null || properties.apiKey().isBlank()) {
+            throw new EmailDeliveryException("RESEND_API_KEY is not set");
+        }
+        if (!allowed(properties.allowedFrom()).contains(mailbox(request.from()))) {
+            throw new EmailDeliveryException("from address is not allowed");
+        }
+        String json = body(request);
+        int status;
+        try {
+            status = http.postEmails(json, request.idempotencyKey());
+        } catch (EmailDeliveryException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new EmailDeliveryException("Resend request failed: " + e, e);
+        }
+        if (status / 100 != 2) {
+            throw new EmailDeliveryException("Resend rejected the message: " + status);
+        }
+    }
 
-    private record Payload(String from, List<String> to, Template template, List<Tag> tags) {}
+    private String body(TransactionalEmailRequest request) {
+        Object payload = rendered(request);
+        if (payload == null) {
+            payload = new Payload(
+                request.from().trim(),
+                List.of(request.to()),
+                new Template(request.template(), request.variables()),
+                List.of(new Tag("category", request.category())));
+        }
+        try {
+            return objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            throw new EmailDeliveryException("Resend request could not be encoded", e);
+        }
+    }
 
-    private record Template(String id, Map<String, String> variables) {}
+    private HtmlMail rendered(TransactionalEmailRequest request) {
+        String html = template(request.template());
+        if (html == null) {
+            return null;
+        }
+        for (Map.Entry<String, String> entry : request.variables().entrySet()) {
+            html = html.replace("{{{" + entry.getKey() + "}}}", escape(entry.getValue()));
+        }
+        return new HtmlMail(
+            request.from().trim(),
+            List.of(request.to()),
+            subject(request.template()),
+            html,
+            text(request),
+            List.of(new Tag("category", request.category())));
+    }
 
-    private record Tag(String name, String value) {}
+    private record HtmlMail(String from, List<String> to, String subject, String html, String text, List<Tag> tags) {
+    }
+
+    private record Payload(String from, List<String> to, Template template, List<Tag> tags) {
+    }
+
+    private record Template(String id, Map<String, String> variables) {
+    }
+
+    private record Tag(String name, String value) {
+    }
 }

@@ -37,7 +37,7 @@ AUTH_DATABASE_PASSWORD=
 JWT_GENERATOR_SIGNATURE_SECRET=
 ```
 
-`GITHUB_USERNAME` and `GITHUB_TOKEN` are build args for email-template only. OAuth client variables and `DEV_EMAIL_ADDRESS` / `DEV_EMAIL_TOKEN` are optional. Auth and email also need `AUTH_EMAIL_FROM_GRAMMARBAR`, `AUTH_EMAIL_FROM_POSADSKIY`, `RESEND_API_KEY`, and `RESEND_ALLOWED_FROM`. Email-template starts only with the `email` profile. The email image compiles `user-service-api` from this repository.
+`GITHUB_USERNAME` and `GITHUB_TOKEN` are build args for email-template only. OAuth client variables are optional. Auth and email also need `AUTH_EMAIL_FROM_GRAMMARBAR`, `AUTH_EMAIL_FROM_POSADSKIY`, `RESEND_API_KEY`, and `RESEND_ALLOWED_FROM`. Email-template starts only with the `email` profile.
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d

@@ -1,13 +1,10 @@
 # === Stage 1: Build the application ===
-# Build context is the repository root so user-service-api is compiled here.
 FROM maven:3.9.12-amazoncorretto-25-alpine AS build
 WORKDIR /app
 
-COPY user-service/ user-service/
 COPY email-service/ email-service/
 
 RUN --mount=type=cache,target=/root/.m2 \
-    mvn -f user-service/pom.xml -B install -pl user-service-api -am -DskipTests && \
     mvn -f email-service/pom.xml -B clean install -pl email-service-web -am -DskipTests
 
 # === Stage 2: Create the runtime image ===

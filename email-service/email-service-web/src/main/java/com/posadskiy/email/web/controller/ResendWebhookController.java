@@ -16,11 +16,12 @@ import io.micronaut.scheduling.TaskExecutors;
 import io.micronaut.scheduling.annotation.ExecuteOn;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Controller("/email/webhooks")
 @ExecuteOn(TaskExecutors.BLOCKING)
@@ -33,6 +34,12 @@ public class ResendWebhookController {
 
     public ResendWebhookController(ResendProperties properties) {
         this.properties = properties;
+    }
+
+    private static void header(Map<String, List<String>> headers, String name, String value) {
+        if (value != null) {
+            headers.put(name, List.of(value));
+        }
     }
 
     @Post("/resend")
@@ -54,7 +61,7 @@ public class ResendWebhookController {
     }
 
     private void verify(String payload, HttpRequest<?> request)
-            throws WebhookVerificationException, EmptyWebhookSecretException {
+        throws WebhookVerificationException, EmptyWebhookSecretException {
         String secret = properties.webhookSecret();
         if (secret == null || secret.isBlank()) {
             throw new WebhookVerificationException("Missing webhook signature");
@@ -64,12 +71,6 @@ public class ResendWebhookController {
         header(headers, "svix-timestamp", request.getHeaders().get("svix-timestamp"));
         header(headers, "svix-signature", request.getHeaders().get("svix-signature"));
         new Webhook(secret).verify(payload, headers);
-    }
-
-    private static void header(Map<String, List<String>> headers, String name, String value) {
-        if (value != null) {
-            headers.put(name, List.of(value));
-        }
     }
 
     private String eventType(String payload) {

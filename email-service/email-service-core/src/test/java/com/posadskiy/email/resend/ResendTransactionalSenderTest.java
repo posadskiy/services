@@ -1,10 +1,11 @@
 package com.posadskiy.email.resend;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.posadskiy.email.api.TransactionalEmailRequest;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class ResendTransactionalSenderTest {
 
@@ -12,20 +13,16 @@ class ResendTransactionalSenderTest {
     void postsATemplatePayloadWithTheIdempotencyKey() {
         Captured captured = new Captured();
         ResendTransactionalSender sender = new ResendTransactionalSender(
-                new ResendProperties(
-                        "re_test",
-                        "alpha@example.com,beta@example.com",
-                        "https://api.resend.com",
-                        null),
-                captured);
+            new ResendProperties("re_test", "alpha@example.com,beta@example.com", "https://api.resend.com", null),
+            captured);
 
         sender.send(new TransactionalEmailRequest(
-                "Alpha <alpha@example.com>",
-                "person@example.com",
-                "verify-email",
-                Map.of("VERIFY_URL", "https://grammarbar.com/verify-email?token=abc"),
-                "verify-email/1/2",
-                "verify_email"));
+            "Alpha <alpha@example.com>",
+            "person@example.com",
+            "verify-email",
+            Map.of("VERIFY_URL", "https://grammarbar.com/verify-email?token=abc"),
+            "verify-email/1/2",
+            "verify_email"));
 
         assertEquals("verify-email/1/2", captured.key);
         assertTrue(captured.json.contains("\"from\":\"Alpha <alpha@example.com>\""));
@@ -39,49 +36,49 @@ class ResendTransactionalSenderTest {
     @Test
     void rejectsAMissingAllowlistBeforeCallingResend() {
         ResendTransactionalSender sender = new ResendTransactionalSender(
-                new ResendProperties("re_test", "  ", "https://api.resend.com", null), (json, key) -> 200);
+            new ResendProperties("re_test", "  ", "https://api.resend.com", null), (json, key) -> 200);
         EmailDeliveryException ex = assertThrows(
-                EmailDeliveryException.class,
-                () -> sender.send(new TransactionalEmailRequest(
-                        "Alpha <alpha@example.com>",
-                        "person@example.com",
-                        "verify-email",
-                        Map.of("VERIFY_URL", "https://example.com"),
-                        "k",
-                        "verify_email")));
+            EmailDeliveryException.class,
+            () -> sender.send(new TransactionalEmailRequest(
+                "Alpha <alpha@example.com>",
+                "person@example.com",
+                "verify-email",
+                Map.of("VERIFY_URL", "https://example.com"),
+                "k",
+                "verify_email")));
         assertEquals("RESEND_ALLOWED_FROM is not set", ex.getMessage());
     }
 
     @Test
     void rejectsAFromAddressThatIsNotOnTheAllowlist() {
         ResendTransactionalSender sender = new ResendTransactionalSender(
-                new ResendProperties("re_test", "beta@example.com", "https://api.resend.com", null),
-                (json, key) -> 200);
+            new ResendProperties("re_test", "beta@example.com", "https://api.resend.com", null),
+            (json, key) -> 200);
         EmailDeliveryException ex = assertThrows(
-                EmailDeliveryException.class,
-                () -> sender.send(new TransactionalEmailRequest(
-                        "Alpha <alpha@example.com>",
-                        "person@example.com",
-                        "verify-email",
-                        Map.of("VERIFY_URL", "https://example.com"),
-                        "k",
-                        "verify_email")));
+            EmailDeliveryException.class,
+            () -> sender.send(new TransactionalEmailRequest(
+                "Alpha <alpha@example.com>",
+                "person@example.com",
+                "verify-email",
+                Map.of("VERIFY_URL", "https://example.com"),
+                "k",
+                "verify_email")));
         assertEquals("from address is not allowed", ex.getMessage());
     }
 
     @Test
     void rejectsAMissingApiKeyBeforeCallingResend() {
         ResendTransactionalSender sender = new ResendTransactionalSender(
-                new ResendProperties("", "from@example.com", "https://api.resend.com", null), (json, key) -> 200);
+            new ResendProperties("", "from@example.com", "https://api.resend.com", null), (json, key) -> 200);
         assertThrows(
-                EmailDeliveryException.class,
-                () -> sender.send(new TransactionalEmailRequest(
-                        "Beta <beta@example.com>",
-                        "person@example.com",
-                        "verify-email",
-                        Map.of("VERIFY_URL", "https://example.com"),
-                        "k",
-                        "verify_email")));
+            EmailDeliveryException.class,
+            () -> sender.send(new TransactionalEmailRequest(
+                "Beta <beta@example.com>",
+                "person@example.com",
+                "verify-email",
+                Map.of("VERIFY_URL", "https://example.com"),
+                "k",
+                "verify_email")));
     }
 
     private static final class Captured implements ResendHttp {

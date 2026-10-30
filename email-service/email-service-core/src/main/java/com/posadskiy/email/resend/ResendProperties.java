@@ -5,4 +5,8 @@ import io.micronaut.core.annotation.Nullable;
 
 @ConfigurationProperties("resend")
 public record ResendProperties(
-        @Nullable String apiKey, @Nullable String allowedFrom, String apiUrl, @Nullable String webhookSecret) {}
+    @Nullable String apiKey,
+    @Nullable String allowedFrom,
+    String apiUrl,
+    @Nullable String webhookSecret) {
+}

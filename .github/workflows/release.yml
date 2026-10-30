@@ -86,11 +86,6 @@ jobs:
             exit 1
           fi
 
-      - name: Install local user-service-api
-        if: steps.release.outputs.service == 'email-service'
-        working-directory: user-service
-        run: mvn -B install -pl user-service-api -am -DskipTests
-
       - name: Test
         working-directory: ${{ steps.release.outputs.service }}
         run: mvn -B install
