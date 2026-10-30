@@ -13,7 +13,7 @@ class PasswordEncoderTest {
 
         assertNotNull(encodedPassword);
         assertNotEquals(rawPassword, encodedPassword);
-        assertTrue(encodedPassword.startsWith("$2a$16$"));
+        assertTrue(encodedPassword.startsWith("$2a$10$"));
     }
 
     @Test
@@ -31,7 +31,7 @@ class PasswordEncoderTest {
 
         assertNotNull(encodedPassword);
         assertNotEquals("", encodedPassword);
-        assertTrue(encodedPassword.startsWith("$2a$16$"));
+        assertTrue(encodedPassword.startsWith("$2a$10$"));
     }
 
     @Test
@@ -41,6 +41,6 @@ class PasswordEncoderTest {
 
     @Test
     void testPasswordStrength() {
-        assertEquals(16, PasswordEncoder.PASSWORD_STRENGTH);
+        assertEquals(10, PasswordEncoder.PASSWORD_STRENGTH);
     }
 }

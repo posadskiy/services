@@ -5,7 +5,7 @@ import jakarta.inject.Singleton;
 
 @Singleton
 public class PasswordEncoder {
-    public static final int PASSWORD_STRENGTH = 16;
+    public static final int PASSWORD_STRENGTH = 10;
 
     public static String encode(String rawPassword) {
         if (rawPassword == null) {
