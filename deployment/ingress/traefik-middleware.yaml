@@ -9,6 +9,7 @@ spec:
       - GET
       - POST
       - PUT
+      - PATCH
       - DELETE
       - OPTIONS
     accessControlAllowHeaders:
@@ -29,6 +30,8 @@ spec:
       - https://costy.posadskiy.com
       - https://grammarbar.com
       - https://grammarbar.posadskiy.com
+      # iOS app (Capacitor)
+      - capacitor://localhost
     accessControlMaxAge: 1728000
     customRequestHeaders:
       X-Forwarded-Proto: https
