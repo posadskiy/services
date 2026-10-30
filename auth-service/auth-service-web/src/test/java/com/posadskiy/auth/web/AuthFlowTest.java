@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -560,5 +562,50 @@ class AuthFlowTest extends PostgresMicronautTest {
                 HttpRequest.POST("/login", new LoginRequest("victim-unverified@example.com", "correcthorse")),
                 TokenResponse.class);
         assertNotNull(tokens.accessToken());
+    }
+
+    @Test
+    void sessionsPasswordChangeExportAndErase() {
+        mailer.clear();
+        client.toBlocking()
+            .retrieve(
+                HttpRequest.POST(
+                    "/signup",
+                    new RegisterRequest("security@example.com", "correcthorse", "http://localhost:3000")),
+                UserResponse.class);
+        confirmLatest("http://localhost:3000");
+        TokenResponse tokens = client.toBlocking()
+            .retrieve(
+                HttpRequest.POST(
+                    "/login",
+                    new LoginRequest("security@example.com", "correcthorse", "http://localhost:3000")),
+                TokenResponse.class);
+
+        List<SessionResponse> sessions = List.of(client.toBlocking()
+            .retrieve(
+                HttpRequest.GET("/account/sessions").bearerAuth(tokens.accessToken()),
+                SessionResponse[].class));
+        assertFalse(sessions.isEmpty());
+
+        client.toBlocking()
+            .exchange(HttpRequest.POST(
+                    "/account/password",
+                    new ChangePasswordRequest("correcthorse", "correcthorse2"))
+                .bearerAuth(tokens.accessToken()));
+
+        Map<?, ?> exported = client.toBlocking()
+            .retrieve(HttpRequest.GET("/account/export").bearerAuth(tokens.accessToken()), Map.class);
+        assertEquals("security@example.com", exported.get("email"));
+
+        client.toBlocking()
+            .exchange(HttpRequest.POST("/account/erase", new EraseAccountRequest("correcthorse2", "DELETE"))
+                .bearerAuth(tokens.accessToken()));
+
+        HttpClientResponseException gone = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking()
+                .retrieve(HttpRequest.POST(
+                    "/login", new LoginRequest("security@example.com", "correcthorse2", "http://localhost:3000"))));
+        assertEquals(HttpStatus.UNAUTHORIZED, gone.getStatus());
     }
 }

@@ -5,6 +5,7 @@ import com.posadskiy.auth.core.exception.AuthException;
 import com.posadskiy.auth.core.service.*;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import com.posadskiy.auth.web.ClientAddresses;
+import com.posadskiy.auth.web.ClientContextFactory;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -30,6 +31,7 @@ public class AuthController {
     private final AuthMetrics metrics;
     private final AuditService auditService;
     private final AccountMailService accountMailService;
+    private final CaptchaVerifier captchaVerifier;
 
     public AuthController(
         UserAccountService userAccountService,
@@ -37,13 +39,15 @@ public class AuthController {
         LoginRateLimiter rateLimiter,
         AuthMetrics metrics,
         AuditService auditService,
-        AccountMailService accountMailService) {
+        AccountMailService accountMailService,
+        CaptchaVerifier captchaVerifier) {
         this.userAccountService = userAccountService;
         this.tokenService = tokenService;
         this.rateLimiter = rateLimiter;
         this.metrics = metrics;
         this.auditService = auditService;
         this.accountMailService = accountMailService;
+        this.captchaVerifier = captchaVerifier;
     }
 
     private static String clientKey(HttpRequest<?> request) {
@@ -55,12 +59,12 @@ public class AuthController {
             UserResponse.idOf(user.id()), user.email(), user.emailVerified(), user.pictureUrl(), user.roleList());
     }
 
-    private TokenResponse passwordSession(UserEntity user, String linkOrigin) {
+    private TokenResponse passwordSession(UserEntity user, String linkOrigin, HttpRequest<?> httpRequest) {
         if (!user.emailVerified()) {
             resendVerification(user, linkOrigin);
             throw new AuthException("Confirm your email before signing in", 403);
         }
-        return tokenService.issueForUser(user, "password", null);
+        return tokenService.issueForUser(user, "password", null, ClientContextFactory.from(httpRequest, linkOrigin));
     }
 
     private void resendVerification(UserEntity user, String linkOrigin) {
@@ -77,6 +81,7 @@ public class AuthController {
     @Post(uris = {"/users", "/signup"})
     @Secured(SecurityRule.IS_ANONYMOUS)
     public HttpResponse<UserResponse> register(@Body @Valid RegisterRequest request, HttpRequest<?> httpRequest) {
+        captchaVerifier.verify(request.captchaToken(), clientKey(httpRequest));
         rateLimiter.check(clientKey(httpRequest) + "|register|" + request.email());
         accountMailService.checkOrigin(request.linkOrigin());
         UserEntity user = userAccountService.register(request.email(), request.password());
@@ -90,7 +95,7 @@ public class AuthController {
         rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
         try {
             UserEntity user = userAccountService.authenticate(request.email(), request.password());
-            TokenResponse tokens = passwordSession(user, request.linkOrigin());
+            TokenResponse tokens = passwordSession(user, request.linkOrigin(), httpRequest);
             metrics.loginSuccess("password");
             auditService.record(user.id(), "LOGIN_SUCCESS", "password");
             return tokens;
@@ -141,7 +146,7 @@ public class AuthController {
             case "password" -> {
                 rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
                 UserEntity user = userAccountService.authenticate(request.email(), request.password());
-                TokenResponse tokens = passwordSession(user, null);
+                TokenResponse tokens = passwordSession(user, null, httpRequest);
                 metrics.loginSuccess("password");
                 yield tokens;
             }

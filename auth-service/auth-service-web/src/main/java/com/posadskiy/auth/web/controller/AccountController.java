@@ -3,6 +3,7 @@ package com.posadskiy.auth.web.controller;
 import com.posadskiy.auth.api.dto.*;
 import com.posadskiy.auth.core.crypto.EmailNormalizer;
 import com.posadskiy.auth.core.service.AccountMailService;
+import com.posadskiy.auth.core.service.CaptchaVerifier;
 import com.posadskiy.auth.core.service.LoginRateLimiter;
 import com.posadskiy.auth.core.service.TokenService;
 import com.posadskiy.auth.core.service.UserAccountService;
@@ -30,18 +31,21 @@ public class AccountController {
     private final AccountMailService accountMailService;
     private final LoginRateLimiter rateLimiter;
     private final SecurityService securityService;
+    private final CaptchaVerifier captchaVerifier;
 
     public AccountController(
         UserAccountService userAccountService,
         TokenService tokenService,
         AccountMailService accountMailService,
         LoginRateLimiter rateLimiter,
-        SecurityService securityService) {
+        SecurityService securityService,
+        CaptchaVerifier captchaVerifier) {
         this.userAccountService = userAccountService;
         this.tokenService = tokenService;
         this.accountMailService = accountMailService;
         this.rateLimiter = rateLimiter;
         this.securityService = securityService;
+        this.captchaVerifier = captchaVerifier;
     }
 
     private static String clientKey(HttpRequest<?> request) {
@@ -84,6 +88,7 @@ public class AccountController {
     @Secured(SecurityRule.IS_ANONYMOUS)
     public HttpResponse<Void> forgotPassword(@Body @Valid ForgotPasswordRequest request, HttpRequest<?> httpRequest) {
         String email = EmailNormalizer.normalize(request.email());
+        captchaVerifier.verify(request.captchaToken(), clientKey(httpRequest));
         rateLimiter.check(clientKey(httpRequest) + "|forgot|" + email);
         accountMailService.sendPasswordReset(request.email(), request.linkOrigin());
         return HttpResponse.noContent();
