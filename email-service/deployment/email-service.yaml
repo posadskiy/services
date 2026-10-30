@@ -62,6 +62,8 @@ spec:
                 secretKeyRef:
                   name: microservices-secrets
                   key: RESEND_ALLOWED_FROM
+            - name: EMAIL_ALLOWED_LINK_ORIGINS
+              value: "https://grammarbar.com,https://costy.posadskiy.com,https://repeaty.posadskiy.com"
             - name: OTEL_SERVICE_NAME
               value: "email-service"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT

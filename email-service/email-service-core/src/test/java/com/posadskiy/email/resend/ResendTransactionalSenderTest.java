@@ -81,6 +81,47 @@ class ResendTransactionalSenderTest {
                 "verify_email")));
     }
 
+    private static ResendTransactionalSender restricted(Captured captured) {
+        return new ResendTransactionalSender(
+            new ResendProperties("re_test", "alpha@example.com", "https://api.resend.com", null),
+            captured,
+            "https://grammarbar.com, https://costy.posadskiy.com/");
+    }
+
+    private static TransactionalEmailRequest linkTo(String url) {
+        return new TransactionalEmailRequest(
+            "Alpha <alpha@example.com>",
+            "person@example.com",
+            "verify-email",
+            Map.of("VERIFY_URL", url),
+            "k",
+            "verify_email");
+    }
+
+    @Test
+    void sendsALinkOnAnAllowedOrigin() {
+        Captured captured = new Captured();
+        restricted(captured).send(linkTo("https://costy.posadskiy.com/verify-email?token=abc"));
+        assertNotNull(captured.json);
+    }
+
+    @Test
+    void refusesALinkOnAnotherOriginBeforeCallingResend() {
+        Captured captured = new Captured();
+        ResendTransactionalSender sender = restricted(captured);
+        for (String url : new String[] {
+            "https://evil.example/verify-email?token=abc",
+            "https://grammarbar.com.evil.example/verify-email",
+            "http://grammarbar.com/verify-email",
+            "https://grammarbar.com:8443/verify-email",
+            "//grammarbar.com/verify-email",
+            "not a url"
+        }) {
+            assertThrows(LinkNotAllowedException.class, () -> sender.send(linkTo(url)), url);
+        }
+        assertNull(captured.json);
+    }
+
     private static final class Captured implements ResendHttp {
         String json;
         String key;

@@ -158,6 +158,20 @@ class AuthFlowTest extends PostgresMicronautTest {
     }
 
     @Test
+    void clientCredentialsAreRefusedWhenTheRequestCameThroughIngress() {
+        HttpClientResponseException error = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking()
+                .retrieve(
+                    HttpRequest.POST(
+                            "/oauth/token",
+                            new RefreshRequest("client_credentials", null, "system", "system-secret", null, null))
+                        .header("X-Forwarded-For", "203.0.113.9"),
+                    TokenResponse.class));
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatus());
+    }
+
+    @Test
     void accountIdIsAStringAndMatchesTheAccessTokenSubject() {
         String createdJson = client.toBlocking()
             .retrieve(

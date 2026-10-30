@@ -3,10 +3,13 @@ package com.posadskiy.email.resend;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.posadskiy.email.api.TransactionalEmailRequest;
+import io.micronaut.context.annotation.Value;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -17,10 +20,63 @@ public class ResendTransactionalSender {
     private final ResendHttp http;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public ResendTransactionalSender(ResendProperties properties, ResendHttp http) {
+    private final Set<String> allowedLinkOrigins;
+
+    @Inject
+    public ResendTransactionalSender(
+        ResendProperties properties, ResendHttp http, @Value("${email.allowed-link-origins:}") String allowedLinkOrigins) {
         this.properties = properties;
         this.http = http;
+        this.allowedLinkOrigins = origins(allowedLinkOrigins);
     }
+
+    public ResendTransactionalSender(ResendProperties properties, ResendHttp http) {
+        this(properties, http, "");
+    }
+
+    private static Set<String> origins(String raw) {
+        LinkedHashSet<String> origins = new LinkedHashSet<>();
+        if (raw != null) {
+            for (String part : raw.split(",")) {
+                String value = part.trim().toLowerCase(Locale.ROOT);
+                if (!value.isEmpty()) {
+                    origins.add(value.endsWith("/") ? value.substring(0, value.length() - 1) : value);
+                }
+            }
+        }
+        return origins;
+    }
+
+    /**
+     * A caller holding a service token must not be able to put an arbitrary link in a message sent from our domain.
+     * With no origins configured (local development) the check is off; production refuses to start without them.
+     */
+    private void checkLinks(TransactionalEmailRequest request) {
+        if (allowedLinkOrigins.isEmpty()) {
+            return;
+        }
+        for (String key : LINK_KEYS) {
+            String url = request.variables().get(key);
+            if (url != null && !allowedLinkOrigins.contains(origin(url))) {
+                throw new LinkNotAllowedException("link origin is not allowed");
+            }
+        }
+    }
+
+    private static String origin(String url) {
+        try {
+            URI uri = new URI(url.trim());
+            if (uri.getScheme() == null || uri.getHost() == null) {
+                return "";
+            }
+            String origin = uri.getScheme().toLowerCase(Locale.ROOT) + "://" + uri.getHost().toLowerCase(Locale.ROOT);
+            return uri.getPort() < 0 ? origin : origin + ":" + uri.getPort();
+        } catch (java.net.URISyntaxException e) {
+            return "";
+        }
+    }
+
+    private static final List<String> LINK_KEYS = List.of("VERIFY_URL", "RESET_URL");
 
     private static String template(String name) {
         if (name == null || !name.matches("[a-z0-9-]+")) {
@@ -112,6 +168,7 @@ public class ResendTransactionalSender {
         if (!allowed(properties.allowedFrom()).contains(mailbox(request.from()))) {
             throw new EmailDeliveryException("from address is not allowed");
         }
+        checkLinks(request);
         String json = body(request);
         int status;
         try {

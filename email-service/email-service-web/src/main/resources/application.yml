@@ -70,6 +70,9 @@ otel:
       arg: ${OTEL_TRACES_SAMPLER_ARG:1.0}
 #end::otel[]
 
+email:
+  allowed-link-origins: ${EMAIL_ALLOWED_LINK_ORIGINS:}
+
 resend:
   api-key: ${RESEND_API_KEY:}
   allowed-from: ${RESEND_ALLOWED_FROM}

@@ -78,7 +78,11 @@ from HTML in this service, then sent through Resend. Auth-service calls this for
 RESEND_API_KEY=re_...
 RESEND_ALLOWED_FROM=noreply@mail.grammarbar.com,noreply@mail.posadskiy.com
 RESEND_WEBHOOK_SECRET=whsec_...
+EMAIL_ALLOWED_LINK_ORIGINS=https://grammarbar.com,https://costy.posadskiy.com,https://repeaty.posadskiy.com
 ```
+
+`EMAIL_ALLOWED_LINK_ORIGINS` limits `VERIFY_URL` and `RESET_URL` to those origins (scheme, host and port must match
+exactly); anything else is answered with 400. It is required in production and optional in development.
 
 `RESEND_API_KEY` and `RESEND_ALLOWED_FROM` are required. `RESEND_ALLOWED_FROM` is the comma-separated list of mailbox
 addresses the caller may use. Auth-service sends the full From header, and this service rejects any address that is not

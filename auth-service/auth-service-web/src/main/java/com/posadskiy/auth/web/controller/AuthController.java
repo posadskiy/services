@@ -54,6 +54,15 @@ public class AuthController {
         return ClientAddresses.key(request);
     }
 
+    /**
+     * Traefik adds {@code X-Forwarded-For} to everything it forwards; pods calling the service directly do not.
+     */
+    static boolean viaIngress(HttpRequest<?> request) {
+        return request.getHeaders().get("X-Forwarded-For") != null
+            || request.getHeaders().get("Forwarded") != null
+            || request.getHeaders().get("X-Real-Ip") != null;
+    }
+
     static UserResponse toResponse(UserEntity user) {
         return new UserResponse(
             UserResponse.idOf(user.id()), user.email(), user.emailVerified(), user.pictureUrl(), user.roleList());
@@ -140,6 +149,10 @@ public class AuthController {
                 yield tokenService.refresh(request.refreshToken());
             }
             case "client_credentials" -> {
+                if (viaIngress(httpRequest)) {
+                    // Machine clients live inside the cluster. A proxy header means the request came from outside.
+                    throw new AuthException("Unsupported grant_type");
+                }
                 rateLimiter.check(clientKey(httpRequest) + "|client|" + request.clientId());
                 yield tokenService.clientCredentials(request.clientId(), request.clientSecret());
             }

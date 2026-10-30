@@ -2,6 +2,7 @@ package com.posadskiy.email.web.controller;
 
 import com.posadskiy.email.api.TransactionalEmailRequest;
 import com.posadskiy.email.resend.EmailDeliveryException;
+import com.posadskiy.email.resend.LinkNotAllowedException;
 import com.posadskiy.email.resend.ResendTransactionalSender;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -32,6 +33,9 @@ public class TransactionalEmailController {
     public HttpResponse<Void> send(@Body @Valid TransactionalEmailRequest request) {
         try {
             sender.send(request);
+        } catch (LinkNotAllowedException e) {
+            LOG.warn("transactional email refused template={} reason={}", request.template(), e.getMessage());
+            return HttpResponse.status(HttpStatus.BAD_REQUEST);
         } catch (EmailDeliveryException e) {
             LOG.warn("transactional email rejected template={} reason={}", request.template(), e.getMessage());
             return HttpResponse.status(HttpStatus.BAD_GATEWAY);

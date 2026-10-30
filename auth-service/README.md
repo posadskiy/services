@@ -22,9 +22,10 @@ number of seconds. The database id stays a number.
 
 Access tokens last **15 minutes**. Refresh tokens are opaque, stored as SHA-256 hashes, rotated on use, and expire after
 30 days. Reuse of a rotated refresh token revokes the whole family.
-
 The `system` password backdoor is gone. Machine clients use `grant_type=client_credentials` (`SYSTEM_CLIENT_ID` /
-`SYSTEM_CLIENT_SECRET`).
+`SYSTEM_CLIENT_SECRET`). `client_credentials` is for pods inside the cluster only: a request carrying `X-Forwarded-For`,
+`Forwarded` or `X-Real-Ip` (anything that came through Traefik) is refused. In production the secret must be at least 32
+characters or the service does not start.
 
 ## Login latency
 
