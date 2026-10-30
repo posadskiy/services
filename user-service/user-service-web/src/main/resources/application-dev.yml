@@ -19,8 +19,6 @@ micronaut:
         access: isAnonymous()
       - pattern: /health
         access: isAnonymous()
-      - pattern: /signup
-        access: isAnonymous()
     token:
       jwt:
         signatures:

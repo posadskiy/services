@@ -59,11 +59,11 @@ public class UserService {
     public User getUserById(Long id) {
         var entity = userRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
+            .orElseThrow(() -> new AuthException("User with id " + id + " not found", 404));
 
         // Check if user is active
         if (!entity.active()) {
-            throw new AuthException("User account has been deactivated");
+            throw new AuthException("User account has been deactivated", 403);
         }
 
         User baseUser = userEntityMapper.mapFromEntity(entity);
@@ -96,7 +96,7 @@ public class UserService {
     public void deleteUser(Long id) {
         UserEntity existingEntity = userRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
+            .orElseThrow(() -> new AuthException("User with id " + id + " not found", 404));
 
         String normalized = existingEntity.emailNormalized();
         if (normalized != null && !normalized.endsWith("@deleted.local")) {
@@ -114,9 +114,9 @@ public class UserService {
     public User updateProfile(Long id, String displayName, String locale, String timeZone, String avatarUrl) {
         UserEntity entity = userRepository
             .findById(id)
-            .orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
+            .orElseThrow(() -> new AuthException("User with id " + id + " not found", 404));
         if (!entity.active()) {
-            throw new AuthException("User account has been deactivated");
+            throw new AuthException("User account has been deactivated", 403);
         }
         UserEntity updated = userRepository.update(
             entity.withProfile(blank(displayName, 120), blank(locale, 35), blank(timeZone, 64), avatar(avatarUrl)));

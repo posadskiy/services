@@ -17,8 +17,6 @@ micronaut:
     intercept-url-map:
       - pattern: /health
         access: isAnonymous()
-      - pattern: /signup
-        access: isAnonymous()
     token:
       jwt:
         signatures:

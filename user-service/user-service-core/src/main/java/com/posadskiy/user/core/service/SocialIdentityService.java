@@ -36,9 +36,15 @@ public class SocialIdentityService {
     public SocialIdentityDto linkIdentity(Long userId, LinkSocialIdentityRequest request) {
         UserEntity user = usersRepository
             .findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+            .orElseThrow(() -> new AuthException("User not found", 404));
 
         LocalDateTime now = LocalDateTime.now();
+        externalIdentityRepository
+            .findByProviderAndProviderUserId(request.provider(), request.providerUserId())
+            .filter(existing -> !user.id().equals(existing.userId()))
+            .ifPresent(existing -> {
+                throw new AuthException("That identity is already linked to another account", 409);
+            });
         ExternalIdentityEntity entity = externalIdentityRepository
             .findByProviderAndProviderUserId(request.provider(), request.providerUserId())
             .map(existing -> existing.refreshed(
@@ -69,7 +75,7 @@ public class SocialIdentityService {
     public void unlinkIdentity(Long userId, String provider) {
         UserEntity user = usersRepository
             .findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+            .orElseThrow(() -> new AuthException("User not found", 404));
         List<ExternalIdentityEntity> identities = externalIdentityRepository.findByUserId(userId);
         long others = identities.stream()
             .filter(identity -> !identity.revoked())

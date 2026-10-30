@@ -8,10 +8,13 @@ import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.security.annotation.Secured;
-import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.tracing.annotation.NewSpan;
 
-@Secured(SecurityRule.IS_ANONYMOUS)
+/**
+ * Account creation belongs to auth-service (captcha, password policy, email verification).
+ * This endpoint is for trusted service callers only and never marks an email as verified.
+ */
+@Secured("ROLE_SERVICE")
 @Controller
 public class RegistrationController {
 

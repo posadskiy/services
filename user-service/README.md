@@ -1,291 +1,64 @@
 # User Service
 
-A Micronaut-based user management service with comprehensive user registration, authentication, and profile management
-capabilities.
+Profile, per-product preferences and account lookups for the Posadskiy products. Port **8095**.
 
-## 🚀 Features
+Authentication, registration, password and OAuth flows belong to [auth-service](../auth-service). This service
+validates the access tokens that auth-service issues and never issues tokens itself.
 
-- **User Registration & Management**: Complete user lifecycle management
-- **JWT-based Authentication**: Secure token-based authentication
-- **Password Security**: Secure password hashing and validation
-- **User Profile Management**: User data CRUD operations
-- **Social Identity Linking**: Attach/detach external OAuth providers to user profiles
-- **PostgreSQL Database**: Persistent storage with Flyway migrations
-- **Distributed Tracing**: Jaeger integration for observability
-- **OpenAPI/Swagger**: Complete API documentation
-- **Prometheus Metrics**: Built-in monitoring and metrics
-- **CORS Support**: Cross-origin resource sharing configuration
-- **Docker Support**: Containerized deployment with Docker Compose
+## Data ownership
 
-## 🏗️ Architecture
+The service reads and writes the Postgres database that auth-service migrates (`users`, `user_social_identity`,
+`product_preference`). Flyway is disabled here on purpose: auth-service owns the schema. Do not change columns
+without a matching auth-service migration.
 
-### Core Components
+## Access rules
 
-- **User Service**: Core user management functionality
-- **Registration Service**: User registration and validation
-- **User Repository**: Database operations for user management
-- **Password Utilities**: Secure password encoding and matching
-- **Database Migrations**: Flyway-managed schema evolution
+| Endpoint | Who can call it |
+| --- | --- |
+| `GET /v0/user/me`, `PATCH /v0/user/me` | The signed-in user |
+| `GET/PUT /v0/user/me/preferences/{product}` | The signed-in user |
+| `GET /v0/user/{id}` | The account owner or `ROLE_SERVICE` |
+| `GET /v0/user/{id}/identities`, `DELETE /v0/user/{id}/identities/{provider}` | The account owner or `ROLE_SERVICE` |
+| `POST /v0/user/{id}/identities` | `ROLE_SERVICE` only. A link already owned by another account returns 409. |
+| `DELETE /v0/user/{id}` | `ROLE_SERVICE` only. Anonymizes the account. Users erase their own account through auth-service. |
+| `POST /signup` | `ROLE_SERVICE` only. Never marks an email as verified. |
+| `GET /health`, `/health/liveness`, `/health/readiness` | Anonymous. Details are off in `prod`. |
 
-### Database Schema
+Errors from the service layer return a JSON problem body with the matching status (404 for a missing user, 409 for
+a conflicting identity, 403 for a deactivated account).
 
-#### Users Table
+## Authentication
 
-```sql
-CREATE TABLE users
-(
-    id             BIGSERIAL PRIMARY KEY,
-    email          VARCHAR(255) NOT NULL UNIQUE,
-    password_hash  TEXT         NOT NULL,
-    active         BOOLEAN      NOT NULL    DEFAULT TRUE,
-    deactivated_at TIMESTAMP WITH TIME ZONE,
-    created_at     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
+- `prod`: tokens are verified against auth-service's JWKS (`AUTH_JWKS_URL`, default `http://auth-service:8100/keys`)
+  with issuer and audience checks. There is no shared HMAC secret in `prod`.
+- `dev` and `docker`: auth-service falls back to an HMAC secret, so these profiles also accept
+  `JWT_GENERATOR_SIGNATURE_SECRET`.
 
-**GDPR-Compliant User Deletion**:
+## Run
 
-**Primary Deletion Endpoint** - `DELETE /v0/user/{id}`:
-
-- GDPR-compliant deletion that always anonymizes user data (GDPR Article 17 - Right to Erasure)
-- **Always anonymizes by default** (no configuration needed):
-    - Replaces email with `deleted_user_{id}@deleted.local`
-    - Removes password hash, picture URL, and other PII
-    - Deletes all external identity data (OAuth providers)
-    - Sets `active = FALSE` and `deactivated_at` timestamp
-    - Preserves data structure for analytics while removing PII
-- This is the primary and recommended endpoint for user deletion
-- GDPR-compliant by default - anonymization preserves data structure while removing all PII
-
-**Hard Delete Endpoint** - `POST /v0/user/{id}/hard-delete`:
-
-- Alternative endpoint for complete data removal (no anonymization)
-- Completely removes user and all related data from database
-- Use only when hard delete is explicitly required
-- May break referential integrity if other tables reference this user
-
-**Important**: The default anonymization behavior is GDPR-compliant and recommended. It removes all personally
-identifiable information while preserving data structure for business needs (analytics, fraud prevention).
-See [GDPR_COMPLIANCE.md](./GDPR_COMPLIANCE.md) for detailed compliance information.
-
-## 🛠️ Setup & Installation
-
-### Prerequisites
-
-- Java 21
-- Maven 3.9+
-- Docker & Docker Compose
-- PostgreSQL 18
-
-### Environment Variables
-
-Create a `.env` file in the user-service directory:
-
-```bash
-# Database Configuration
-USER_DATABASE_NAME=user_db
-USER_DATABASE_USER=user_user
-USER_DATABASE_PASSWORD=your_secure_password
-
-# JWT Configuration
-JWT_GENERATOR_SIGNATURE_SECRET=your_jwt_secret_key_here
-```
-
-### Development Setup
-
-From the repository root:
+Needs JDK 25 and Maven 3.9.12. From the repository root:
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-- Service: http://localhost:8095
-- Swagger UI: http://localhost:8095/swagger-ui/index.html
-- Prometheus Metrics: http://localhost:8095/prometheus
-
-## 🔧 Configuration
-
-### Development Configuration (`application-dev.yml`)
-
-- **Server Port**: 8300
-- **CORS**: Enabled for localhost:3000
-- **JWT Access Token**: 360000ms (6 minutes)
-- **Jaeger Tracing**: 100% sampling
-- **Prometheus**: Enabled with detailed metrics
-
-### Production Configuration (`application-prod.yml`)
-
-- **Jaeger Tracing**: 10% sampling
-- **Enhanced Security**: Production-grade settings
-- **Optimized Performance**: Production-optimized configurations
-
-## 📡 API Endpoints
-
-### User Management Endpoints
-
-- `POST /signup` - User registration
-- `GET /v0/user/{id}` - Get user by ID (returns 404 if user is deactivated)
-- `DELETE /v0/user/{id}` - GDPR-compliant user deletion (always anonymizes data by default)
-    - Always anonymizes user data (removes PII, preserves structure for analytics)
-    - GDPR-compliant default behavior
-- `POST /v0/user/{id}/hard-delete` - Hard delete endpoint (complete data removal without anonymization)
-    - Use only when complete removal is explicitly required
-    - May break referential integrity
-
-### Social Identity Endpoints
-
-- `GET /v0/user/{id}/identities` - List linked OAuth providers for a user
-- `POST /v0/user/{id}/identities` - Link a provider to the user (used by auth-service sync jobs)
-- `DELETE /v0/user/{id}/identities/{provider}` - Soft-remove a provider link
-
-### Authentication Endpoints
-
-- `POST /auth/login` - User authentication
-- `POST /auth/logout` - User logout
-- `POST /auth/refresh` - Token refresh
-
-### Documentation
-
-- `GET /swagger-ui/index.html` - Swagger UI
-- `GET /swagger/user-service-0.0.yml` - OpenAPI specification
-
-## 🔍 Monitoring & Observability
-
-### Jaeger Tracing
-
-The service is configured to send distributed traces to Jaeger:
-
-- **Development**: 100% sampling rate
-- **Production**: 10% sampling rate
-- **Jaeger UI**: http://localhost:16686
-
-### Prometheus Metrics
-
-Built-in metrics include:
-
-- User management metrics
-- Authentication metrics
-- HTTP request metrics
-- JVM metrics
-
-Access metrics at: `http://localhost:8095/prometheus`
-
-## 🧪 Testing
-
-### Run Tests
+From this directory:
 
 ```bash
-# All tests
 mvn test
-
-# Specific test class
-mvn test -Dtest=UserServiceTest
-
-# Integration tests
-mvn test -Dtest=UserIntegrationTest
+mvn spotless:check
+mvn install
+mvn mn:run -pl user-service-web -am -Dmicronaut.environments=dev
 ```
 
-### Test Coverage
+Service: http://localhost:8095. Swagger UI is on in `dev` and `docker` only.
 
-The service includes comprehensive tests for:
+## Observability
 
-- **API DTOs**: UserDto serialization/deserialization
-- **Core Services**: UserService, RegistrationService with proper mocking
-- **Mappers**: UserEntityMapper, UserDtoMapper
-- **Models**: User record, UserEntity
-- **Utilities**: PasswordEncoder with BCrypt
-- **Exceptions**: AuthException, ErrorMessage
-- **Web Controllers**: UserController, RegistrationController
-- **Integration Tests**: HTTP endpoint testing
-- **Authentication**: Security filter testing
-- **Swagger UI**: Documentation accessibility
+- Traces go to the OTLP endpoint (`OTEL_EXPORTER_OTLP_ENDPOINT`). Production sampling defaults to 10%
+  (`OTEL_TRACES_SAMPLER_ARG`).
+- Prometheus metrics are at `/prometheus`. The ingress does not publish this path.
 
-### Test Results
+## Passwords
 
-- **Total Tests**: 17 tests across all modules
-- **API Module**: 3 tests (UserDto serialization/deserialization)
-- **Core Module**: 33 tests (services, mappers, models, exceptions, utilities)
-- **Web Module**: 17 tests (controllers, integration, authentication, Swagger UI)
-
-### Test Quality
-
-- **Unit Tests**: Isolated testing with proper mocking
-- **Integration Tests**: End-to-end HTTP endpoint testing
-- **Exception Testing**: Comprehensive error scenario coverage
-- **Serialization Testing**: DTO validation and transformation
-- **Security Testing**: Authentication flow validation
-
-## 🐳 Docker Deployment
-
-### Development Build
-
-```bash
-docker build -t user-service:dev .
-```
-
-### Production Build
-
-```bash
-docker build -f Dockerfile.prod -t user-service:prod .
-```
-
-## 🔐 Security Features
-
-- **Password Hashing**: Secure password storage using BCrypt
-- **JWT Tokens**: Stateless authentication with configurable expiration
-- **Token Revocation**: Refresh token revocation capability
-- **CORS Protection**: Configurable cross-origin resource sharing
-- **Input Validation**: Comprehensive request validation
-- **Access Control**: Role-based user access
-
-## 📊 Performance
-
-- **Connection Pooling**: HikariCP for database connections
-- **Caching**: Built-in caching mechanisms
-- **Async Processing**: Non-blocking I/O operations
-- **Resource Management**: Efficient memory and CPU usage
-
-## 🚀 Deployment
-
-### Kubernetes
-
-The service has its own **`deployment/`** folder: manifest `deployment/user-service.yaml` and scripts **
-`deployment/scripts/deploy.sh`**, **`deployment/scripts/build-and-push.sh`**. Shared cluster config (namespace,
-ConfigMap, Secrets, Traefik) lives in the repository **`deployment/`** directory.
-
-```bash
-# Deploy this service
-export SHARED_K8S="$(pwd)/../deployment"
-./deployment/scripts/deploy.sh <version>
-
-# Build and push image
-./deployment/scripts/build-and-push.sh <version>
-```
-
-### GitHub Actions
-
-Pull requests and `main` run `mvn install` in this directory with Maven 3.9.12.
-
-A tag `user-service/vX.Y.Z` (the same version as `pom.xml`) publishes the Maven modules, pushes the production image to
-Docker Hub, and creates a GitHub Release. Deploy that image with `./deployment/scripts/deploy.sh <version>`.
-
-## 📝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-
-- Create an issue in the repository
-- Check the documentation
-- Review the test cases for usage examples
+Passwords supplied to `POST /signup` are hashed with BCrypt at cost 10, the same as auth-service.

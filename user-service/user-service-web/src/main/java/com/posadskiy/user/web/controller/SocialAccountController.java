@@ -45,7 +45,7 @@ public class SocialAccountController {
         Authentication authentication,
         @PathVariable String userId,
         @Body @Valid LinkSocialIdentityRequest request) {
-        AccountAccess.selfOrService(authentication, userId);
+        AccountAccess.serviceOnly(authentication);
         return socialIdentityService.linkIdentity(parseUserId(userId), request);
     }
 

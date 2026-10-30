@@ -9,6 +9,15 @@ public final class AccountAccess {
     private AccountAccess() {
     }
 
+    /**
+     * Operations that change identity or erase an account are owned by auth-service. Users reach them there.
+     */
+    public static void serviceOnly(Authentication authentication) {
+        if (!authentication.getRoles().contains("ROLE_SERVICE")) {
+            throw new HttpStatusException(HttpStatus.FORBIDDEN, "This operation is restricted to internal services");
+        }
+    }
+
     public static void selfOrService(Authentication authentication, String userId) {
         if (authentication.getRoles().contains("ROLE_SERVICE")) {
             return;

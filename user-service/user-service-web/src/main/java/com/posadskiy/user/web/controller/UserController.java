@@ -18,6 +18,7 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.tracing.annotation.ContinueSpan;
+import jakarta.validation.Valid;
 
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @ExecuteOn(TaskExecutors.VIRTUAL)
@@ -67,7 +68,7 @@ public class UserController {
 
     @Patch("/me")
     @ContinueSpan
-    public UserDto updateProfile(Authentication authentication, @Body UpdateProfileRequest request) {
+    public UserDto updateProfile(Authentication authentication, @Body @Valid UpdateProfileRequest request) {
         return userDtoMapper.mapToDto(userService.updateProfile(
             parseUserId(authentication.getName()),
             request.displayName(),
@@ -85,27 +86,21 @@ public class UserController {
     @Put("/me/preferences/{product}")
     @ContinueSpan
     public ProductPreferenceDto savePreference(
-        Authentication authentication, @PathVariable String product, @Body ProductPreferenceDto request) {
+        Authentication authentication, @PathVariable String product, @Body @Valid ProductPreferenceDto request) {
         return productPreferenceService.save(
             parseUserId(authentication.getName()), product, request.marketingEmail(), request.settings());
     }
 
     /**
-     * GDPR-compliant user deletion endpoint.
-     * Permanently anonymizes user data according to GDPR Article 17
-     * (Right to Erasure / "Right to be Forgotten").
-     * <p>
-     * Default behavior: Always anonymizes user data (removes PII while preserving structure for analytics).
-     * This is GDPR-compliant and maintains data integrity.
-     * <p>
-     * For hard delete (complete removal), use POST /v0/user/{id}/hard-delete endpoint.
+     * Anonymizes the account (GDPR Article 17). Requires {@code ROLE_SERVICE}: users erase their own
+     * account through auth-service.
      *
      * @param id User ID to delete
      */
     @Delete("{id}")
     @ContinueSpan
     public HttpResponse<?> deleteUser(Authentication authentication, @PathVariable String id) {
-        AccountAccess.selfOrService(authentication, id);
+        AccountAccess.serviceOnly(authentication);
         userService.deleteUser(parseUserId(id));
         return HttpResponse.noContent();
     }

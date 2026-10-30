@@ -37,7 +37,7 @@ public class RegistrationService {
             user.id(),
             user.email(),
             encodedPassword,
-            Boolean.TRUE.equals(user.emailVerified()),
+            false,
             user.pictureUrl(),
             createdVia,
             user.authProviders(),
