@@ -1,7 +1,8 @@
 # Who may open connections to the service pods. Outbound traffic is not restricted.
 #
 # Allowed callers: other pods in this namespace (auth <-> user/email, JWKS and mail), Traefik in kube-system
-# (public routes), and the observability namespace (metrics scrape). Anything else in the cluster is refused.
+# (public routes), the observability namespace (metrics scrape), and costy plus grammarbar on the auth and
+# user ports (they verify access tokens and profile-service reads the user API). Anything else is refused.
 #
 # Check the namespace names against your cluster before applying:
 #   kubectl get ns --show-labels
@@ -23,3 +24,15 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: observability
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: costy
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: grammarbar
+      ports:
+        - protocol: TCP
+          port: 8100
+        - protocol: TCP
+          port: 8095
