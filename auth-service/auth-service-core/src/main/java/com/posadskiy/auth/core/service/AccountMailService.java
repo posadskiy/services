@@ -159,7 +159,7 @@ public class AccountMailService {
         String resolved = origin(linkOrigin);
         ActionTokenService.Issued issued =
             actionTokenService.issue(user.id(), CHANGE_EMAIL, properties.mail().verifyTtl(), normalized);
-        String url = link(resolved, "/verify-email", issued.raw());
+        String url = link(resolved, "/confirm-email", issued.raw());
         deliverTo(
             user,
             email.trim(),

@@ -54,15 +54,29 @@ public class AccountMaintenanceService {
     }
 
     public List<RefreshTokenEntity> sessions(Long userId) {
-        return refreshTokenRepository.findByUserIdAndRevokedFalseAndExpiresAtGreaterThan(userId, Instant.now());
+        Map<UUID, RefreshTokenEntity> byFamily = new LinkedHashMap<>();
+        for (RefreshTokenEntity token : refreshTokenRepository.findByUserIdAndRevokedFalseAndExpiresAtGreaterThan(
+            userId, Instant.now())) {
+            RefreshTokenEntity current = byFamily.get(token.familyId());
+            if (current == null || newer(token, current)) {
+                byFamily.put(token.familyId(), token);
+            }
+        }
+        return List.copyOf(byFamily.values());
+    }
+
+    private static boolean newer(RefreshTokenEntity candidate, RefreshTokenEntity current) {
+        if (candidate.createdAt() == null) {
+            return false;
+        }
+        return current.createdAt() == null || candidate.createdAt().isAfter(current.createdAt());
     }
 
     @Transactional
     public void revokeSession(Long userId, UUID familyId) {
-        RefreshTokenEntity session = refreshTokenRepository
-            .findByFamilyIdAndUserIdAndRevokedFalse(familyId, userId)
-            .orElseThrow(() -> new AuthException("Session not found", 404));
-        refreshTokenRepository.revokeFamily(session.familyId());
+        if (refreshTokenRepository.revokeFamilyForUser(familyId, userId) == 0) {
+            throw new AuthException("Session not found", 404);
+        }
         auditService.record(userId, "SESSION_REVOKED", familyId.toString());
     }
 

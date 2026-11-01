@@ -8,6 +8,8 @@ import com.posadskiy.auth.core.service.*;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import com.posadskiy.auth.web.ClientAddresses;
 import com.posadskiy.auth.web.ClientContextFactory;
+import com.posadskiy.auth.web.RefreshSession;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -34,6 +36,7 @@ public class AuthController {
     private final AuditService auditService;
     private final AccountMailService accountMailService;
     private final CaptchaVerifier captchaVerifier;
+    private final RefreshSession refreshSession;
 
     public AuthController(
         UserAccountService userAccountService,
@@ -42,7 +45,8 @@ public class AuthController {
         AuthMetrics metrics,
         AuditService auditService,
         AccountMailService accountMailService,
-        CaptchaVerifier captchaVerifier) {
+        CaptchaVerifier captchaVerifier,
+        RefreshSession refreshSession) {
         this.userAccountService = userAccountService;
         this.tokenService = tokenService;
         this.rateLimiter = rateLimiter;
@@ -50,6 +54,7 @@ public class AuthController {
         this.auditService = auditService;
         this.accountMailService = accountMailService;
         this.captchaVerifier = captchaVerifier;
+        this.refreshSession = refreshSession;
     }
 
     private static String clientKey(HttpRequest<?> request) {
@@ -131,7 +136,7 @@ public class AuthController {
 
     @Post("/login")
     @Secured(SecurityRule.IS_ANONYMOUS)
-    public TokenResponse login(@Body @Valid LoginRequest request, HttpRequest<?> httpRequest) {
+    public HttpResponse<TokenResponse> login(@Body @Valid LoginRequest request, HttpRequest<?> httpRequest) {
         rateLimiter.checkAddress(clientKey(httpRequest));
         rateLimiter.check(clientKey(httpRequest) + "|login|" + request.email());
         challengeIfNeeded(request.email(), request.captchaToken(), httpRequest);
@@ -140,7 +145,7 @@ public class AuthController {
             TokenResponse tokens = passwordSession(user, request.linkOrigin(), httpRequest);
             metrics.loginSuccess("password");
             auditService.record(user.id(), "LOGIN_SUCCESS", "password");
-            return tokens;
+            return refreshSession.respond(httpRequest, tokens);
         } catch (AuthException e) {
             metrics.loginFailure("password");
             throw e;
@@ -149,8 +154,8 @@ public class AuthController {
 
     @Post(uri = "/oauth/token", consumes = MediaType.APPLICATION_JSON)
     @Secured(SecurityRule.IS_ANONYMOUS)
-    public TokenResponse token(@Body @Valid RefreshRequest request, HttpRequest<?> httpRequest) {
-        return grant(request, httpRequest);
+    public HttpResponse<?> token(@Body @Valid RefreshRequest request, HttpRequest<?> httpRequest) {
+        return tokenResponse(request, httpRequest);
     }
 
     /**
@@ -158,8 +163,8 @@ public class AuthController {
      */
     @Post(uri = "/oauth/token", consumes = MediaType.APPLICATION_FORM_URLENCODED)
     @Secured(SecurityRule.IS_ANONYMOUS)
-    public TokenResponse tokenForm(@Body Map<String, String> form, HttpRequest<?> httpRequest) {
-        return grant(
+    public HttpResponse<?> tokenForm(@Body Map<String, String> form, HttpRequest<?> httpRequest) {
+        return tokenResponse(
             new RefreshRequest(
                 form.get("grant_type"),
                 form.get("refresh_token"),
@@ -171,17 +176,23 @@ public class AuthController {
             httpRequest);
     }
 
+    private HttpResponse<?> tokenResponse(RefreshRequest request, HttpRequest<?> httpRequest) {
+        try {
+            return refreshSession.respond(httpRequest, grant(request, httpRequest));
+        } catch (InvalidCredentialsException e) {
+            if (request.grantType() != null && request.grantType().equals("refresh_token")) {
+                return refreshSession.expired(httpRequest, e);
+            }
+            throw e;
+        }
+    }
+
     private TokenResponse grant(RefreshRequest request, HttpRequest<?> httpRequest) {
         if (request.grantType() == null) {
             throw new AuthException("grant_type is required");
         }
         return switch (request.grantType()) {
-            case "refresh_token" -> {
-                if (request.refreshToken() == null) {
-                    throw new AuthException("refresh_token is required");
-                }
-                yield tokenService.refresh(request.refreshToken());
-            }
+            case "refresh_token" -> tokenService.refresh(refreshSession.refreshGrant(httpRequest, request.refreshToken()));
             case "client_credentials" -> {
                 if (viaIngress(httpRequest)) {
                     // Machine clients live inside the cluster. A proxy header means the request came from outside.
@@ -205,15 +216,13 @@ public class AuthController {
 
     @Post("/oauth/revoke")
     @Secured(SecurityRule.IS_ANONYMOUS)
-    public HttpResponse<Void> revoke(@Body @Valid RevokeRequest request) {
-        tokenService.revoke(request.token());
-        return HttpResponse.ok();
+    public HttpResponse<?> revoke(@Body @Nullable RevokeRequest request, HttpRequest<?> httpRequest) {
+        return refreshSession.end(httpRequest, request == null ? null : request.token());
     }
 
     @Post("/logout")
     @Secured(SecurityRule.IS_ANONYMOUS)
-    public HttpResponse<Void> logout(@Body @Valid RevokeRequest request) {
-        tokenService.revoke(request.token());
-        return HttpResponse.ok();
+    public HttpResponse<?> logout(@Body @Nullable RevokeRequest request, HttpRequest<?> httpRequest) {
+        return refreshSession.end(httpRequest, request == null ? null : request.token());
     }
 }

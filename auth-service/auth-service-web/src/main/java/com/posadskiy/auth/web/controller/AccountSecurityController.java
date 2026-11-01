@@ -53,7 +53,13 @@ public class AccountSecurityController {
     @Delete("/sessions/{id}")
     @Secured(SecurityRule.IS_AUTHENTICATED)
     public HttpResponse<Void> revokeSession(@PathVariable String id) {
-        maintenance.revokeSession(currentUser().id(), UUID.fromString(id));
+        UUID familyId;
+        try {
+            familyId = UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            throw new com.posadskiy.auth.core.exception.AuthException("Session not found", 404);
+        }
+        maintenance.revokeSession(currentUser().id(), familyId);
         return HttpResponse.noContent();
     }
 

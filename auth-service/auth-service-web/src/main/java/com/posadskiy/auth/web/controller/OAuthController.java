@@ -13,6 +13,7 @@ import com.posadskiy.auth.core.service.OAuthTokenExchangeService.ExchangeResult;
 import com.posadskiy.auth.core.service.SocialLoginService.SocialLoginResult;
 import com.posadskiy.auth.core.storage.db.ExternalIdentityRepository;
 import com.posadskiy.auth.core.storage.db.entity.OAuthLoginCodeEntity;
+import com.posadskiy.auth.web.RefreshSession;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -52,6 +53,7 @@ public class OAuthController {
     private final ExternalIdentityRepository externalIdentityRepository;
     private final AuthProperties authProperties;
     private final AuthMetrics metrics;
+    private final RefreshSession refreshSession;
 
     public OAuthController(
         OAuthAuthorizationService authorizationService,
@@ -62,7 +64,8 @@ public class OAuthController {
         UserAccountService userAccountService,
         ExternalIdentityRepository externalIdentityRepository,
         AuthProperties authProperties,
-        AuthMetrics metrics) {
+        AuthMetrics metrics,
+        RefreshSession refreshSession) {
         this.authorizationService = authorizationService;
         this.tokenExchangeService = tokenExchangeService;
         this.socialLoginService = socialLoginService;
@@ -72,6 +75,7 @@ public class OAuthController {
         this.externalIdentityRepository = externalIdentityRepository;
         this.authProperties = authProperties;
         this.metrics = metrics;
+        this.refreshSession = refreshSession;
     }
 
     /**
@@ -123,8 +127,9 @@ public class OAuthController {
         @PathVariable String provider,
         @QueryValue("code") String code,
         @QueryValue(value = "state", defaultValue = "") String state,
-        @CookieValue(value = BROWSER_COOKIE, defaultValue = "") String binding) {
-        return complete(provider, code, state, binding, null);
+        @CookieValue(value = BROWSER_COOKIE, defaultValue = "") String binding,
+        HttpRequest<?> request) {
+        return complete(provider, code, state, binding, null, request);
     }
 
     @Post("/callback/{provider}")
@@ -135,15 +140,17 @@ public class OAuthController {
         @QueryValue(value = "state", defaultValue = "") String state,
         @QueryValue(value = "user", defaultValue = "") String user,
         @CookieValue(value = BROWSER_COOKIE, defaultValue = "") String binding,
-        @Nullable @Body CallbackForm form) {
+        @Nullable @Body CallbackForm form,
+        HttpRequest<?> request) {
         String resolvedCode = (form != null && form.code() != null) ? form.code() : code;
         String resolvedState = (form != null && form.state() != null) ? form.state() : state;
         String resolvedUser = (form != null && form.user() != null) ? form.user() : user;
-        return complete(provider, resolvedCode, resolvedState, binding, blankToNull(resolvedUser));
+        return complete(provider, resolvedCode, resolvedState, binding, blankToNull(resolvedUser), request);
     }
 
     @Post("/finalize")
-    public TokenResponse finalizeLogin(@Body @Valid OAuthFinalizeRequest request) {
+    public HttpResponse<TokenResponse> finalizeLogin(
+        @Body @Valid OAuthFinalizeRequest request, HttpRequest<?> httpRequest) {
         OAuthLoginCodeEntity loginCode = loginCodeService.consume(request.code(), request.codeVerifier());
         var user = userAccountService.requireActive(loginCode.userId());
         String provider = loginCode.externalIdentityId() == null
@@ -153,10 +160,12 @@ public class OAuthController {
             .map(identity -> identity.provider())
             .orElse(null);
         metrics.loginSuccess("oauth");
-        return tokenService.issueForUser(user, provider, loginCode.externalIdentityId());
+        return refreshSession.respond(
+            httpRequest, tokenService.issueForUser(user, provider, loginCode.externalIdentityId()));
     }
 
-    private HttpResponse<?> complete(String provider, String code, String state, String binding, String appleUserJson) {
+    private HttpResponse<?> complete(
+        String provider, String code, String state, String binding, String appleUserJson, HttpRequest<?> request) {
         if (code == null || code.isBlank() || state == null || state.isBlank()) {
             return HttpResponse.badRequest();
         }
@@ -177,11 +186,9 @@ public class OAuthController {
                 return HttpResponse.redirect(redirect);
             }
             metrics.oauth(provider, "success");
-            TokenResponse tokens = tokenService.issueForUser(
-                login.user(), login.identity().provider(), login.identity().id());
-            MutableHttpResponse<TokenResponse> response = HttpResponse.ok(tokens);
-            response.header("Cache-Control", "no-store");
-            return response;
+            return refreshSession.respond(
+                request,
+                tokenService.issueForUser(login.user(), login.identity().provider(), login.identity().id()));
         } catch (OAuthException e) {
             LOG.warn("OAuth callback failed provider={} status={}", provider, e.status());
             metrics.oauth(provider, "failure");

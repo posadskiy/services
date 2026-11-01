@@ -40,6 +40,9 @@ public interface RefreshTokenRepository extends CrudRepository<RefreshTokenEntit
     @Query("UPDATE refresh_token SET revoked = TRUE WHERE family_id = :familyId")
     void revokeFamily(UUID familyId);
 
+    @Query("UPDATE refresh_token SET revoked = TRUE WHERE family_id = :familyId AND user_id = :userId AND revoked = FALSE")
+    int revokeFamilyForUser(UUID familyId, Long userId);
+
     @Query("UPDATE refresh_token SET revoked = TRUE WHERE user_id = :userId")
     void revokeAllForUser(Long userId);
 }

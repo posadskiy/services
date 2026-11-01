@@ -13,6 +13,7 @@ micronaut:
             - PUT
             - DELETE
           allowed-headers:
+            - Accept
             - Content-Type
             - Authorization
           allow-credentials: true

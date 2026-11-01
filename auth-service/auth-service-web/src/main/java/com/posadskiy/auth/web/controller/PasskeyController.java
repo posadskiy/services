@@ -8,6 +8,7 @@ import com.posadskiy.auth.core.service.TokenService;
 import com.posadskiy.auth.core.service.UserAccountService;
 import com.posadskiy.auth.core.storage.db.entity.UserEntity;
 import com.posadskiy.auth.web.ClientContextFactory;
+import com.posadskiy.auth.web.RefreshSession;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -36,6 +37,7 @@ public class PasskeyController {
     private final AuthMetrics metrics;
     private final SecurityService securityService;
     private final JsonMapper json;
+    private final RefreshSession refreshSession;
 
     public PasskeyController(
         PasskeyService passkeys,
@@ -43,13 +45,15 @@ public class PasskeyController {
         TokenService tokenService,
         AuthMetrics metrics,
         SecurityService securityService,
-        JsonMapper json) {
+        JsonMapper json,
+        RefreshSession refreshSession) {
         this.passkeys = passkeys;
         this.userAccountService = userAccountService;
         this.tokenService = tokenService;
         this.metrics = metrics;
         this.securityService = securityService;
         this.json = json;
+        this.refreshSession = refreshSession;
     }
 
     private static String origin(HttpRequest<?> request, JsonNode root) {
@@ -95,20 +99,33 @@ public class PasskeyController {
 
     @Post(uri = "/login/passkey", consumes = MediaType.APPLICATION_JSON)
     @Secured(SecurityRule.IS_ANONYMOUS)
-    public TokenResponse login(@Body String body, HttpRequest<?> request) {
+    public HttpResponse<TokenResponse> login(@Body String body, HttpRequest<?> request) {
         JsonNode root = read(body);
         UserEntity user = passkeys.finishLogin(root.get("challengeId").getLongValue(), credential(root));
         metrics.loginSuccess("passkey");
-        return tokenService.issueForUser(user, "passkey", null, ClientContextFactory.from(request, text(root, "linkOrigin")));
+        return refreshSession.respond(
+            request,
+            tokenService.issueForUser(user, "passkey", null, ClientContextFactory.from(request, text(root, "linkOrigin"))));
     }
 
     private Map<String, Object> ceremony(PasskeyService.PasskeyCeremony ceremony) {
         try {
-            Object publicKey = json.readValue(ceremony.publicKeyJson().getBytes(), Argument.OBJECT_ARGUMENT);
-            return Map.of("challengeId", ceremony.challengeId(), "publicKey", publicKey);
+            Object parsed = json.readValue(ceremony.publicKeyJson().getBytes(), Argument.OBJECT_ARGUMENT);
+            return Map.of("challengeId", ceremony.challengeId(), "publicKey", options(parsed));
         } catch (IOException e) {
             throw new AuthException("Passkey options could not be read");
         }
+    }
+
+    /**
+     * Yubico's credentials-create and credentials-get JSON is {@code {"publicKey": options}}.
+     * The browser ceremony needs the inner options, with {@code challenge} at the top.
+     */
+    private static Object options(Object parsed) {
+        if (parsed instanceof Map<?, ?> wrapped && wrapped.get("publicKey") instanceof Map<?, ?> inner) {
+            return inner;
+        }
+        return parsed;
     }
 
     private JsonNode read(String body) {

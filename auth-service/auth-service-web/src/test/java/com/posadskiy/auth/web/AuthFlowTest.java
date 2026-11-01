@@ -6,9 +6,11 @@ import com.posadskiy.auth.core.mail.TransactionalMail;
 import com.posadskiy.auth.core.oauth.ExternalProfile;
 import com.posadskiy.auth.core.service.SocialLoginService;
 import io.micronaut.http.HttpRequest;
+import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.cookie.Cookie;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -142,6 +144,98 @@ class AuthFlowTest extends PostgresMicronautTest {
                 TokenResponse.class);
         assertNotNull(refreshed.accessToken());
         assertNotEquals(tokens.refreshToken(), refreshed.refreshToken());
+    }
+
+    @Test
+    void browserKeepsTheRefreshTokenInAnHttpOnlyCookie() {
+        client.toBlocking()
+            .retrieve(
+                HttpRequest.POST(
+                    "/users",
+                    new RegisterRequest("browser@example.com", "correcthorse", "http://localhost:3000")),
+                UserResponse.class);
+        confirmLatest("http://localhost:3000");
+
+        HttpResponse<TokenResponse> login = client.toBlocking()
+            .exchange(
+                HttpRequest.POST("/login", new LoginRequest("browser@example.com", "correcthorse"))
+                    .header("Sec-Fetch-Mode", "cors"),
+                TokenResponse.class);
+        assertNotNull(login.body().accessToken());
+        assertNull(login.body().refreshToken());
+        String issued = setCookie(login);
+        assertTrue(issued.toLowerCase().contains("httponly"));
+        assertTrue(issued.toLowerCase().contains("secure"));
+        assertTrue(issued.toLowerCase().contains("samesite=none"));
+        assertTrue(issued.toLowerCase().contains("partitioned"));
+        assertTrue(issued.contains("Path=/"));
+        String current = cookieValue(issued);
+
+        HttpClientResponseException presented = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking()
+                .exchange(
+                    HttpRequest.POST(
+                            "/oauth/token",
+                            new RefreshRequest("refresh_token", current, null, null, null, null))
+                        .header("Sec-Fetch-Mode", "cors")
+                        .cookie(Cookie.of(RefreshSession.COOKIE, current)),
+                    TokenResponse.class));
+        assertEquals(HttpStatus.BAD_REQUEST, presented.getStatus());
+
+        HttpResponse<TokenResponse> refreshed = client.toBlocking()
+            .exchange(
+                browserRefresh(current),
+                TokenResponse.class);
+        assertNull(refreshed.body().refreshToken());
+        assertNotNull(refreshed.body().accessToken());
+        String rotated = cookieValue(setCookie(refreshed));
+        assertNotEquals(current, rotated);
+
+        HttpResponse<?> loggedOut = client.toBlocking()
+            .exchange(
+                HttpRequest.POST("/logout", Map.of())
+                    .header("Sec-Fetch-Mode", "cors")
+                    .cookie(Cookie.of(RefreshSession.COOKIE, rotated)));
+        String cleared = setCookie(loggedOut).toLowerCase();
+        assertTrue(cleared.contains("max-age=0"));
+
+        HttpClientResponseException afterLogout = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(browserRefresh(rotated), TokenResponse.class));
+        assertEquals(HttpStatus.UNAUTHORIZED, afterLogout.getStatus());
+    }
+
+    @Test
+    void browserFormRefreshTokenIsRejected() {
+        HttpClientResponseException error = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking()
+                .exchange(
+                    HttpRequest.POST("/oauth/token", "grant_type=refresh_token&refresh_token=from-the-browser")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .header("Sec-Fetch-Site", "cross-site")));
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatus());
+        assertTrue(error.getResponse().getBody(String.class).orElse("").contains("not accepted from the browser"));
+    }
+
+    private static HttpRequest<?> browserRefresh(String refreshToken) {
+        return HttpRequest.POST(
+                "/oauth/token", new RefreshRequest("refresh_token", null, null, null, null, null))
+            .header("Sec-Fetch-Mode", "cors")
+            .cookie(Cookie.of(RefreshSession.COOKIE, refreshToken));
+    }
+
+    private static String setCookie(HttpResponse<?> response) {
+        return response.getHeaders().getAll("Set-Cookie").stream()
+            .filter(header -> header.startsWith(RefreshSession.COOKIE + "="))
+            .findFirst()
+            .orElseThrow();
+    }
+
+    private static String cookieValue(String setCookie) {
+        String pair = setCookie.split(";", 2)[0];
+        return pair.substring((RefreshSession.COOKIE + "=").length());
     }
 
     @Test
@@ -636,5 +730,103 @@ class AuthFlowTest extends PostgresMicronautTest {
                 .retrieve(HttpRequest.POST(
                     "/login", new LoginRequest("security@example.com", "correcthorse2", "http://localhost:3000"))));
         assertEquals(HttpStatus.UNAUTHORIZED, gone.getStatus());
+    }
+
+    @Test
+    void changeEmailLinkOpensTheConfirmScreen() {
+        mailer.clear();
+        client.toBlocking()
+            .retrieve(
+                HttpRequest.POST(
+                    "/signup",
+                    new RegisterRequest("change-email@example.com", "correcthorse", "http://localhost:3000")),
+                UserResponse.class);
+        confirmLatest("http://localhost:3000");
+        TokenResponse tokens = client.toBlocking()
+            .retrieve(
+                HttpRequest.POST("/login", new LoginRequest("change-email@example.com", "correcthorse")),
+                TokenResponse.class);
+
+        client.toBlocking()
+            .exchange(HttpRequest.POST(
+                    "/account/email",
+                    new ChangeEmailRequest(
+                        "change-email-next@example.com", "http://localhost:3000", "correcthorse"))
+                .bearerAuth(tokens.accessToken()));
+
+        String token = tokenFrom(
+            mailer.sent().getLast(), "VERIFY_URL", "http://localhost:3000/confirm-email?token=");
+        client.toBlocking()
+            .exchange(HttpRequest.POST("/account/email/confirm", new ConfirmEmailRequest(token)));
+
+        TokenResponse next = client.toBlocking()
+            .retrieve(
+                HttpRequest.POST("/login", new LoginRequest("change-email-next@example.com", "correcthorse")),
+                TokenResponse.class);
+        assertNotNull(next.accessToken());
+    }
+
+    @Test
+    void passkeyOptionsExposeTheCeremonyChallenge() {
+        client.toBlocking()
+            .retrieve(
+                HttpRequest.POST(
+                    "/signup",
+                    new RegisterRequest("passkey-options@example.com", "correcthorse", "http://localhost:3000")),
+                UserResponse.class);
+        confirmLatest("http://localhost:3000");
+        TokenResponse tokens = client.toBlocking()
+            .retrieve(
+                HttpRequest.POST("/login", new LoginRequest("passkey-options@example.com", "correcthorse")),
+                TokenResponse.class);
+
+        Map<?, ?> options = client.toBlocking()
+            .retrieve(
+                HttpRequest.POST("/account/passkeys/options", Map.of())
+                    .bearerAuth(tokens.accessToken())
+                    .header("Origin", "http://localhost:3000"),
+                Map.class);
+        assertNotNull(options.get("challengeId"));
+        Map<?, ?> publicKey = (Map<?, ?>) options.get("publicKey");
+        assertNotNull(publicKey.get("challenge"));
+        assertFalse(publicKey.containsKey("publicKey"));
+    }
+
+    @Test
+    void revokeSessionRemovesThatFamily() {
+        client.toBlocking()
+            .retrieve(
+                HttpRequest.POST(
+                    "/signup",
+                    new RegisterRequest("revoke-session@example.com", "correcthorse", "http://localhost:3000")),
+                UserResponse.class);
+        confirmLatest("http://localhost:3000");
+        TokenResponse tokens = client.toBlocking()
+            .retrieve(
+                HttpRequest.POST("/login", new LoginRequest("revoke-session@example.com", "correcthorse")),
+                TokenResponse.class);
+
+        List<SessionResponse> sessions = List.of(client.toBlocking()
+            .retrieve(
+                HttpRequest.GET("/account/sessions").bearerAuth(tokens.accessToken()),
+                SessionResponse[].class));
+        assertEquals(1, sessions.size());
+
+        client.toBlocking()
+            .exchange(HttpRequest.DELETE("/account/sessions/" + sessions.getFirst().id())
+                .bearerAuth(tokens.accessToken()));
+
+        List<SessionResponse> after = List.of(client.toBlocking()
+            .retrieve(
+                HttpRequest.GET("/account/sessions").bearerAuth(tokens.accessToken()),
+                SessionResponse[].class));
+        assertTrue(after.isEmpty());
+
+        HttpClientResponseException missing = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking()
+                .exchange(HttpRequest.DELETE("/account/sessions/not-a-uuid")
+                    .bearerAuth(tokens.accessToken())));
+        assertEquals(HttpStatus.NOT_FOUND, missing.getStatus());
     }
 }

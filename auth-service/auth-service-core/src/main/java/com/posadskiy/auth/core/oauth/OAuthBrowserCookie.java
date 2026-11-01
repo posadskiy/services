@@ -16,6 +16,15 @@ public final class OAuthBrowserCookie {
         return prefix.isEmpty() ? "/oauth2" : prefix + "/oauth2";
     }
 
+    /**
+     * Public path of auth-service. Traefik strips this prefix before the request reaches the pod,
+     * so the refresh cookie has to name the path the browser actually calls.
+     */
+    public static String sessionPath(String redirectBaseUrl) {
+        String prefix = pathPrefix(redirectBaseUrl);
+        return prefix.isEmpty() ? "/" : prefix;
+    }
+
     public static boolean secure(String redirectBaseUrl) {
         return redirectBaseUrl != null && redirectBaseUrl.regionMatches(true, 0, "https://", 0, "https://".length());
     }

@@ -15,6 +15,8 @@ class OAuthBrowserCookieTest {
     @Test
     void publicPrefixIsPartOfTheCookiePath() {
         assertEquals("/auth/oauth2", OAuthBrowserCookie.path("https://api.posadskiy.com/auth"));
+        assertEquals("/auth", OAuthBrowserCookie.sessionPath("https://api.posadskiy.com/auth"));
+        assertEquals("/", OAuthBrowserCookie.sessionPath("http://localhost:8100"));
         assertTrue(OAuthBrowserCookie.secure("https://api.posadskiy.com/auth"));
     }
 }
