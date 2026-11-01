@@ -27,7 +27,9 @@ public class DatabaseOAuthStateStore {
         String nonce,
         String browserBinding,
         String codeChallenge,
-        String frontendRedirectUrl) {
+        String frontendRedirectUrl,
+        String locale,
+        String timeZone) {
         OAuthStateEntity entity = new OAuthStateEntity(
             SecureTokens.randomUrl(32),
             provider,
@@ -37,6 +39,8 @@ public class DatabaseOAuthStateStore {
             SecureTokens.sha256Hex(browserBinding),
             codeChallenge,
             frontendRedirectUrl,
+            locale,
+            timeZone,
             Instant.now().plus(properties.oauth().stateTtl()),
             null);
         return repository.save(entity);

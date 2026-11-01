@@ -29,7 +29,12 @@ public class OAuthAuthorizationService {
     }
 
     public AuthorizationRequest authorize(
-        String providerName, String browserBinding, String codeChallenge, String returnTo) {
+        String providerName,
+        String browserBinding,
+        String codeChallenge,
+        String returnTo,
+        String locale,
+        String timeZone) {
         OAuthProviderProperties provider = registry.require(providerName);
         String redirectUri = provider.redirectUri();
         if (redirectUri == null || (!redirectUri.startsWith("http://") && !redirectUri.startsWith("https://"))) {
@@ -42,7 +47,15 @@ public class OAuthAuthorizationService {
         String codeVerifier = Pkce.verifier();
         String nonce = SecureTokens.randomUrl(32);
         OAuthStateEntity state = stateStore.create(
-            providerName, redirectUri, codeVerifier, nonce, browserBinding, codeChallenge, frontendRedirect);
+            providerName,
+            redirectUri,
+            codeVerifier,
+            nonce,
+            browserBinding,
+            codeChallenge,
+            frontendRedirect,
+            RegionalPreference.localeOrNull(locale),
+            RegionalPreference.timeZoneOrNull(timeZone));
 
         var builder = UriBuilder.of(provider.authorizationUri())
             .queryParam("client_id", provider.clientId())

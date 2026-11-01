@@ -21,6 +21,12 @@ public interface UsersRepository extends CrudRepository<UserEntity, Long> {
         """)
     void clearProfile(Long id);
 
+    @Query("UPDATE users SET locale = COALESCE(locale, :locale) WHERE id = :id")
+    void fillLocaleIfEmpty(Long id, String locale);
+
+    @Query("UPDATE users SET time_zone = COALESCE(time_zone, :timeZone) WHERE id = :id")
+    void fillTimeZoneIfEmpty(Long id, String timeZone);
+
     @Query("DELETE FROM product_preference WHERE user_id = :userId")
     void deletePreferences(Long userId);
 

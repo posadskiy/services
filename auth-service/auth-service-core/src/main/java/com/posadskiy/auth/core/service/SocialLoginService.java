@@ -35,6 +35,11 @@ public class SocialLoginService {
 
     @Transactional
     public SocialLoginResult handle(ExternalProfile profile) {
+        return handle(profile, null, null);
+    }
+
+    @Transactional
+    public SocialLoginResult handle(ExternalProfile profile, String locale, String timeZone) {
         if (profile.providerUserId() == null) {
             throw new OAuthException("Provider user id missing");
         }
@@ -56,7 +61,7 @@ public class SocialLoginService {
             return new SocialLoginResult(user, identity);
         }
 
-        UserEntity user = resolveUserForNewIdentity(profile);
+        UserEntity user = resolveUserForNewIdentity(profile, locale, timeZone);
         ExternalIdentityEntity identity =
             externalIdentityRepository.save(ExternalIdentityEntity.linked(user.id(), profile, Instant.now()));
         user = touchUser(user, profile);
@@ -64,14 +69,14 @@ public class SocialLoginService {
         return new SocialLoginResult(user, identity);
     }
 
-    private UserEntity resolveUserForNewIdentity(ExternalProfile profile) {
+    private UserEntity resolveUserForNewIdentity(ExternalProfile profile, String locale, String timeZone) {
         String normalized = EmailNormalizer.normalize(profile.email());
         if (normalized == null) {
-            return createUserFromProfile(profile, uniqueFallbackEmail(profile));
+            return createUserFromProfile(profile, uniqueFallbackEmail(profile), locale, timeZone);
         }
         Optional<UserEntity> existing = usersRepository.findByEmailNormalized(normalized);
         if (existing.isEmpty()) {
-            return createUserFromProfile(profile, profile.email());
+            return createUserFromProfile(profile, profile.email(), locale, timeZone);
         }
         if (!profile.emailVerified()) {
             throw new OAuthException(
@@ -89,7 +94,7 @@ public class SocialLoginService {
         return user;
     }
 
-    private UserEntity createUserFromProfile(ExternalProfile profile, String email) {
+    private UserEntity createUserFromProfile(ExternalProfile profile, String email, String locale, String timeZone) {
         String normalized = EmailNormalizer.normalize(email);
         UserEntity saved = usersRepository.save(UserEntity.newAccount(
             email,
@@ -98,6 +103,14 @@ public class SocialLoginService {
             profile.emailVerified(),
             profile.pictureUrl(),
             null));
+        String storedLocale = RegionalPreference.localeOrNull(locale);
+        String storedZone = RegionalPreference.timeZoneOrNull(timeZone);
+        if (storedLocale != null) {
+            usersRepository.fillLocaleIfEmpty(saved.id(), storedLocale);
+        }
+        if (storedZone != null) {
+            usersRepository.fillTimeZoneIfEmpty(saved.id(), storedZone);
+        }
         auditService.record(saved.id(), "USER_REGISTERED", profile.provider());
         return saved;
     }

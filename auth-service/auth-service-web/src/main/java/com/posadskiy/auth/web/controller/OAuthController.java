@@ -96,13 +96,20 @@ public class OAuthController {
         @PathVariable @NotBlank String provider,
         @QueryValue(value = "code_challenge", defaultValue = "") String codeChallenge,
         @QueryValue(value = "return_to", defaultValue = "") String returnTo,
+        @QueryValue(value = "locale", defaultValue = "") String locale,
+        @QueryValue(value = "time_zone", defaultValue = "") String timeZone,
         HttpRequest<?> request) {
         if (codeChallenge == null || codeChallenge.isBlank()) {
             throw new OAuthException("code_challenge is required");
         }
         String binding = existingOrNewBinding(request);
-        AuthorizationRequest authorization =
-            authorizationService.authorize(provider, binding, codeChallenge, blankToNull(returnTo));
+        AuthorizationRequest authorization = authorizationService.authorize(
+            provider,
+            binding,
+            codeChallenge,
+            blankToNull(returnTo),
+            blankToNull(locale),
+            blankToNull(timeZone));
         MutableHttpResponse<?> response = browserNavigation(request)
             ? HttpResponse.redirect(URI.create(authorization.authorizationUri()))
             : HttpResponse.ok(
@@ -156,7 +163,7 @@ public class OAuthController {
         try {
             ExchangeResult exchange = tokenExchangeService.exchange(provider, code, state, binding, appleUserJson);
             ExternalProfile profile = exchange.profile();
-            SocialLoginResult login = socialLoginService.handle(profile);
+            SocialLoginResult login = socialLoginService.handle(profile, exchange.locale(), exchange.timeZone());
             String frontend = exchange.frontendRedirectUrl();
             if (frontend == null || frontend.isBlank()) {
                 frontend = authProperties.oauth().frontendRedirectUrl();

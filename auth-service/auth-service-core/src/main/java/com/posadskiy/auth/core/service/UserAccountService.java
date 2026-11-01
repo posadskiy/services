@@ -33,6 +33,11 @@ public class UserAccountService {
 
     @Transactional
     public UserEntity register(String email, String rawPassword) {
+        return register(email, rawPassword, null, null);
+    }
+
+    @Transactional
+    public UserEntity register(String email, String rawPassword, String locale, String timeZone) {
         String normalized = EmailNormalizer.normalize(email);
         if (normalized == null || !normalized.contains("@")) {
             throw new AuthException("A valid email is required");
@@ -48,8 +53,20 @@ public class UserAccountService {
             false,
             null,
             Instant.now()));
+        fillRegionIfEmpty(saved.id(), locale, timeZone);
         auditService.record(saved.id(), "USER_REGISTERED", "email");
         return saved;
+    }
+
+    private void fillRegionIfEmpty(Long id, String locale, String timeZone) {
+        String storedLocale = RegionalPreference.localeOrNull(locale);
+        String storedZone = RegionalPreference.timeZoneOrNull(timeZone);
+        if (storedLocale != null) {
+            usersRepository.fillLocaleIfEmpty(id, storedLocale);
+        }
+        if (storedZone != null) {
+            usersRepository.fillTimeZoneIfEmpty(id, storedZone);
+        }
     }
 
     public UserEntity authenticate(String email, String rawPassword) {

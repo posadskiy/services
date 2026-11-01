@@ -123,7 +123,8 @@ public class AuthController {
         rateLimiter.checkAddress(clientKey(httpRequest));
         rateLimiter.check(clientKey(httpRequest) + "|register|" + request.email());
         accountMailService.checkOrigin(request.linkOrigin());
-        UserEntity user = userAccountService.register(request.email(), request.password());
+        UserEntity user = userAccountService.register(
+            request.email(), request.password(), request.locale(), request.timeZone());
         accountMailService.sendVerification(user, request.linkOrigin());
         return HttpResponse.status(HttpStatus.CREATED).body(toResponse(user));
     }

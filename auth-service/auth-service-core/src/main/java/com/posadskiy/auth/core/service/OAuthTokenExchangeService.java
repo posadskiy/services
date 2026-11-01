@@ -89,7 +89,7 @@ public class OAuthTokenExchangeService {
             name = readAppleName(appleUserJson);
         }
         ExternalProfile profile = new ExternalProfile(state.provider(), subject, email, emailVerified, name, picture);
-        return new ExchangeResult(profile, state.codeChallenge(), state.frontendRedirectUrl());
+        return new ExchangeResult(profile, state.codeChallenge(), state.frontendRedirectUrl(), state.locale(), state.timeZone());
     }
 
     @SuppressWarnings("unchecked")
@@ -113,6 +113,7 @@ public class OAuthTokenExchangeService {
         return null;
     }
 
-    public record ExchangeResult(ExternalProfile profile, String codeChallenge, String frontendRedirectUrl) {
+    public record ExchangeResult(
+        ExternalProfile profile, String codeChallenge, String frontendRedirectUrl, String locale, String timeZone) {
     }
 }
