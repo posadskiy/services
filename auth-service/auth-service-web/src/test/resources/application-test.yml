@@ -111,6 +111,16 @@ auth:
         jwks-uri: https://www.googleapis.com/oauth2/v3/certs
         issuer: https://accounts.google.com
         redirect-uri: http://localhost:8100/oauth2/callback/google
+      github:
+        enabled: true
+        client-id: test-github-client
+        client-secret: test-github-secret
+        authorization-uri: https://github.com/login/oauth/authorize
+        token-uri: https://github.com/login/oauth/access_token
+        redirect-uri: http://localhost:8100/oauth2/callback/github
+        scopes:
+          - read:user
+          - user:email
   token:
     reuse-grace: PT0S
   clients:

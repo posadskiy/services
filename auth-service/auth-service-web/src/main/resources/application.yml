@@ -220,6 +220,16 @@ auth:
           - openid
           - email
           - name
+      github:
+        enabled: ${GITHUB_OAUTH_ENABLED:true}
+        client-id: ${GITHUB_OAUTH_CLIENT_ID:}
+        client-secret: ${GITHUB_OAUTH_CLIENT_SECRET:}
+        authorization-uri: https://github.com/login/oauth/authorize
+        token-uri: https://github.com/login/oauth/access_token
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8100}/oauth2/callback/github
+        scopes:
+          - read:user
+          - user:email
   clients:
     system:
       enabled: ${SYSTEM_CLIENT_ENABLED:false}

@@ -1,6 +1,6 @@
 # Auth Service
 
-Micronaut 5 authentication service: email/password accounts plus Google and Apple OIDC.
+Micronaut 5 authentication service: email/password accounts plus Google, Apple, and GitHub sign-in.
 
 ## What it does
 
@@ -49,16 +49,17 @@ The previous ~10s login was from blocking work on the Netty event loop and/or a 
 
 Keep cost at 10. Do not raise it unless you give the pod more CPU.
 
-## OAuth (Google + Apple)
+## OAuth (Google, Apple, GitHub)
 
-This service implements OIDC itself. It does **not** use Micronaut Security OAuth2 (that would expose a second set of
-`/oauth/login` routes). Email/password signup and Google/Apple social login both issue the same platform tokens.
+This service implements the provider callback itself. It does **not** use Micronaut Security OAuth2 (that would expose a second set of
+`/oauth/login` routes). Email/password signup and Google, Apple, and GitHub sign-in all issue the same platform tokens.
+Google and Apple are checked as ID tokens. GitHub returns an access token, and the account id and verified email are read from the GitHub user API.
 
 OAuth `state` and one-time login codes live in **Postgres** so multiple replicas work without Redis. Redis can replace
 those tables later.
 
 Social accounts are auto-linked to an existing email only when the provider asserts `email_verified=true` and this
-service has already confirmed that address. A verified Google or Apple login for an address that was only pre-registered
+service has already confirmed that address. A verified Google, Apple, or GitHub login for an address that was only pre-registered
 removes that password, revokes its refresh tokens, and takes the account. Provider access/refresh tokens are not stored.
 
 ## Run
@@ -72,6 +73,8 @@ export DATASOURCE_PASSWORD=auth_password
 export JWT_GENERATOR_SIGNATURE_SECRET='at-least-32-characters-secret-key!!'
 export GOOGLE_OAUTH_CLIENT_ID=...
 export GOOGLE_OAUTH_CLIENT_SECRET=...
+export GITHUB_OAUTH_CLIENT_ID=...
+export GITHUB_OAUTH_CLIENT_SECRET=...
 export OAUTH_FRONTEND_REDIRECT_URL=http://localhost:3000/oauth/callback
 mvn mn:run -pl auth-service-web -am -Dmicronaut.environments=dev
 ```
@@ -102,6 +105,7 @@ mvn install       # needed for Micronaut AOT (nested Maven reads sibling modules
 - `AUTH_BCRYPT_COST` — default 10
 - `SYSTEM_CLIENT_ENABLED=true` plus client id/secret for service-to-service tokens
 - Apple: `APPLE_OAUTH_ENABLED`, team id, key id, and `.p8` PEM (`APPLE_OAUTH_PRIVATE_KEY_PEM`)
+- GitHub: `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET`. The OAuth app callback is `{OAUTH_REDIRECT_BASE_URL}/oauth2/callback/github`.
 
 Email verification and password-reset mail are sent through email-service, which delivers them with Resend. Password
 login works before the address is confirmed. The access token keeps `email_verified: false` until

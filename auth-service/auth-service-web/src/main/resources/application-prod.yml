@@ -83,3 +83,5 @@ auth:
         redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/google
       apple:
         redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/apple
+      github:
+        redirect-uri: ${OAUTH_REDIRECT_BASE_URL}/oauth2/callback/github

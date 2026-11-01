@@ -9,6 +9,8 @@ import com.posadskiy.auth.core.storage.db.entity.OAuthStateEntity;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.ObjectMapper;
 import jakarta.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,12 +18,15 @@ import java.util.Map;
 @Singleton
 public class OAuthTokenExchangeService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(OAuthTokenExchangeService.class);
+
     private final OAuthProviderRegistry registry;
     private final DatabaseOAuthStateStore stateStore;
     private final OAuthOutboundClient outboundClient;
     private final ObjectMapper objectMapper;
     private final IdTokenValidator idTokenValidator;
     private final AppleClientSecretService appleClientSecretService;
+    private final GitHubProfileClient gitHubProfileClient;
 
     public OAuthTokenExchangeService(
         OAuthProviderRegistry registry,
@@ -29,13 +34,15 @@ public class OAuthTokenExchangeService {
         OAuthOutboundClient outboundClient,
         ObjectMapper objectMapper,
         IdTokenValidator idTokenValidator,
-        AppleClientSecretService appleClientSecretService) {
+        AppleClientSecretService appleClientSecretService,
+        GitHubProfileClient gitHubProfileClient) {
         this.registry = registry;
         this.stateStore = stateStore;
         this.outboundClient = outboundClient;
         this.objectMapper = objectMapper;
         this.idTokenValidator = idTokenValidator;
         this.appleClientSecretService = appleClientSecretService;
+        this.gitHubProfileClient = gitHubProfileClient;
     }
 
     private static String stringValue(Map<String, ?> map, String key) {
@@ -77,6 +84,16 @@ public class OAuthTokenExchangeService {
         form.put("code_verifier", state.codeVerifier());
 
         Map<String, Object> tokenJson = readJson(outboundClient.postForm(provider.tokenUri(), form));
+        String providerError = stringValue(tokenJson, "error");
+        if (providerError != null && !providerError.isBlank()) {
+            LOG.warn("OAuth token endpoint rejected provider={} error={}", state.provider(), providerError);
+            throw new OAuthException("Provider token exchange failed");
+        }
+        if ("github".equalsIgnoreCase(state.provider())) {
+            ExternalProfile profile = gitHubProfileClient.load(stringValue(tokenJson, "access_token"));
+            return new ExchangeResult(
+                profile, state.codeChallenge(), state.frontendRedirectUrl(), state.locale(), state.timeZone());
+        }
         String idToken = stringValue(tokenJson, "id_token");
         JWTClaimsSet claims = idTokenValidator.validate(provider, idToken, state.nonce());
 

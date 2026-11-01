@@ -121,6 +121,16 @@ spec:
                 secretKeyRef:
                   name: microservices-secrets
                   key: GOOGLE_OAUTH_CLIENT_SECRET
+            - name: GITHUB_OAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: GITHUB_OAUTH_CLIENT_ID
+            - name: GITHUB_OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secrets
+                  key: GITHUB_OAUTH_CLIENT_SECRET
             - name: APPLE_OAUTH_ENABLED
               value: "true"
             - name: APPLE_OAUTH_CLIENT_ID

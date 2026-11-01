@@ -20,6 +20,31 @@ public class OAuthOutboundClient {
         .followRedirects(HttpClient.Redirect.NEVER)
         .build();
 
+    public String get(String uri, Map<String, String> headers) {
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder(URI.create(uri))
+                .timeout(Duration.ofSeconds(10))
+                .GET();
+            headers.forEach((name, value) -> {
+                if (value != null) {
+                    builder.header(name, value);
+                }
+            });
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 400) {
+                throw new IllegalStateException("Profile endpoint failed");
+            }
+            return response.body();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Profile endpoint interrupted", e);
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to contact profile endpoint");
+        }
+    }
+
     public String postForm(String uri, Map<String, String> form) {
         String body = form.entrySet().stream()
             .filter(e -> e.getValue() != null)

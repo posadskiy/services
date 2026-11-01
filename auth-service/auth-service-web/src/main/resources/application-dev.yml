@@ -43,3 +43,5 @@ auth:
         redirect-uri: http://localhost:8100/oauth2/callback/google
       apple:
         redirect-uri: http://localhost:8100/oauth2/callback/apple
+      github:
+        redirect-uri: http://localhost:8100/oauth2/callback/github

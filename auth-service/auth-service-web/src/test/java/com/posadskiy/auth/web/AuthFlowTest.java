@@ -324,6 +324,21 @@ class AuthFlowTest extends PostgresMicronautTest {
     }
 
     @Test
+    void oauthAuthorizeStartsGitHub() {
+        io.micronaut.http.HttpResponse<String> response = client.toBlocking()
+            .exchange(
+                HttpRequest.GET("/oauth2/authorize/github?code_challenge=test-challenge")
+                    .accept(MediaType.APPLICATION_JSON),
+                String.class);
+        assertEquals(HttpStatus.OK, response.getStatus());
+        String body = response.body();
+        assertTrue(body.contains("github.com/login/oauth/authorize"));
+        assertTrue(body.contains("test-github-client"));
+        assertTrue(body.contains("read%3Auser") || body.contains("read:user"));
+        assertTrue(body.contains("user%3Aemail") || body.contains("user:email"));
+    }
+
+    @Test
     void unknownOauthProviderIsRejected() {
         HttpClientResponseException ex = assertThrows(
             HttpClientResponseException.class,
