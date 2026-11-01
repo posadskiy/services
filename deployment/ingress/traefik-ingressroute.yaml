@@ -31,18 +31,6 @@ spec:
         - name: strip-prefix-user
         - name: rate-limit-middleware
       priority: 10
-    
-    # Email Service. Only the Resend webhook is public: callers inside the cluster use
-    # http://email-service:8090. The path is forwarded as is (no prefix stripping), because the
-    # controller is mounted at /email/webhooks/resend.
-    - match: Host(`api.posadskiy.com`) && Path(`/email/webhooks/resend`)
-      kind: Rule
-      services:
-        - name: email-service
-          port: 8090
-      middlewares:
-        - name: rate-limit-middleware
-      priority: 10
 
     # Health check endpoint
     - match: Host(`api.posadskiy.com`) && Path(`/health`)

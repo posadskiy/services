@@ -49,11 +49,6 @@ spec:
                 secretKeyRef:
                   name: microservices-secrets
                   key: RESEND_API_KEY
-            - name: RESEND_WEBHOOK_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: microservices-secrets
-                  key: RESEND_WEBHOOK_SECRET
             - name: RESEND_ALLOWED_FROM
               valueFrom:
                 secretKeyRef:

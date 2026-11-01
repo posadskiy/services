@@ -13,7 +13,7 @@ class ResendTransactionalSenderTest {
     void postsATemplatePayloadWithTheIdempotencyKey() {
         Captured captured = new Captured();
         ResendTransactionalSender sender = new ResendTransactionalSender(
-            new ResendProperties("re_test", "alpha@example.com,beta@example.com", "https://api.resend.com", null),
+            new ResendProperties("re_test", "alpha@example.com,beta@example.com", "https://api.resend.com"),
             captured);
 
         sender.send(new TransactionalEmailRequest(
@@ -36,7 +36,7 @@ class ResendTransactionalSenderTest {
     @Test
     void rejectsAMissingAllowlistBeforeCallingResend() {
         ResendTransactionalSender sender = new ResendTransactionalSender(
-            new ResendProperties("re_test", "  ", "https://api.resend.com", null), (json, key) -> 200);
+            new ResendProperties("re_test", "  ", "https://api.resend.com"), (json, key) -> 200);
         EmailDeliveryException ex = assertThrows(
             EmailDeliveryException.class,
             () -> sender.send(new TransactionalEmailRequest(
@@ -52,7 +52,7 @@ class ResendTransactionalSenderTest {
     @Test
     void rejectsAFromAddressThatIsNotOnTheAllowlist() {
         ResendTransactionalSender sender = new ResendTransactionalSender(
-            new ResendProperties("re_test", "beta@example.com", "https://api.resend.com", null),
+            new ResendProperties("re_test", "beta@example.com", "https://api.resend.com"),
             (json, key) -> 200);
         EmailDeliveryException ex = assertThrows(
             EmailDeliveryException.class,
@@ -69,7 +69,7 @@ class ResendTransactionalSenderTest {
     @Test
     void rejectsAMissingApiKeyBeforeCallingResend() {
         ResendTransactionalSender sender = new ResendTransactionalSender(
-            new ResendProperties("", "from@example.com", "https://api.resend.com", null), (json, key) -> 200);
+            new ResendProperties("", "from@example.com", "https://api.resend.com"), (json, key) -> 200);
         assertThrows(
             EmailDeliveryException.class,
             () -> sender.send(new TransactionalEmailRequest(
@@ -83,7 +83,7 @@ class ResendTransactionalSenderTest {
 
     private static ResendTransactionalSender restricted(Captured captured) {
         return new ResendTransactionalSender(
-            new ResendProperties("re_test", "alpha@example.com", "https://api.resend.com", null),
+            new ResendProperties("re_test", "alpha@example.com", "https://api.resend.com"),
             captured,
             "https://grammarbar.com, https://costy.posadskiy.com/");
     }

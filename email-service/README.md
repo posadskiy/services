@@ -77,7 +77,6 @@ from HTML in this service, then sent through Resend. Auth-service calls this for
 ```bash
 RESEND_API_KEY=re_...
 RESEND_ALLOWED_FROM=noreply@mail.grammarbar.com,noreply@mail.posadskiy.com
-RESEND_WEBHOOK_SECRET=whsec_...
 EMAIL_ALLOWED_LINK_ORIGINS=https://grammarbar.com,https://costy.posadskiy.com,https://repeaty.posadskiy.com
 ```
 
@@ -87,7 +86,6 @@ exactly); anything else is answered with 400. It is required in production and o
 `RESEND_API_KEY` and `RESEND_ALLOWED_FROM` are required. `RESEND_ALLOWED_FROM` is the comma-separated list of mailbox
 addresses the caller may use. Auth-service sends the full From header, and this service rejects any address that is not
 on the list. The HTML files are `verify-email` (`VERIFY_URL`) and `password-reset` (`RESET_URL`).
-`POST /email/webhooks/resend` checks the Svix signature and records bounces and complaints.
 
 Mail leaves this service through Resend. There is no SMTP client.
 
@@ -132,7 +130,7 @@ mvn test -Dtest=TransactionalEmailControllerTest
 The service includes comprehensive tests for:
 
 - **Core**: Resend sender
-- **Web**: transactional endpoint and the Resend webhook
+- **Web**: transactional endpoint
 - **Authentication**: Security filter testing
 - **Swagger UI**: Documentation accessibility
 

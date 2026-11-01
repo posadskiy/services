@@ -12,8 +12,6 @@ micronaut:
         access: isAnonymous()
       - pattern: /prometheus
         access: isAnonymous()
-      - pattern: /email/webhooks/resend
-        access: isAnonymous()
     token:
       jwt:
         claims-validators:

@@ -21,8 +21,6 @@ micronaut:
         access: isAnonymous()
       - pattern: /prometheus
         access: isAnonymous()
-      - pattern: /email/webhooks/resend
-        access: isAnonymous()
 
     token:
       jwt:
@@ -81,5 +79,4 @@ logging:
 resend:
   api-key: re_test
   allowed-from: alpha@example.com,beta@example.com
-  api-url: https://api.resend.com
-  webhook-secret: whsec_dGVzdC1zZWNyZXQ= 
+  api-url: https://api.resend.com 

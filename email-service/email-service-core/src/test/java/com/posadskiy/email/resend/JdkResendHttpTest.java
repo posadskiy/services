@@ -38,7 +38,7 @@ class JdkResendHttpTest {
 
     private JdkResendHttp http() {
         String url = "http://127.0.0.1:" + server.getAddress().getPort();
-        return new JdkResendHttp(new ResendProperties("re_key", "from@example.com", url, null));
+        return new JdkResendHttp(new ResendProperties("re_key", "from@example.com", url));
     }
 
     @Test

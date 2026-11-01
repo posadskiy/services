@@ -7,6 +7,5 @@ import io.micronaut.core.annotation.Nullable;
 public record ResendProperties(
     @Nullable String apiKey,
     @Nullable String allowedFrom,
-    String apiUrl,
-    @Nullable String webhookSecret) {
+    String apiUrl) {
 }

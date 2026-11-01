@@ -6,8 +6,8 @@ import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.annotation.Value;
 
 /**
- * A production instance without these values would report healthy and then fail every send,
- * or answer every Resend webhook with 400. Refuse to start instead.
+ * A production instance without these values would report healthy and then fail every send.
+ * Refuse to start instead.
  */
 @Context
 @Requires(env = "prod")
@@ -16,7 +16,6 @@ public class ProdResendConfig {
     public ProdResendConfig(ResendProperties properties, @Value("${email.allowed-link-origins:}") String linkOrigins) {
         require(properties.apiKey(), "RESEND_API_KEY");
         require(properties.allowedFrom(), "RESEND_ALLOWED_FROM");
-        require(properties.webhookSecret(), "RESEND_WEBHOOK_SECRET");
         require(linkOrigins, "EMAIL_ALLOWED_LINK_ORIGINS");
     }
 

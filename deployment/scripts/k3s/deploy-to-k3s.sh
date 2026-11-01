@@ -60,6 +60,18 @@ kubectl apply -f "$K8S_DIR/network-policies.yaml"
 echo ""
 echo "🔒 Deploying Secrets..."
 if command -v envsubst &> /dev/null; then
+  # A PEM line that starts with --- is a YAML document separator once substituted.
+  # Auth ignores whitespace inside the PEM, so store each key on one line.
+  flatten_pem() {
+    local name="$1"
+    local value="${!name-}"
+    value="${value//$'\r'/}"
+    value="${value//$'\n'/}"
+    printf -v "$name" '%s' "$value"
+    export "$name"
+  }
+  flatten_pem AUTH_JWT_PRIVATE_KEY_PEM
+  flatten_pem AUTH_JWT_PUBLIC_KEY_PEM
   envsubst < "$K8S_DIR/secrets.yaml" | kubectl apply -f -
 else
   echo "⚠️  Warning: envsubst not found. Please manually update secrets.yaml with values"
