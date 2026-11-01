@@ -119,7 +119,11 @@ public class UserService {
             throw new AuthException("User account has been deactivated", 403);
         }
         UserEntity updated = userRepository.update(
-            entity.withProfile(blank(displayName, 120), blank(locale, 35), blank(timeZone, 64), avatar(avatarUrl)));
+            entity.withProfile(
+                blank(displayName, 120),
+                RegionalPreference.locale(locale),
+                RegionalPreference.timeZone(timeZone),
+                avatar(avatarUrl)));
         return getUserById(updated.id());
     }
 }
