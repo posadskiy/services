@@ -13,6 +13,7 @@ import com.posadskiy.auth.core.service.OAuthTokenExchangeService.ExchangeResult;
 import com.posadskiy.auth.core.service.SocialLoginService.SocialLoginResult;
 import com.posadskiy.auth.core.storage.db.ExternalIdentityRepository;
 import com.posadskiy.auth.core.storage.db.entity.OAuthLoginCodeEntity;
+import com.posadskiy.auth.web.ClientContextFactory;
 import com.posadskiy.auth.web.RefreshSession;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpRequest;
@@ -160,8 +161,14 @@ public class OAuthController {
             .map(identity -> identity.provider())
             .orElse(null);
         metrics.loginSuccess("oauth");
+        // Record the device, so the session list can name it and a first sign-in from it is mailed to the owner.
         return refreshSession.respond(
-            httpRequest, tokenService.issueForUser(user, provider, loginCode.externalIdentityId()));
+            httpRequest,
+            tokenService.issueForUser(
+                user,
+                provider,
+                loginCode.externalIdentityId(),
+                ClientContextFactory.from(httpRequest, loginCode.linkOrigin())));
     }
 
     private HttpResponse<?> complete(

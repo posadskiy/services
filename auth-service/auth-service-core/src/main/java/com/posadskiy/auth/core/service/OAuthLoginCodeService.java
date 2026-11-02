@@ -24,6 +24,11 @@ public class OAuthLoginCodeService {
     }
 
     public String create(UserEntity user, Long identityId, String codeChallenge) {
+        return create(user, identityId, codeChallenge, null);
+    }
+
+    /** @param linkOrigin allowlisted site that asked for the code; the new-device email links back to it */
+    public String create(UserEntity user, Long identityId, String codeChallenge, String linkOrigin) {
         if (codeChallenge == null || codeChallenge.isBlank()) {
             throw new OAuthException("code_challenge is required");
         }
@@ -34,6 +39,7 @@ public class OAuthLoginCodeService {
             identityId,
             codeChallenge,
             Instant.now().plus(properties.oauth().loginCodeTtl()),
+            linkOrigin,
             null));
         return code;
     }

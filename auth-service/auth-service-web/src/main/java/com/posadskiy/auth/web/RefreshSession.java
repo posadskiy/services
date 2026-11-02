@@ -112,6 +112,12 @@ public class RefreshSession {
             tokens.accessToken(), null, tokens.expiresIn(), tokens.tokenType(), tokens.userId());
     }
 
+    /** The refresh cookie the browser sent, or null. */
+    @Nullable
+    public static String cookie(HttpRequest<?> request) {
+        return read(request);
+    }
+
     @Nullable
     private static String read(HttpRequest<?> request) {
         return request.getCookies()

@@ -39,6 +39,9 @@ class AuthFlowTest extends PostgresMicronautTest {
     @Inject
     SocialLoginService socialLoginService;
 
+    @Inject
+    javax.sql.DataSource dataSource;
+
     private static String jwtSubject(String accessToken) {
         String payload = accessToken.split("\\.")[1];
         String json = new String(Base64.getUrlDecoder().decode(payload), StandardCharsets.UTF_8);
@@ -871,5 +874,121 @@ class AuthFlowTest extends PostgresMicronautTest {
                 .exchange(HttpRequest.DELETE("/account/sessions/not-a-uuid")
                     .bearerAuth(tokens.accessToken())));
         assertEquals(HttpStatus.NOT_FOUND, missing.getStatus());
+    }
+
+    private static final String APP_VERIFIER = "native-app-verifier-0123456789-abcdefghijklmnop";
+
+    private static String appChallenge() throws Exception {
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(
+            java.security.MessageDigest.getInstance("SHA-256")
+                .digest(APP_VERIFIER.getBytes(StandardCharsets.US_ASCII)));
+    }
+
+    /** Signs in the way the site does and returns the refresh cookie value. */
+    private String browserSignIn(String email) {
+        client.toBlocking()
+            .retrieve(
+                HttpRequest.POST("/users", new RegisterRequest(email, "correcthorse", "http://localhost:3000")),
+                UserResponse.class);
+        confirmLatest("http://localhost:3000");
+        HttpResponse<TokenResponse> login = client.toBlocking()
+            .exchange(
+                HttpRequest.POST("/login", new LoginRequest(email, "correcthorse"))
+                    .header("Sec-Fetch-Mode", "cors"),
+                TokenResponse.class);
+        return cookieValue(setCookie(login));
+    }
+
+    private static HttpRequest<?> appCodeRequest(String cookie, String origin, String challenge) {
+        var request = HttpRequest.POST("/account/app-code", Map.of("code_challenge", challenge))
+            .header("Sec-Fetch-Mode", "cors")
+            .header("Origin", origin);
+        return cookie == null ? request : request.cookie(Cookie.of(RefreshSession.COOKIE, cookie));
+    }
+
+    private HttpStatus appCodeStatus(HttpRequest<?> request) {
+        return assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().retrieve(request, AppCodeResponse.class)).getStatus();
+    }
+
+    @Test
+    void recentBrowserSignInHandsANativeAppItsOwnSession() throws Exception {
+        String cookie = browserSignIn("app-code@example.com");
+        String challenge = appChallenge();
+
+        AppCodeResponse issued = client.toBlocking()
+            .retrieve(appCodeRequest(cookie, "http://localhost:3000", challenge), AppCodeResponse.class);
+
+        HttpResponse<TokenResponse> redeemed = client.toBlocking()
+            .exchange(
+                HttpRequest.POST("/oauth2/finalize", new OAuthFinalizeRequest(issued.code(), APP_VERIFIER))
+                    .header("User-Agent", "Grammarbar for Mac"),
+                TokenResponse.class);
+        TokenResponse app = redeemed.body();
+        assertNotNull(app.refreshToken());
+        assertNotEquals(cookie, app.refreshToken());
+
+        List<SessionResponse> sessions = List.of(client.toBlocking()
+            .retrieve(
+                HttpRequest.GET("/account/sessions").bearerAuth(app.accessToken()),
+                SessionResponse[].class));
+        assertEquals(2, sessions.size());
+        assertTrue(sessions.stream().anyMatch(session -> "Grammarbar for Mac".equals(session.userAgent())));
+
+        assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().retrieve(
+                HttpRequest.POST("/oauth2/finalize", new OAuthFinalizeRequest(issued.code(), APP_VERIFIER)),
+                TokenResponse.class));
+
+        AppCodeResponse other = client.toBlocking()
+            .retrieve(appCodeRequest(cookie, "http://localhost:3000", challenge), AppCodeResponse.class);
+        assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().retrieve(
+                HttpRequest.POST("/oauth2/finalize", new OAuthFinalizeRequest(other.code(), "wrong-verifier")),
+                TokenResponse.class));
+    }
+
+    @Test
+    void appCodeNeedsTheBrowserCookieFromAnAllowedSite() throws Exception {
+        String cookie = browserSignIn("app-code-guard@example.com");
+        String challenge = appChallenge();
+
+        TokenResponse bearerOnly = client.toBlocking()
+            .retrieve(
+                HttpRequest.POST("/login", new LoginRequest("app-code-guard@example.com", "correcthorse")),
+                TokenResponse.class);
+        assertEquals(
+            HttpStatus.BAD_REQUEST,
+            appCodeStatus(HttpRequest.POST("/account/app-code", Map.of("code_challenge", challenge))
+                .bearerAuth(bearerOnly.accessToken())));
+
+        assertEquals(HttpStatus.UNAUTHORIZED, appCodeStatus(appCodeRequest(null, "http://localhost:3000", challenge)));
+        assertEquals(
+            HttpStatus.UNAUTHORIZED,
+            appCodeStatus(appCodeRequest("not-a-session", "http://localhost:3000", challenge)));
+        assertEquals(HttpStatus.BAD_REQUEST, appCodeStatus(appCodeRequest(cookie, "https://evil.example", challenge)));
+        assertEquals(HttpStatus.BAD_REQUEST, appCodeStatus(appCodeRequest(cookie, "http://localhost:3000", "short")));
+
+        String rotated = cookieValue(setCookie(client.toBlocking().exchange(browserRefresh(cookie), TokenResponse.class)));
+        assertEquals(HttpStatus.UNAUTHORIZED, appCodeStatus(appCodeRequest(cookie, "http://localhost:3000", challenge)));
+        assertNotNull(client.toBlocking()
+            .retrieve(appCodeRequest(rotated, "http://localhost:3000", challenge), AppCodeResponse.class)
+            .code());
+    }
+
+    @Test
+    void anOldBrowserSignInMustSignInAgainBeforeHandingOff() throws Exception {
+        String cookie = browserSignIn("app-code-stale@example.com");
+        try (var connection = dataSource.getConnection();
+             var statement = connection.prepareStatement(
+                 "UPDATE refresh_token SET created_at = created_at - INTERVAL '1 hour' "
+                     + "WHERE user_id = (SELECT id FROM users WHERE email = ?)")) {
+            statement.setString(1, "app-code-stale@example.com");
+            assertEquals(1, statement.executeUpdate());
+        }
+        assertEquals(HttpStatus.FORBIDDEN, appCodeStatus(appCodeRequest(cookie, "http://localhost:3000", appChallenge())));
     }
 }

@@ -15,5 +15,6 @@ public record OAuthLoginCodeEntity(
     @Nullable @MappedProperty("external_identity_id") Long externalIdentityId,
     @Nullable @MappedProperty("code_challenge") String codeChallenge,
     @MappedProperty("expires_at") Instant expiresAt,
+    @Nullable @MappedProperty("link_origin") String linkOrigin,
     @DateCreated @Nullable Instant createdAt) {
 }
