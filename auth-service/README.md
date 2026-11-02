@@ -103,7 +103,9 @@ mvn install       # needed for Micronaut AOT (nested Maven reads sibling modules
   Micronaut binds to `auth.jwt.hmac-secret`.
 - `AUTH_JWT_PRIVATE_KEY_PEM` + `AUTH_JWT_PUBLIC_KEY_PEM` — switch to ES256 and publish the public key at `/keys`
 - `AUTH_BCRYPT_COST` — default 10
-- `SYSTEM_CLIENT_ENABLED=true` plus client id/secret for service-to-service tokens
+- `SYSTEM_CLIENT_ENABLED=true` plus client id/secret for full `ROLE_SERVICE` machine tokens
+- `COSTY_PROFILE_CLIENT_ENABLED=true` plus `COSTY_PROFILE_CLIENT_ID` / `COSTY_PROFILE_CLIENT_SECRET` for Costy
+  profile-service (`ROLE_USER_LABELS` only — display-labels, not account erase/signup)
 - Apple: `APPLE_OAUTH_ENABLED`, team id, key id, and `.p8` PEM (`APPLE_OAUTH_PRIVATE_KEY_PEM`)
 - GitHub: `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET`. The OAuth app callback is `{OAUTH_REDIRECT_BASE_URL}/oauth2/callback/github`.
 

@@ -252,6 +252,20 @@ class AuthFlowTest extends PostgresMicronautTest {
     }
 
     @Test
+    void costyProfileClientCredentialsIssuesAccessTokenWithoutRefresh() {
+        TokenResponse tokens = client.toBlocking()
+            .retrieve(
+                HttpRequest.POST(
+                    "/oauth/token",
+                    new RefreshRequest(
+                        "client_credentials", null, "costy-profile", "costy-profile-secret", null, null)),
+                TokenResponse.class);
+        assertNotNull(tokens.accessToken());
+        assertNull(tokens.refreshToken());
+        assertNull(tokens.userId());
+    }
+
+    @Test
     void clientCredentialsAreRefusedWhenTheRequestCameThroughIngress() {
         HttpClientResponseException error = assertThrows(
             HttpClientResponseException.class,

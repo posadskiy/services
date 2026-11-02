@@ -79,6 +79,14 @@ services:
       EMAIL_SERVICE_URL: http://email-service:8090
       AUTH_EMAIL_FROM_GRAMMARBAR: ${AUTH_EMAIL_FROM_GRAMMARBAR:?Set AUTH_EMAIL_FROM_GRAMMARBAR}
       AUTH_EMAIL_FROM_POSADSKIY: ${AUTH_EMAIL_FROM_POSADSKIY:?Set AUTH_EMAIL_FROM_POSADSKIY}
+      # Full ROLE_SERVICE machine client (auth→user signup/erase, etc.). Optional locally.
+      SYSTEM_CLIENT_ENABLED: ${SYSTEM_CLIENT_ENABLED:-false}
+      SYSTEM_CLIENT_ID: ${SYSTEM_CLIENT_ID:-system}
+      SYSTEM_CLIENT_SECRET: ${SYSTEM_CLIENT_SECRET:-}
+      # Labels-only client for Costy profile-service → POST /v0/users/display-labels.
+      COSTY_PROFILE_CLIENT_ENABLED: ${COSTY_PROFILE_CLIENT_ENABLED:-true}
+      COSTY_PROFILE_CLIENT_ID: ${COSTY_PROFILE_CLIENT_ID:-costy-profile}
+      COSTY_PROFILE_CLIENT_SECRET: ${COSTY_PROFILE_CLIENT_SECRET:-costy-local-profile-secret}
     ports:
       - "127.0.0.1:8100:8100"
       - "127.0.0.1:5005:5005"

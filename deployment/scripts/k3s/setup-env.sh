@@ -17,6 +17,8 @@ REQUIRED_VARS=(
   "AUTH_DATABASE_PASSWORD"
   "AUTH_TURNSTILE_SECRET"
   "SYSTEM_CLIENT_SECRET"
+  "COSTY_PROFILE_CLIENT_ID"
+  "COSTY_PROFILE_CLIENT_SECRET"
   "K3S_SERVER_IP"
   "K3S_SSH_USER"
 )
@@ -36,6 +38,11 @@ if [ ${#MISSING_VARS[@]} -ne 0 ]; then
   done
   echo ""
   echo "Please set these environment variables before running the deployment script."
+  exit 1
+fi
+
+if [ "${#COSTY_PROFILE_CLIENT_SECRET}" -lt 32 ]; then
+  echo "❌ COSTY_PROFILE_CLIENT_SECRET must be at least 32 characters (try: openssl rand -hex 32)"
   exit 1
 fi
 

@@ -15,6 +15,8 @@ micronaut:
         access: isAnonymous()
       - pattern: /account/verify
         access: isAnonymous()
+      - pattern: /account/verification-email
+        access: isAnonymous()
       - pattern: /account/forgot-password
         access: isAnonymous()
       - pattern: /account/reset-password
@@ -130,6 +132,12 @@ auth:
       client-secret: system-secret
       roles:
         - ROLE_SERVICE
+    costy-profile:
+      enabled: true
+      client-id: costy-profile
+      client-secret: costy-profile-secret
+      roles:
+        - ROLE_USER_LABELS
   mail:
     allowed-origins: http://localhost:3000,https://grammarbar.com,https://costy.posadskiy.com,https://repeaty.posadskiy.com
     verify-ttl: PT24H

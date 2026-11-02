@@ -239,3 +239,10 @@ auth:
       client-secret: ${SYSTEM_CLIENT_SECRET:}
       roles:
         - ROLE_SERVICE
+    # Costy profile-service only. Must not receive ROLE_SERVICE.
+    costy-profile:
+      enabled: ${COSTY_PROFILE_CLIENT_ENABLED:false}
+      client-id: ${COSTY_PROFILE_CLIENT_ID:costy-profile}
+      client-secret: ${COSTY_PROFILE_CLIENT_SECRET:}
+      roles:
+        - ROLE_USER_LABELS
