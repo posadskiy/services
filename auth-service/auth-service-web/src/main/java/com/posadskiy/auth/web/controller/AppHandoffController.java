@@ -83,7 +83,7 @@ public class AppHandoffController {
             .orElseThrow(InvalidCredentialsException::new);
 
         Instant signedInAt = refreshTokens
-            .findTopByFamilyIdOrderByCreatedAtAsc(current.familyId())
+            .findFirstByFamilyIdOrderByCreatedAtAsc(current.familyId())
             .map(RefreshTokenEntity::createdAt)
             .orElse(null);
         if (signedInAt == null || signedInAt.isBefore(now.minus(MAX_AUTH_AGE))) {

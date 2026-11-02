@@ -34,7 +34,7 @@ public interface RefreshTokenRepository extends CrudRepository<RefreshTokenEntit
      * The oldest row of a family is the sign-in itself; later rows are rotations. The cleaner only drops rows long
      * past expiry, so a live family always keeps rows older than its last rotation window.
      */
-    Optional<RefreshTokenEntity> findTopByFamilyIdOrderByCreatedAtAsc(UUID familyId);
+    Optional<RefreshTokenEntity> findFirstByFamilyIdOrderByCreatedAtAsc(UUID familyId);
 
     boolean existsByUserId(Long userId);
 
