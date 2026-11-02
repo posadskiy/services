@@ -72,8 +72,19 @@ public class AccountController {
     }
 
     @Post("/verification-email")
-    @Secured(SecurityRule.IS_AUTHENTICATED)
-    public HttpResponse<Void> verificationEmail(@Body @Valid LinkOriginRequest request, HttpRequest<?> httpRequest) {
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    public HttpResponse<Void> verificationEmail(
+        @Body @Valid ResendVerificationRequest request, HttpRequest<?> httpRequest) {
+        accountMailService.checkOrigin(request.linkOrigin());
+        String email = request.email() == null ? null : request.email().trim();
+        if (email != null && !email.isEmpty()) {
+            captchaVerifier.verify(request.captchaToken(), clientKey(httpRequest));
+            String normalized = EmailNormalizer.normalize(email);
+            rateLimiter.checkAddress(clientKey(httpRequest));
+            rateLimiter.check(clientKey(httpRequest) + "|verify|" + normalized);
+            accountMailService.resendVerificationByEmail(email, request.linkOrigin());
+            return HttpResponse.noContent();
+        }
         UserEntity user = userAccountService.requireActive(currentUserId());
         rateLimiter.check(clientKey(httpRequest) + "|verify|" + user.id());
         accountMailService.sendVerification(user, request.linkOrigin());

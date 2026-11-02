@@ -114,7 +114,10 @@ login works before the address is confirmed. The access token keeps `email_verif
 - `POST /users` and `POST /signup` require `linkOrigin` (`https://grammarbar.com`, `https://costy.posadskiy.com`,
   `https://repeaty.posadskiy.com`, or `http://localhost:3000`). The verification link is `{origin}/verify-email?token=`.
   A missing or unknown origin is rejected, so a Costy signup cannot be sent to Grammarbar.
-- `POST /account/verification-email` sends another verification link for the signed-in user.
+- `POST /account/verification-email` sends another verification link. Anonymous body is
+  `{ "email", "linkOrigin", "captchaToken?" }` (same captcha rules as forgot-password) and always returns 204.
+  Signed-in clients may omit `email` and send only `{ "linkOrigin" }`. Password login no longer resends this mail
+  when the account is unverified; the client should call this endpoint instead.
 - `POST /account/verify` with `{ "token": "..." }` sets `email_verified`.
 - `POST /account/forgot-password` requires `linkOrigin`. An unknown address still returns 204. A missing origin is
   rejected. The reset link is `{origin}/reset-password?token=`.

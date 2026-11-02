@@ -104,21 +104,9 @@ public class AuthController {
 
     private TokenResponse passwordSession(UserEntity user, String linkOrigin, HttpRequest<?> httpRequest) {
         if (!user.emailVerified()) {
-            resendVerification(user, linkOrigin);
             throw new AuthException("Confirm your email before signing in", 403);
         }
         return tokenService.issueForUser(user, "password", null, ClientContextFactory.from(httpRequest, linkOrigin));
-    }
-
-    private void resendVerification(UserEntity user, String linkOrigin) {
-        if (linkOrigin == null || linkOrigin.isBlank()) {
-            return;
-        }
-        try {
-            accountMailService.sendVerification(user, linkOrigin);
-        } catch (AuthException ignored) {
-            // A rejected origin still leaves the account unsigned-in.
-        }
     }
 
     @Post(uris = {"/users", "/signup"})

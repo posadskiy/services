@@ -88,6 +88,18 @@ public class AccountMailService {
             "verify_email");
     }
 
+    /** Looks up the address and sends only when the account is active and still unverified. */
+    public void resendVerificationByEmail(String email, @Nullable String linkOrigin) {
+        String normalized = EmailNormalizer.normalize(email);
+        if (normalized == null) {
+            return;
+        }
+        usersRepository
+            .findByEmailNormalized(normalized)
+            .filter(UserEntity::active)
+            .ifPresent(user -> sendVerification(user, linkOrigin));
+    }
+
     public void sendPasswordReset(String email, @Nullable String linkOrigin) {
         String resolved = origin(linkOrigin);
         String normalized = EmailNormalizer.normalize(email);

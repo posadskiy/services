@@ -473,11 +473,13 @@ class AuthFlowTest extends PostgresMicronautTest {
                 UserResponse.class);
         assertFalse(created.emailVerified());
 
+        assertEquals(1, mailer.sent().size());
         HttpClientResponseException blocked = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking()
                 .retrieve(HttpRequest.POST("/login", new LoginRequest("verify@example.com", "correcthorse"))));
         assertEquals(HttpStatus.FORBIDDEN, blocked.getStatus());
+        assertEquals(1, mailer.sent().size(), "unverified login must not resend the verification email");
 
         assertEquals("Alpha <alpha@example.com>", mailer.sent().getLast().from());
         String token = tokenFrom(mailer.sent().getLast(), "VERIFY_URL", "https://grammarbar.com/verify-email?token=");
@@ -495,6 +497,33 @@ class AuthFlowTest extends PostgresMicronautTest {
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(HttpRequest.POST("/account/verify", new VerifyEmailRequest(token))));
         assertEquals(HttpStatus.BAD_REQUEST, reused.getStatus());
+    }
+
+    @Test
+    void anonymousResendVerificationSendsAnotherLinkWithoutLeakingUnknownEmails() {
+        mailer.clear();
+        client.toBlocking()
+            .retrieve(
+                HttpRequest.POST(
+                    "/signup",
+                    new RegisterRequest("resend@example.com", "correcthorse", "https://grammarbar.com")),
+                UserResponse.class);
+        assertEquals(1, mailer.sent().size());
+
+        client.toBlocking()
+            .exchange(HttpRequest.POST(
+                "/account/verification-email",
+                new ResendVerificationRequest("resend@example.com", "https://grammarbar.com")));
+        assertEquals(2, mailer.sent().size());
+        String token = tokenFrom(mailer.sent().getLast(), "VERIFY_URL", "https://grammarbar.com/verify-email?token=");
+        client.toBlocking().exchange(HttpRequest.POST("/account/verify", new VerifyEmailRequest(token)));
+
+        mailer.clear();
+        client.toBlocking()
+            .exchange(HttpRequest.POST(
+                "/account/verification-email",
+                new ResendVerificationRequest("nobody@example.com", "https://grammarbar.com")));
+        assertTrue(mailer.sent().isEmpty());
     }
 
     @Test

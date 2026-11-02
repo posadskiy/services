@@ -9,6 +9,8 @@ micronaut:
         access: isAnonymous()
       - pattern: /account/verify
         access: isAnonymous()
+      - pattern: /account/verification-email
+        access: isAnonymous()
       - pattern: /account/forgot-password
         access: isAnonymous()
       - pattern: /account/reset-password
