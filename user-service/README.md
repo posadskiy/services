@@ -18,6 +18,7 @@ without a matching auth-service migration.
 | `GET /v0/user/me`, `PATCH /v0/user/me` | The signed-in user |
 | `GET/PUT /v0/user/me/preferences/{product}` | The signed-in user |
 | `GET /v0/user/{id}` | The account owner or `ROLE_SERVICE` |
+| `POST /v0/users/display-labels` | `ROLE_USER_LABELS` only (Costy profile machine client). Body `{ "ids": ["1","2"] }` (max 100). Returns `{ "id": "label" }` where label is `displayName` or email local-part. Missing/inactive ids omitted. |
 | `GET /v0/user/{id}/identities`, `DELETE /v0/user/{id}/identities/{provider}` | The account owner or `ROLE_SERVICE` |
 | `POST /v0/user/{id}/identities` | `ROLE_SERVICE` only. A link already owned by another account returns 409. |
 | `DELETE /v0/user/{id}` | `ROLE_SERVICE` only. Anonymizes the account. Users erase their own account through auth-service. |

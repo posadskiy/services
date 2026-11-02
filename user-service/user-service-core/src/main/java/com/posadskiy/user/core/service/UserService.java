@@ -10,7 +10,11 @@ import com.posadskiy.user.core.model.User;
 import jakarta.inject.Singleton;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Singleton
@@ -125,5 +129,51 @@ public class UserService {
                 RegionalPreference.timeZone(timeZone),
                 avatar(avatarUrl)));
         return getUserById(updated.id());
+    }
+
+    /**
+     * Resolves member labels for a bounded set of ids: displayName, else email local-part.
+     * Missing or inactive users are omitted. Does not expose full profiles.
+     */
+    public Map<String, String> displayLabels(Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Map.of();
+        }
+        List<Long> distinct = ids.stream().filter(Objects::nonNull).distinct().toList();
+        if (distinct.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, String> labels = new LinkedHashMap<>();
+        for (UserEntity entity : userRepository.findByIdIn(distinct)) {
+            if (!entity.active()) {
+                continue;
+            }
+            String label = labelFrom(entity.displayName(), entity.email());
+            if (label != null) {
+                labels.put(Long.toString(entity.id()), label);
+            }
+        }
+        return labels;
+    }
+
+    static String labelFrom(String displayName, String email) {
+        if (displayName != null) {
+            String name = displayName.trim();
+            if (!name.isEmpty()) {
+                return name;
+            }
+        }
+        if (email == null) {
+            return null;
+        }
+        String trimmed = email.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        int at = trimmed.indexOf('@');
+        if (at > 0) {
+            return trimmed.substring(0, at);
+        }
+        return trimmed;
     }
 }
