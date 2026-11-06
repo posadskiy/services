@@ -21,6 +21,10 @@ spec:
       - Content-Type
       - Range
       - Authorization
+      # W3C trace context, so browser traces (Grafana Faro) continue into auth/user/email.
+      - traceparent
+      - tracestate
+      - baggage
     accessControlExposeHeaders:
       - Content-Length
       - Content-Range
